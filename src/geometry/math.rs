@@ -1,6 +1,8 @@
 extern crate num;
 extern crate nalgebra as na;
 
+use self::num::traits::Float;
+
 pub trait BaseFloat : self::na::BaseFloat {
     /// Returns the default epsilon value for floating point equality tests.
     #[inline(always)]
@@ -69,6 +71,14 @@ pub trait FloatCompare : BaseFloat {
     /// Returns whether self is greater than other or equal to it within the default epsilon.
     #[inline(always)] fn is_le(self, other: Self) -> bool { self.is_le_eps(other, Self::eps()) }
 }
+
+impl<T: BaseFloat> FloatCompare for T {}
+
+/// Max for floating point types as per the standard library.
+pub fn max<T: Float>(v1: T, v2: T) -> T { v1.max(v2) }
+
+/// Min for floating point types as per the standard library.
+pub fn min<T: Float>(v1: T, v2: T) -> T { v1.min(v2) }
 
 /// Adds 2pi to the angle if it is negative.
 #[inline(always)]
