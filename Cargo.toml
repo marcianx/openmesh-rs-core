@@ -4,7 +4,6 @@ version = "0.1.0"
 authors = ["Ashish Myles <marcianx@gmail.com>"]
 
 [dependencies.nalgebra]
-git = "https://github.com/sebcrozet/nalgebra.git"
-
+[dependencies.bitflags]
 [dependencies.num]
 
