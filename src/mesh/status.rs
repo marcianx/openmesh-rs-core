@@ -1,8 +1,10 @@
 extern crate bitflags;
 
+pub type FlagBits = u32;
+
 bitflags! {
     #[doc = "Flags for each vertex/halfedge/edge/face field."]
-    flags Status: u32 {
+    flags Status: FlagBits {
         const DELETED           = 1,
         const LOCKED            = 2,
         const SELECTED          = 4,
@@ -37,12 +39,39 @@ impl Status {
     pub fn set_tagged           (&mut self, b: bool) { self.update(TAGGED           , b) }
     pub fn set_tagged2          (&mut self, b: bool) { self.update(TAGGED2          , b) }
     pub fn set_fixed_nonmanifold(&mut self, b: bool) { self.update(FIXED_NONMANIFOLD, b) }
+
+    pub fn iter() -> Iter {
+        Iter {
+            cond: Status::all().bits(),
+            flag: 1 as FlagBits
+        }
+    }
 }
 
+////////////////////////////////////////////////////////////////////////////////
 
-// TODO: Implement iterator of all flags.
+/// Iterator to enumerate all Status flags.
+pub struct Iter {
+    cond: FlagBits,
+    flag: FlagBits
+}
 
+impl Iterator for Iter {
+    type Item = Status;
 
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.cond == 0 as FlagBits {
+            None
+        } else {
+            let status = Status::from_bits_truncate(self.flag);
+            self.flag <<= 1;
+            self.cond >>= 1;
+            Some(status)
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 #[cfg(test)]
 mod test {
@@ -95,6 +124,15 @@ mod test {
         flags.set_tagged2(false);
         flags.set_fixed_nonmanifold(false);
         assert_eq!(flags, Status::empty());
+    }
+
+    #[test]
+    fn test_iter() {
+        let mut flags = Status::empty();
+        for flag in Status::iter() {
+            flags.insert(flag);
+        }
+        assert_eq!(flags, Status::all());
     }
 }
 
