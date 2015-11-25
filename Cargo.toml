@@ -1,5 +1,5 @@
 [package]
-name = "openmesh-rs-core"
+name = "openmesh"
 version = "0.1.0"
 authors = ["Ashish Myles <marcianx@gmail.com>"]
 

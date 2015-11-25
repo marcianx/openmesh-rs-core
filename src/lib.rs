@@ -1,3 +1,5 @@
+#![crate_name = "openmesh"]
+
 #[macro_use(bitflags)]
 extern crate bitflags;
 
