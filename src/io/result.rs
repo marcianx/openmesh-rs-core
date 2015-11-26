@@ -3,6 +3,7 @@ extern crate byteorder;
 use std::error;
 use std::fmt;
 use std::result;
+use std::string;
 use std::io;
 
 /// OpenMesh I/O Error.
@@ -10,15 +11,17 @@ use std::io;
 pub enum Error {
     Unsupported,
     UnexpectedEOF,
+    StringExceeds64k,
+    FromUtf8(string::FromUtf8Error),
     Io(io::Error)
 }
 
 impl fmt::Display for self::Error {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         try!(match self {
-            &Error::Unsupported   => { "Unsupported functionality".fmt(formatter) }
-            &Error::UnexpectedEOF => { "Unexpected EOF".fmt(formatter) }
-            &Error::Io(ref err)   => { err.fmt(formatter) }
+            &Error::Io(ref err) => { err.fmt(formatter) }
+            &Error::FromUtf8(ref err) => { err.fmt(formatter) }
+            _ => { error::Error::description(self).fmt(formatter) }
         });
         result::Result::Ok(())
     }
@@ -29,15 +32,17 @@ impl error::Error for self::Error {
         match self {
             &Error::Unsupported => { "Unsupported functionality" }
             &Error::UnexpectedEOF => { "Unexpected EOF" }
+            &Error::StringExceeds64k => { "Cannot store string longer than 64Kb" }
             &Error::Io(ref err) => { err.description() }
+            &Error::FromUtf8(ref err) => { err.description() }
         }
     }
 
     fn cause(&self) -> Option<&error::Error> {
         match self {
-            &Error::Unsupported   => { None }
-            &Error::UnexpectedEOF => { None }
             &Error::Io(ref err)   => { err.cause() }
+            &Error::FromUtf8(ref err) => { err.cause() }
+            _ => { None }
         }
     }
 }
@@ -57,4 +62,8 @@ impl From<byteorder::Error> for Error {
             byteorder::Error::Io(err) => Error::Io(err)
         }
     }
+}
+
+impl From<string::FromUtf8Error> for Error {
+    fn from(err: string::FromUtf8Error) -> Error { Error::FromUtf8(err) }
 }
