@@ -216,11 +216,9 @@ impl Binary for String {
         // Reproduce the bug for backward-compatibility with OpenMesh files?
         let len_size = try!(len.restore(reader, swap));
 
-        // More performant would be to use String's underlying buffer directly after resizing.
-        // But that would need a method like String#into_vec(), which consumes the String to
-        // produce the vector.
         let len = len as usize;
-        let mut bytes = vec![0; len];
+        let mut bytes = mem::replace(self, String::new()).into_bytes();
+        bytes.resize(len, 0);
         try!(reader.read_exact(&mut bytes[..]));
         *self = try!(String::from_utf8(bytes));
         assert!(self.len() == len);
