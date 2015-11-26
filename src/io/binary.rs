@@ -215,13 +215,11 @@ impl Binary for String {
         // TODO: OpenMesh has a bug where len is double-swapped.
         // Reproduce the bug for backward-compatibility with OpenMesh files?
         let len_size = try!(len.restore(reader, swap));
-
         let len = len as usize;
-        let mut bytes = mem::replace(self, String::new()).into_bytes();
-        bytes.resize(len, 0);
-        try!(reader.read_exact(&mut bytes[..]));
-        *self = try!(String::from_utf8(bytes));
-        assert!(self.len() == len);
+
+        self.clear();
+        self.reserve_exact(len);
+        try!(reader.take(len as u64).read_to_string(self));
         Ok(len + len_size)
     }
 }
@@ -240,8 +238,8 @@ mod test_string {
 
     #[test]
     fn test_restore() {
-        test::test_restore(false, &[5, 0, 104, 101, 108, 108, 111], String::new, &String::from("hello"));
-        test::test_restore(true , &[0, 5, 104, 101, 108, 108, 111], String::new, &String::from("hello"));
+        test::test_restore(false, &[5, 0, 104, 101, 108, 108, 111], || String::from("prev-content"), &String::from("hello"));
+        test::test_restore(true , &[0, 5, 104, 101, 108, 108, 111], || String::from("prev-content"), &String::from("hello"));
     }
 }
 
