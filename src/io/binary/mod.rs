@@ -3,12 +3,12 @@ mod traits;
 pub use self::traits::*;
 
 // Trait implementations
-mod geometry;
 mod primitives;
 mod string;
 mod status;
-pub use self::geometry::*;
+mod vec;
 pub use self::primitives::*;
 pub use self::string::*;
 pub use self::status::*;
+pub use self::vec::*;
 
