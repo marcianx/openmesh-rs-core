@@ -34,10 +34,14 @@ pub trait Binary {
 pub mod test {
     use std::fmt::Debug;
     use std::io::Cursor;
-    use io::binary::Binary;
+    use io::binary::{Binary, UNKNOWN_SIZE};
 
     pub fn test_store<T: Binary>(swap: bool, value: &T, expected_bytes: &[u8]) {
         let mut buf = Vec::<u8>::new();
+        assert_eq!(value.size_of_value(), expected_bytes.len());
+        if <T as Binary>::size_of_type() != UNKNOWN_SIZE {
+            assert_eq!(value.size_of_value(), <T as Binary>::size_of_type());
+        }
         assert_eq!(value.store(&mut buf, swap).unwrap(), expected_bytes.len());
         assert_eq!(buf, expected_bytes);
     }

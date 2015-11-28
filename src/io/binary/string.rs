@@ -10,7 +10,7 @@ use io::result::{Error, Result};
 
 impl Binary for String {
     fn is_streamable() -> bool { true }
-    fn size_of_value(&self) -> usize { self.len() }
+    fn size_of_value(&self) -> usize { self.len() + <u16 as Binary>::size_of_type() }
 
     fn store(&self, writer: &mut Write, swap: bool) -> Result<usize> {
         let len = self.len();
