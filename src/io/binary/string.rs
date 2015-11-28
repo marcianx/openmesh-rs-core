@@ -1,4 +1,6 @@
 use std::io::{Read, Write};
+use std::ops::Add;
+use std::vec::Vec;
 
 use io::binary::traits::*;
 use io::result::{Error, Result};
@@ -56,7 +58,50 @@ mod test_string {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Implementation for exact-size iterators of strings.
+// Implementation for vectors of strings.
 
-// TODO
+impl Binary for Vec<String> {
+    fn is_streamable() -> bool { true }
+    fn size_of_value(&self) -> usize {
+        self.iter().map(|s| s.size_of_value()).fold(0, Add::add)
+    }
+
+    fn store(&self, writer: &mut Write, swap: bool) -> Result<usize> {
+        let mut size = 0;
+        for s in self.iter() {
+            size += try!(s.store(writer, swap));
+        }
+        Ok(size)
+    }
+
+    /// Note: This reads exactly as many strings as the existing length of self.
+    fn restore(&mut self, reader: &mut Read, swap: bool) -> Result<usize> {
+        let mut size = 0;
+        for s in self.iter_mut() {
+            size += try!(s.restore(reader, swap));
+        }
+        Ok(size)
+    }
+}
+
+
+#[cfg(test)]
+mod test_string_vec {
+    use ::io::binary::test;
+
+    #[test]
+    fn test_store() {
+        let vec = vec![String::from("hello"), String::from(" world")];
+        test::test_store(false, &vec, &[5, 0, 104, 101, 108, 108, 111, 6, 0, 32, 119, 111, 114, 108, 100]);
+        test::test_store(true , &vec, &[0, 5, 104, 101, 108, 108, 111, 0, 6, 32, 119, 111, 114, 108, 100]);
+    }
+
+    #[test]
+    fn test_restore() {
+        let expected = vec![String::from("hello"), String::from(" world")];
+        let to_fill = vec![String::from("prev-content"), String::from("prev-content")];
+        test::test_restore(false, &[5, 0, 104, 101, 108, 108, 111, 6, 0, 32, 119, 111, 114, 108, 100], || to_fill.clone(), &expected);
+        test::test_restore(true , &[0, 5, 104, 101, 108, 108, 111, 0, 6, 32, 119, 111, 114, 108, 100], || to_fill.clone(), &expected);
+    }
+}
 
