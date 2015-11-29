@@ -235,6 +235,10 @@ mod test_std_vec {
 
     #[test]
     fn test_store() {
+        test::test_store(false, &Vec::<u8>::new(), &[]);
+        test::test_store(true , &Vec::<u8>::new(), &[]);
+        test::test_store(false, &Vec::<u32>::new(), &[]);
+        test::test_store(true , &Vec::<u32>::new(), &[]);
         test::test_store(false, &vec![0x01u8, 0xac], &[0x01, 0xac]);
         test::test_store(true , &vec![0x01u8, 0xac], &[0x01, 0xac]);
         test::test_store(false, &vec![0x01i8, 0x7c], &[0x01, 0x7c]);
@@ -254,6 +258,10 @@ mod test_std_vec {
 
     #[test]
     fn test_restore() {
+        test::test_restore(false, &[], Vec::new, &Vec::<u8>::new());
+        test::test_restore(true , &[], Vec::new, &Vec::<u8>::new());
+        test::test_restore(false, &[], Vec::new, &Vec::<u32>::new());
+        test::test_restore(true , &[], Vec::new, &Vec::<u32>::new());
         test::test_restore(false, &[0x01, 0xac], || vec![0, 0], &vec![0x01u8, 0xac]);
         test::test_restore(true , &[0x01, 0xac], || vec![0, 0], &vec![0x01u8, 0xac]);
         test::test_restore(false, &[0x01, 0x7c], || vec![0, 0], &vec![0x01i8, 0x7c]);

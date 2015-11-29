@@ -45,6 +45,9 @@ mod test_string {
 
     #[test]
     fn test_store() {
+        test::test_store(false, &String::new(), &[0, 0]);
+        test::test_store(true , &String::new(), &[0, 0]);
+
         let s = String::from("hello");
         test::test_store(false, &s, &[5, 0, 104, 101, 108, 108, 111]);
         test::test_store(true , &s, &[0, 5, 104, 101, 108, 108, 111]);
@@ -52,6 +55,8 @@ mod test_string {
 
     #[test]
     fn test_restore() {
+        test::test_restore(false, &[0, 0], String::new, &String::new());
+        test::test_restore(true , &[0, 0], String::new, &String::new());
         test::test_restore(false, &[5, 0, 104, 101, 108, 108, 111], || String::from("prev-content"), &String::from("hello"));
         test::test_restore(true , &[0, 5, 104, 101, 108, 108, 111], || String::from("prev-content"), &String::from("hello"));
     }
@@ -91,6 +96,9 @@ mod test_string_vec {
 
     #[test]
     fn test_store() {
+        test::test_store(false, &Vec::<String>::new(), &[]);
+        test::test_store(true , &Vec::<String>::new(), &[]);
+
         let vec = vec![String::from("hello"), String::from(" world")];
         test::test_store(false, &vec, &[5, 0, 104, 101, 108, 108, 111, 6, 0, 32, 119, 111, 114, 108, 100]);
         test::test_store(true , &vec, &[0, 5, 104, 101, 108, 108, 111, 0, 6, 32, 119, 111, 114, 108, 100]);
@@ -98,6 +106,9 @@ mod test_string_vec {
 
     #[test]
     fn test_restore() {
+        test::test_restore(false, &[], Vec::<String>::new, &Vec::<String>::new());
+        test::test_restore(true , &[], Vec::<String>::new, &Vec::<String>::new());
+
         let expected = vec![String::from("hello"), String::from(" world")];
         let to_fill = vec![String::from("prev-content"), String::from("prev-content")];
         test::test_restore(false, &[5, 0, 104, 101, 108, 108, 111, 6, 0, 32, 119, 111, 114, 108, 100], || to_fill.clone(), &expected);
