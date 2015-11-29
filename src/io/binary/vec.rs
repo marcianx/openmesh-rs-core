@@ -1,5 +1,6 @@
 // `io::binary::Binary` trait impls for
-// * the statically-sized `Vec2`, `Vec3`, `Vec4`, `Vec6`
+// * the static-length `Vec2`, `Vec3`, `Vec4`, `Vec6`
+// * the dynamic-length `Vec` from the standard library
 
 extern crate byteorder;
 use self::byteorder::{BigEndian, LittleEndian, ReadBytesExt, WriteBytesExt};
@@ -11,6 +12,16 @@ use geometry::vector::*;
 use io::binary::traits::*;
 use io::result::Result;
 
+////////////////////////////////////////////////////////////////////////////////
+
+// Local trait to share the macro below between the static-length and dynamic-length variants.
+trait ToIterable {
+    type Output;
+    fn iterable(&self) -> &Self::Output;
+    fn iterable_mut(&mut self) -> &mut Self::Output;
+}
+
+
 // Implementations without endian awareness.
 macro_rules! binary_impl_vec_int8 {
     ($vec_ty:ident, $item_ty:ty, $read_fn:ident, $write_fn:ident, $static_length: expr) => (
@@ -20,17 +31,17 @@ macro_rules! binary_impl_vec_int8 {
             fn size_of_type() -> usize { $static_length }
 
             fn store(&self, writer: &mut Write, _swap: bool) -> Result<usize> {
-                for val in self.as_ref().iter() {
+                for val in self.iterable().iter() {
                     try!(writer.$write_fn(*val));
                 }
-                Ok(mem::size_of::<Self>())
+                Ok(self.size_of_value())
             }
 
             fn restore(&mut self, reader: &mut Read, _swap: bool) -> Result<usize> {
-                for val in self.as_mut().iter_mut() {
+                for val in self.iterable_mut().iter_mut() {
                     *val = try!(reader.$read_fn());
                 }
-                Ok(mem::size_of::<Self>())
+                Ok(self.size_of_value())
             }
         }
     )
@@ -46,17 +57,18 @@ macro_rules! binary_impl_vec {
             fn size_of_type() -> usize { $static_length }
 
             fn store(&self, writer: &mut Write, swap: bool) -> Result<usize> {
-                let iter = self.as_ref().iter();
+                let iter = self.iterable().iter();
                 if swap { for val in iter { try!(writer.$write_fn::<BigEndian>(*val)); } }
                 else    { for val in iter { try!(writer.$write_fn::<LittleEndian>(*val)); } }
-                Ok(mem::size_of::<Self>())
+                Ok(self.size_of_value())
             }
 
             fn restore(&mut self, reader: &mut Read, swap: bool) -> Result<usize> {
-                let iter_mut = self.as_mut().iter_mut();
+                let size = self.size_of_value();
+                let iter_mut = self.iterable_mut().iter_mut();
                 if swap { for val in iter_mut { *val = try!(reader.$read_fn::<BigEndian>()); } }
                 else    { for val in iter_mut { *val = try!(reader.$read_fn::<LittleEndian>()); } }
-                Ok(mem::size_of::<Self>())
+                Ok(size)
             }
         }
     )
@@ -64,6 +76,21 @@ macro_rules! binary_impl_vec {
 
 ////////////////////////////////////////////////////////////////////////////////
 // Implementations for the geometry vector types.
+
+macro_rules! to_iterable_impl {
+    ($vec_ty:ident, $N: expr) => (
+        impl<T> ToIterable for $vec_ty<T> {
+            type Output = [T; $N];
+            fn iterable(&self) -> &Self::Output { self.as_ref() }
+            fn iterable_mut(&mut self) -> &mut Self::Output { self.as_mut() }
+        }
+    )
+}
+to_iterable_impl!(Vec2, 2);
+to_iterable_impl!(Vec3, 3);
+to_iterable_impl!(Vec4, 4);
+to_iterable_impl!(Vec6, 6);
+
 
 macro_rules! binary_impl_geometry_vec_int8 {
     ($vec_ty:ident, $item_ty:ty, $read_fn:ident, $write_fn:ident) => (
@@ -170,5 +197,78 @@ mod test_geometry_vec {
 ////////////////////////////////////////////////////////////////////////////////
 // Implementation for vectors of primitives.
 
-// TODO
+impl<T> ToIterable for Vec<T> {
+    type Output = Self;
+    fn iterable(&self) -> &Self::Output { self }
+    fn iterable_mut(&mut self) -> &mut Self::Output { self }
+}
+
+
+macro_rules! binary_impl_std_vec_int8 {
+    ($vec_ty:ident, $item_ty:ty, $read_fn:ident, $write_fn:ident) => (
+        binary_impl_vec_int8!($vec_ty, $item_ty, $read_fn, $write_fn, UNKNOWN_SIZE);
+    )
+}
+
+binary_impl_std_vec_int8!(Vec, i8, read_i8, write_i8);
+binary_impl_std_vec_int8!(Vec, u8, read_u8, write_u8);
+
+
+macro_rules! binary_impl_std_vec {
+    ($vec_ty:ident, $item_ty:ty, $read_fn:ident, $write_fn:ident) => (
+        binary_impl_vec!($vec_ty, $item_ty, $read_fn, $write_fn, UNKNOWN_SIZE);
+    )
+}
+
+binary_impl_std_vec!(Vec, i16, read_i16, write_i16);
+binary_impl_std_vec!(Vec, i32, read_i32, write_i32);
+binary_impl_std_vec!(Vec, u16, read_u16, write_u16);
+binary_impl_std_vec!(Vec, u32, read_u32, write_u32);
+binary_impl_std_vec!(Vec, f32, read_f32, write_f32);
+binary_impl_std_vec!(Vec, f64, read_f64, write_f64);
+
+
+#[cfg(test)]
+mod test_std_vec {
+    use io::binary::test;
+    use std::mem::transmute;
+
+    #[test]
+    fn test_store() {
+        test::test_store(false, &vec![0x01u8, 0xac], &[0x01, 0xac]);
+        test::test_store(true , &vec![0x01u8, 0xac], &[0x01, 0xac]);
+        test::test_store(false, &vec![0x01i8, 0x7c], &[0x01, 0x7c]);
+        test::test_store(true , &vec![0x01i8, 0x7c], &[0x01, 0x7c]);
+        test::test_store(false, &vec![0x01234567u32, 0x13570246], &[0x67, 0x45, 0x23, 0x01, 0x46, 0x02, 0x57, 0x13]);
+        test::test_store(true , &vec![0x01234567u32, 0x13570246], &[0x01, 0x23, 0x45, 0x67, 0x13, 0x57, 0x02, 0x46]);
+        test::test_store(false, &vec![0x01234567i32, 0x13570246], &[0x67, 0x45, 0x23, 0x01, 0x46, 0x02, 0x57, 0x13]);
+        test::test_store(true , &vec![0x01234567i32, 0x13570246], &[0x01, 0x23, 0x45, 0x67, 0x13, 0x57, 0x02, 0x46]);
+
+        let vecf = Vec::<f32>::from(&unsafe { transmute::<_, [f32; 2]>([0x3e124925u32, 0x6537851a]) }[..]);
+        let vecd = Vec::<f64>::from(&unsafe { transmute::<_, [f64; 2]>([0x3e12492589abcdefu64, 0x3fae1e1f3ac15743]) }[..]);
+        test::test_store(false, &vecf, &[0x25, 0x49, 0x12, 0x3e, 0x1a, 0x85, 0x37, 0x65]);
+        test::test_store(true , &vecf, &[0x3e, 0x12, 0x49, 0x25, 0x65, 0x37, 0x85, 0x1a]);
+        test::test_store(false, &vecd, &[0xef, 0xcd, 0xab, 0x89, 0x25, 0x49, 0x12, 0x3e, 0x43, 0x57, 0xc1, 0x3a, 0x1f, 0x1e, 0xae, 0x3f]);
+        test::test_store(true , &vecd, &[0x3e, 0x12, 0x49, 0x25, 0x89, 0xab, 0xcd, 0xef, 0x3f, 0xae, 0x1e, 0x1f, 0x3a, 0xc1, 0x57, 0x43]);
+    }
+
+    #[test]
+    fn test_restore() {
+        test::test_restore(false, &[0x01, 0xac], || vec![0, 0], &vec![0x01u8, 0xac]);
+        test::test_restore(true , &[0x01, 0xac], || vec![0, 0], &vec![0x01u8, 0xac]);
+        test::test_restore(false, &[0x01, 0x7c], || vec![0, 0], &vec![0x01i8, 0x7c]);
+        test::test_restore(true , &[0x01, 0x7c], || vec![0, 0], &vec![0x01i8, 0x7c]);
+        test::test_restore(false, &[0x67, 0x45, 0x23, 0x01, 0x46, 0x02, 0x57, 0x13], || vec![0, 0], &vec![0x01234567u32, 0x13570246]);
+        test::test_restore(true , &[0x01, 0x23, 0x45, 0x67, 0x13, 0x57, 0x02, 0x46], || vec![0, 0], &vec![0x01234567u32, 0x13570246]);
+        test::test_restore(false, &[0x67, 0x45, 0x23, 0x01, 0x46, 0x02, 0x57, 0x13], || vec![0, 0], &vec![0x01234567i32, 0x13570246]);
+        test::test_restore(true , &[0x01, 0x23, 0x45, 0x67, 0x13, 0x57, 0x02, 0x46], || vec![0, 0], &vec![0x01234567i32, 0x13570246]);
+
+        let vecf = Vec::<f32>::from(&unsafe { transmute::<_, [f32; 2]>([0x3e124925u32, 0x6537851a]) }[..]);
+        let vecd = Vec::<f64>::from(&unsafe { transmute::<_, [f64; 2]>([0x3e12492589abcdefu64, 0x3fae1e1f3ac15743]) }[..]);
+        test::test_restore(false, &[0x25, 0x49, 0x12, 0x3e, 0x1a, 0x85, 0x37, 0x65], || vec![0.0, 0.0], &vecf);
+        test::test_restore(true , &[0x3e, 0x12, 0x49, 0x25, 0x65, 0x37, 0x85, 0x1a], || vec![0.0, 0.0], &vecf);
+        test::test_restore(false, &[0xef, 0xcd, 0xab, 0x89, 0x25, 0x49, 0x12, 0x3e, 0x43, 0x57, 0xc1, 0x3a, 0x1f, 0x1e, 0xae, 0x3f], || vec![0.0, 0.0], &vecd);
+        test::test_restore(true , &[0x3e, 0x12, 0x49, 0x25, 0x89, 0xab, 0xcd, 0xef, 0x3f, 0xae, 0x1e, 0x1f, 0x3a, 0xc1, 0x57, 0x43], || vec![0.0, 0.0], &vecd);
+    }
+}
 
