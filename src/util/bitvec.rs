@@ -6,11 +6,13 @@
 
 // TODO: Flesh out docs.
 
+use std::fmt;
 use std::num::Wrapping;
 
+#[derive(Eq)]
 pub struct BitVec {
-    vec: Vec<u8>,
-    nbits: usize
+    nbits: usize,
+    vec: Vec<u8>
 }
 
 fn bytes_in_bits(nbits: usize) -> usize {
@@ -173,8 +175,40 @@ impl BitVec {
     }
 }
 
-// TODO
-// impl Debug, Display, Clone, Eq, PartialEq
+impl PartialEq<BitVec> for BitVec {
+    fn eq(&self, other: &BitVec) -> bool {
+        self.nbits == other.nbits && self.vec == other.vec
+    }
+}
+
+impl Clone for BitVec {
+    fn clone(&self) -> BitVec {
+        BitVec { vec: self.vec.clone(), nbits: self.nbits }
+    }
+
+    fn clone_from(&mut self, other: &BitVec) {
+        self.nbits = other.nbits;
+        self.vec.clone_from(&other.vec);
+    }
+}
+
+impl fmt::Debug for BitVec {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "BitVec{{{:?}: {}}}", self.nbits, &self)
+    }
+}
+
+impl fmt::Display for BitVec {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for (val, index) in self.iter().zip(0..usize::max_value()) {
+            if index > 0 && index % 8 == 0 {
+                try!(write!(f, " "));
+            }
+            try!(write!(f, "{}", if val { "1" } else { "." }));
+        }
+        Ok(())
+    }
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Iterators
@@ -361,5 +395,34 @@ mod test {
     #[should_panic(expected = "out of bounds")]
     fn test_set_validation() {
         &BitVec::from_bytes(&[0xef, 0xa5, 0x71]).set(24, true);
+    }
+
+    #[test]
+    fn test_eq() {
+        let vec1 = BitVec::from_bytes(&[0xef, 0xa5, 0x71]);
+        let mut vec2 = BitVec::from_bytes(&[0xef, 0xa5, 0x71]);
+        assert!(vec1 == vec2);
+        vec2.push(true);
+        assert!(vec1 != vec2);
+        vec2.pop();
+        assert!(vec1 == vec2);
+        vec2.set(3, false);
+        assert!(vec1 != vec2);
+    }
+
+    #[test]
+    fn test_clone() {
+        let mut vec = BitVec::from_bytes(&[0xef, 0xa5, 0x71]);
+        assert_eq!(vec, vec.clone());
+        vec.pop(); vec.pop();
+        assert_eq!(vec, vec.clone());
+    }
+
+    #[test]
+    fn test_debug() {
+        assert_eq!(
+            format!("{:?}", &BitVec::from_bytes(&[0xef, 0xa5, 0x71])),
+            "BitVec{24: 1111.111 1.1..1.1 1...111.}"
+        )
     }
 }
