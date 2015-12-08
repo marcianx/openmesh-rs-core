@@ -9,7 +9,7 @@
 use std::fmt;
 use std::num::Wrapping;
 
-#[derive(Eq)]
+#[derive(Clone, Eq)]
 pub struct BitVec {
     nbits: usize,
     vec: Vec<u8>
@@ -178,17 +178,6 @@ impl BitVec {
 impl PartialEq<BitVec> for BitVec {
     fn eq(&self, other: &BitVec) -> bool {
         self.nbits == other.nbits && self.vec == other.vec
-    }
-}
-
-impl Clone for BitVec {
-    fn clone(&self) -> BitVec {
-        BitVec { vec: self.vec.clone(), nbits: self.nbits }
-    }
-
-    fn clone_from(&mut self, other: &BitVec) {
-        self.nbits = other.nbits;
-        self.vec.clone_from(&other.vec);
     }
 }
 
