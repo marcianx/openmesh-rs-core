@@ -6,7 +6,10 @@
 #[macro_use(bitflags)]
 extern crate bitflags;
 
+// Include macro-bearing modules earlier.
+#[macro_use]
+pub mod util;
+
 pub mod geometry;
 pub mod mesh;
 pub mod io;
-pub mod util;
