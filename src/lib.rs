@@ -8,6 +8,8 @@ extern crate bitflags;
 
 // Include macro-bearing modules earlier.
 #[macro_use]
+pub mod system;
+#[macro_use]
 pub mod util;
 
 pub mod geometry;
