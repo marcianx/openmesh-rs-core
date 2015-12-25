@@ -1,4 +1,4 @@
-// `io::binary::Binary` trait impls for
+// `io::binary::Binary` trait impls for the following arrays of primitives:
 // * the static-length `Vec2`, `Vec3`, `Vec4`, `Vec6`
 // * the dynamic-length `Vec` from the standard library
 

@@ -1,5 +1,4 @@
 use std::io::{Read, Write};
-use std::ops::Add;
 use std::vec::Vec;
 
 use io::binary::traits::*;
@@ -38,6 +37,8 @@ impl Binary for String {
     }
 }
 
+impl_binary_streamablevec!(String);
+
 
 #[cfg(test)]
 mod test_string {
@@ -59,33 +60,6 @@ mod test_string {
         test::test_restore(true , &[0, 0], String::new, &String::new());
         test::test_restore(false, &[5, 0, 104, 101, 108, 108, 111], || String::from("prev-content"), &String::from("hello"));
         test::test_restore(true , &[0, 5, 104, 101, 108, 108, 111], || String::from("prev-content"), &String::from("hello"));
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// Implementation for vectors of strings.
-
-impl Binary for Vec<String> {
-    fn is_streamable() -> bool { true }
-    fn size_of_value(&self) -> usize {
-        self.iter().map(|s| s.size_of_value()).fold(0, Add::add)
-    }
-
-    fn store(&self, writer: &mut Write, swap: bool) -> Result<usize> {
-        let mut size = 0;
-        for s in self.iter() {
-            size += try!(s.store(writer, swap));
-        }
-        Ok(size)
-    }
-
-    /// Note: This reads exactly as many strings as the existing length of self.
-    fn restore(&mut self, reader: &mut Read, swap: bool) -> Result<usize> {
-        let mut size = 0;
-        for s in self.iter_mut() {
-            size += try!(s.restore(reader, swap));
-        }
-        Ok(size)
     }
 }
 
