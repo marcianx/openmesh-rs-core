@@ -8,6 +8,7 @@
 
 use std::fmt;
 use std::num::Wrapping;
+use util::index::{IndexUnchecked, IndexSetUnchecked, IndexSet};
 
 #[derive(Clone, Eq)]
 pub struct BitVec {
@@ -249,19 +250,6 @@ impl fmt::Display for BitVec {
     }
 }
 
-pub static TRUE: bool = true;
-pub static FALSE: bool = false;
-
-impl ::std::ops::Index<usize> for BitVec {
-    type Output = bool;
-
-    fn index(&self, index: usize) -> &Self::Output {
-        assert!(index < self.len());
-        let value = unsafe { self.get_unchecked(index) };
-        if value { &TRUE } else { &FALSE }
-    }
-}
-
 impl ::std::iter::Extend<bool> for BitVec {
     fn extend<T>(&mut self, iterable: T)
         where T: ::std::iter::IntoIterator<Item = bool>
@@ -300,10 +288,76 @@ impl<'a> Iterator for Iter<'a> {
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Indexing operations
+
+pub static TRUE: bool = true;
+pub static FALSE: bool = false;
+
+impl ::std::ops::Index<usize> for BitVec {
+    type Output = bool;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        assert!(index < self.len());
+        let value = unsafe { self.get_unchecked(index) };
+        if value { &TRUE } else { &FALSE }
+    }
+}
+
+impl IndexUnchecked<usize> for BitVec {
+    unsafe fn index_unchecked(&self, index: usize) -> &Self::Output {
+        assert!(index < self.len());
+        let value = self.get_unchecked(index);
+        if value { &TRUE } else { &FALSE }
+    }
+}
+
+impl IndexSetUnchecked<usize> for BitVec {
+    unsafe fn index_set_unchecked(&mut self, index: usize, value: bool) {
+        assert!(index < self.len());
+        self.set_unchecked(index, value);
+    }
+}
+
+impl IndexSet<usize> for BitVec {
+    fn index_set(&mut self, index: usize, value: bool) {
+        self.set(index, value);
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 #[cfg(test)]
 mod test {
     use util::bitvec::BitVec;
+    use util::index::{IndexUnchecked, IndexSetUnchecked, IndexSet};
+
+    #[test]
+    fn test_index() {
+        let mut vec = BitVec::from_bytes(&[0xef, 0xa5, 0x71]);
+        assert_eq!(vec[0], true);
+        assert_eq!(vec[4], false);
+        assert_eq!(vec[15], true);
+        unsafe {
+            assert_eq!(*vec.index_unchecked(0), true);
+            assert_eq!(*vec.index_unchecked(4), false);
+            assert_eq!(*vec.index_unchecked(15), true);
+        }
+
+        unsafe {
+            vec.index_set_unchecked(0, false);
+            assert_eq!(*vec.index_unchecked(0), false);
+            vec.index_set_unchecked(15, false);
+            assert_eq!(*vec.index_unchecked(15), false);
+        }
+        assert_eq!(vec.as_bytes(), &[0xee, 0x25, 0x71]);
+
+        vec.index_set(0, true);
+        assert_eq!(vec[0], true);
+        vec.index_set(15, true);
+        assert_eq!(vec[15], true);
+        assert_eq!(vec.as_bytes(), &[0xef, 0xa5, 0x71]);
+    }
 
     #[test]
     fn test_constructors() {
