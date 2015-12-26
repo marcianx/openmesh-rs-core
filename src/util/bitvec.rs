@@ -83,16 +83,31 @@ impl BitVec {
         if index >= self.nbits { panic!("Index {} out of bounds [0, {})", index, self.nbits); }
     }
 
-    /// Gets the bit at the given `index`. Panics if `index` exceeds length.
-    pub fn get(&self, index: usize) -> bool {
-        self.validate_index(index);
-        unsafe { self.get_unchecked(index) }
+    /// Gets the bit at the given `index`.
+    pub fn get(&self, index: usize) -> Option<bool> {
+        if index < self.len() {
+            Some(unsafe { self.get_unchecked(index) })
+        } else {
+            None
+        }
     }
 
     /// Sets the bit at the given `index`. Panics if `index` exceeds length.
     pub fn set(&mut self, index: usize, value: bool) {
         self.validate_index(index);
         unsafe { self.set_unchecked(index, value) };
+    }
+
+    /// Swaps two elements in the `BitVec`.
+    pub fn swap(&mut self, i: usize, j: usize) {
+        self.validate_index(i);
+        self.validate_index(j);
+        unsafe {
+            let val_i = self.get_unchecked(i);
+            let val_j = self.get_unchecked(j);
+            self.set_unchecked(i, val_j);
+            self.set_unchecked(j, val_i);
+        }
     }
 
     /// Gets the bit at the given `index` without bounds checking.
@@ -151,6 +166,41 @@ impl BitVec {
         self.nbits = 0;
     }
 
+    /// Returns the number of booleans that the bitvec can hold without reallocating.
+    pub fn capacity(&mut self) -> usize {
+        self.vec.capacity() * 8
+    }
+
+    /// Reserves capacity for at least additional more booleans to be inserted in the given
+    /// `BitVec`. The collection may reserve more space to avoid frequent reallocations.
+    pub fn reserve(&mut self, additional: usize) {
+        self.vec.reserve(bytes_in_bits(additional))
+    }
+
+    /// Shorten a vector, dropping excess elements.
+    ///
+    /// If `len` is greater than the vector's current length, this has no effect.
+    pub fn truncate(&mut self, len: usize) {
+        if len < self.len() {
+            let nbytes = bytes_in_bits(len);
+            self.vec.truncate(nbytes);
+            self.nbits = len;
+            self.set_unused_zero()
+        }
+    }
+
+    /// Reserves capacity for at least additional more booleans to be inserted in the given
+    /// `BitVec`. The collection may reserve more space to avoid frequent reallocations.
+    pub fn resize(&mut self, new_len: usize, value: bool) {
+        if new_len > self.len() {
+            let additional = new_len - self.len();
+            self.reserve(additional);
+            self.extend(::std::iter::repeat(value).take(additional));
+        } else {
+            self.truncate(new_len);
+        }
+    }
+
     ////////////////////////////////////////
     // Iterators
 
@@ -196,6 +246,35 @@ impl fmt::Display for BitVec {
             try!(write!(f, "{}", if val { "1" } else { "." }));
         }
         Ok(())
+    }
+}
+
+pub static TRUE: bool = true;
+pub static FALSE: bool = false;
+
+impl ::std::ops::Index<usize> for BitVec {
+    type Output = bool;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        assert!(index < self.len());
+        let value = unsafe { self.get_unchecked(index) };
+        if value { &TRUE } else { &FALSE }
+    }
+}
+
+impl ::std::iter::Extend<bool> for BitVec {
+    fn extend<T>(&mut self, iterable: T)
+        where T: ::std::iter::IntoIterator<Item = bool>
+    {
+        for val in iterable { self.push(val); }
+    }
+}
+
+impl<'a> ::std::iter::Extend<&'a bool> for BitVec {
+    fn extend<T>(&mut self, iterable: T)
+        where T: ::std::iter::IntoIterator<Item = &'a bool>
+    {
+        for val in iterable { self.push(*val); }
     }
 }
 
@@ -278,22 +357,28 @@ mod test {
     }
 
     #[test]
-    fn test_get_set() {
+    fn test_get_set_index() {
         let mut vec = BitVec::from_bytes(&[0xef, 0xa5, 0x71]);
         assert_eq!(vec.as_bytes(), &[0xef, 0xa5, 0x71]);
-        assert_eq!(true, vec.get(8));
+        assert_eq!(Some(true), vec.get(8));
+        assert_eq!(true, vec[8]);
 
         vec.set(8, true);
-        assert_eq!(true, vec.get(8));
+        assert_eq!(Some(true), vec.get(8));
+        assert_eq!(true, vec[8]);
         assert_eq!(vec.as_bytes(), &[0xef, 0xa5, 0x71]);
 
         vec.set(8, false);
-        assert_eq!(false, vec.get(8));
+        assert_eq!(Some(false), vec.get(8));
+        assert_eq!(false, vec[8]);
         assert_eq!(vec.as_bytes(), &[0xef, 0xa4, 0x71]);
 
         vec.set(7, false);
-        assert_eq!(false, vec.get(7));
+        assert_eq!(Some(false), vec.get(7));
+        assert_eq!(false, vec[7]);
         assert_eq!(vec.as_bytes(), &[0x6f, 0xa4, 0x71]);
+
+        assert_eq!(None, vec.get(vec.len()));
     }
 
     #[test]
@@ -376,12 +461,6 @@ mod test {
 
     #[test]
     #[should_panic(expected = "out of bounds")]
-    fn test_get_validation() {
-        &BitVec::from_bytes(&[0xef, 0xa5, 0x71]).get(24);
-    }
-
-    #[test]
-    #[should_panic(expected = "out of bounds")]
     fn test_set_validation() {
         &BitVec::from_bytes(&[0xef, 0xa5, 0x71]).set(24, true);
     }
@@ -413,5 +492,64 @@ mod test {
             format!("{:?}", &BitVec::from_bytes(&[0xef, 0xa5, 0x71])),
             "BitVec{24: 1111.111 1.1..1.1 1...111.}"
         )
+    }
+
+    #[test]
+    fn test_swap() {
+        let mut vec = BitVec::from_bytes(&[0xef, 0xa5, 0x71]);
+        vec.swap(0, 23);
+        assert_eq!(vec.len(), 24);
+        assert_eq!(vec.as_bytes(), &[0xee, 0xa5, 0xf1]);
+        vec.swap(0, 5);
+        assert_eq!(vec.len(), 24);
+        assert_eq!(vec.as_bytes(), &[0xcf, 0xa5, 0xf1]);
+    }
+
+    #[test]
+    fn test_capacity_reserve() {
+        let mut vec = BitVec::from_bytes(&[0xef, 0xa5, 0x71]);
+        assert_eq!(vec.len(), 24);
+        assert!(vec.capacity() >= vec.len());
+        let new_capacity = 2 * vec.capacity();
+        vec.reserve(new_capacity);
+        assert!(vec.capacity() >= new_capacity);
+    }
+
+    #[test]
+    fn test_truncate_extend() {
+        let mut vec = BitVec::from_bytes(&[0xef, 0xa5, 0x71]);
+
+        vec.truncate(25);
+        assert_eq!(vec.len(), 24);
+        assert_eq!(vec.as_bytes(), &[0xef, 0xa5, 0x71]);
+
+        vec.truncate(12);
+        assert_eq!(vec.len(), 12);
+        assert_eq!(vec.as_bytes(), &[0xef, 0x05]);
+
+        vec.extend(::std::iter::repeat(true).take(5));
+        assert_eq!(vec.len(), 17);
+        assert_eq!(vec.as_bytes(), &[0xef, 0xf5, 0x01]);
+
+        vec.extend(::std::iter::repeat(&true).take(6));
+        assert_eq!(vec.len(), 23);
+        assert_eq!(vec.as_bytes(), &[0xef, 0xf5, 0x7f]);
+    }
+
+    #[test]
+    fn test_resize() {
+        let mut vec = BitVec::from_bytes(&[0xef, 0xa5, 0x71]);
+
+        vec.resize(24, true);
+        assert_eq!(vec.len(), 24);
+        assert_eq!(vec.as_bytes(), &[0xef, 0xa5, 0x71]);
+
+        vec.resize(12, true);
+        assert_eq!(vec.len(), 12);
+        assert_eq!(vec.as_bytes(), &[0xef, 0x05]);
+
+        vec.resize(17, true);
+        assert_eq!(vec.len(), 17);
+        assert_eq!(vec.as_bytes(), &[0xef, 0xf5, 0x01]);
     }
 }
