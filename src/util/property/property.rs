@@ -34,10 +34,18 @@ pub struct Property<T> {
     vec: Vec<T>
 }
 
+impl<T> Property<T> {
+    pub fn new(name: String) -> Property<T> {
+        Property {
+            name: name,
+            persistent: false,
+            vec: Vec::new()
+        }
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Index impls (pass through to vec).
-// TODO: Technically, these allow access to deleted items in the property list. Consider whether
-// this should be exposed as an unsafe API.
 
 impl<T> ::std::ops::Index<usize> for Property<T> {
     type Output = T;
@@ -77,7 +85,8 @@ impl<T> ::std::fmt::Debug for Property<T> {
 // impl `traits::Property`
 
 impl<T: Clone + Binary + Default + 'static> traits::Property for Property<T>
-    where Vec<T>: Binary
+    where Property<T>: ::std::any::Any,
+          Vec<T>: Binary
 {
     impl_property_accessors!(<T as Binary>::is_streamable());
 
@@ -123,10 +132,18 @@ pub struct PropertyBits {
     vec: BitVec
 }
 
+impl PropertyBits {
+    pub fn new(name: String) -> PropertyBits {
+        PropertyBits {
+            name: name,
+            persistent: false,
+            vec: BitVec::new()
+        }
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Index impls (pass through to vec).
-// TODO: Technically, these allow access to deleted items in the property list. Consider whether
-// this should be exposed as an unsafe API.
 
 impl ::std::ops::Index<usize> for PropertyBits {
     type Output = bool;

@@ -7,4 +7,5 @@ authors = ["Ashish Myles <marcianx@gmail.com>"]
 [dependencies.bitflags]
 [dependencies.byteorder]
 [dependencies.num]
+[dependencies.downcast-rs]
 

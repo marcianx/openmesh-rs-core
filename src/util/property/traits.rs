@@ -1,5 +1,7 @@
 use std::io::{Read, Write};
 
+use downcast_rs::Downcast;
+
 use io::binary::UNKNOWN_SIZE;
 use io::result::Result;
 
@@ -10,7 +12,7 @@ use io::result::Result;
 ///
 /// If the property should be stored along with the default properties in the OM-format one must
 /// name the property and enable the persistant flag with set_persistent().
-pub trait Property: ::std::fmt::Debug {
+pub trait Property: Downcast + ::std::fmt::Debug {
     ////////////////////////////////////////////////////////////////////////////////
     // synchronized array interface
 
@@ -35,7 +37,7 @@ pub trait Property: ::std::fmt::Debug {
     /// Copy one element from index `i_src` to index `i_dst`.
     fn copy(&mut self, i_src: usize, i_dst: usize);
 
-    /// A deep copy of self as a trait object.
+    /// A deep copy of `self` as a trait object. Used to implement the `Clone` trait.
     fn clone_as_trait(&self) -> Box<Property>;
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -50,7 +52,7 @@ pub trait Property: ::std::fmt::Debug {
     /// Whether this object property should be persisted.
     fn persistent(&self) -> bool;
 
-    /// Enables or disables persistency. Self must be a named property to enable persistency.
+    /// Enables or disables persistency. `self` must be a named property to enable persistency.
     fn set_persistent(&mut self, enable: bool);
 
     /// Number of elements in property
@@ -79,3 +81,13 @@ pub trait Property: ::std::fmt::Debug {
     fn restore(&mut self, reader: &mut Read, swap: bool) -> Result<usize>;
 }
 
+
+// Support down-casting from `Property` to a struct implementing it.
+impl_downcast!(Property);
+
+
+impl Clone for Box<Property> {
+    fn clone(&self) -> Self {
+        self.clone_as_trait()
+    }
+}
