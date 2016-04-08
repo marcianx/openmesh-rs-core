@@ -3,9 +3,10 @@ name = "openmesh"
 version = "0.1.0"
 authors = ["Ashish Myles <marcianx@gmail.com>"]
 
-[dependencies.nalgebra]
-[dependencies.bitflags]
-[dependencies.byteorder]
-[dependencies.num]
-[dependencies.downcast-rs]
+[dependencies]
+nalgebra = "0.6"
+bitflags = "0.4"
+byteorder = "0.4"
+downcast-rs = "0.1"
+num = "0.1"
 
