@@ -1,8 +1,7 @@
 extern crate num;
 use std::fmt::{Display, Formatter};
 
-/// This is the default index type.
-pub type Index = u32;
+use util::property::size::Index;
 
 /// Trait for forward and backward traversal.
 pub trait Ordinal {

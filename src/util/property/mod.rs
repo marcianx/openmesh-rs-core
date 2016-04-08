@@ -5,5 +5,6 @@ pub use self::handle::*;
 mod property;
 pub use self::property::*;
 
-pub mod traits;
 pub mod container;
+pub mod size;
+pub mod traits;
