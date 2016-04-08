@@ -1,12 +1,12 @@
 /// Vertex handle
-def_index!(VertexHandle);
+def_handle!(VertexHandle);
 
 /// Halfedge handle
-def_index!(HalfedgeHandle);
+def_handle!(HalfedgeHandle);
 
 /// Edge handle
-def_index!(EdgeHandle);
+def_handle!(EdgeHandle);
 
 /// Face handle
-def_index!(FaceHandle);
+def_handle!(FaceHandle);
 

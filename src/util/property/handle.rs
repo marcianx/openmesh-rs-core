@@ -68,7 +68,7 @@ impl HandleProvider for Handle {
 }
 
 #[macro_export]
-macro_rules! def_index {
+macro_rules! def_handle {
     ($handle: ident) => {
         #[derive(Eq, PartialEq, Clone, Hash, Debug, Copy)]
         pub struct $handle($crate::util::property::Handle);
