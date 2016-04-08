@@ -1,11 +1,15 @@
 use std::io::{Read, Write};
+use std::ops::Deref;
 
 use io::binary::Binary;
 use io::binary::UNKNOWN_SIZE;
 use io::result::Result;
 use util::bitvec::BitVec;
 use util::index::{IndexUnchecked, IndexSetUnchecked, IndexSet};
+use util::property::handle::Handle;
+use util::property::size::{Size, INVALID_INDEX};
 use util::property::traits;
+use util::property::traits::Handle as HandleTrait; // to allow index_us().
 
 /// Implements getter/setters for the `name` and `persistent` properties.
 /// `$is_streamable` indicates whether the property is streamable, and thus, whether `persistent`
@@ -27,19 +31,23 @@ macro_rules! impl_property_accessors {
 ////////////////////////////////////////////////////////////////////////////////
 
 /// Named property encapsulating a `Vec` of some type.
+/// For type safety, it is parametrized by the Handle type `H` which differentiates whether this is
+/// a vertex, halfedge, edge, or face property.
 #[derive(Clone)]
-pub struct Property<T> {
+pub struct Property<T, H> {
     name: String,
     persistent: bool,
-    vec: Vec<T>
+    vec: Vec<T>,
+    _m: ::std::marker::PhantomData<H>
 }
 
-impl<T> Property<T> {
-    pub fn new(name: String) -> Property<T> {
+impl<T, H> Property<T, H> {
+    pub fn new(name: String) -> Property<T, H> {
         Property {
             name: name,
             persistent: false,
-            vec: Vec::new()
+            vec: Vec::new(),
+            _m: ::std::marker::PhantomData
         }
     }
 }
@@ -47,35 +55,35 @@ impl<T> Property<T> {
 ////////////////////////////////////////////////////////////////////////////////
 // Index impls (pass through to vec).
 
-impl<T> ::std::ops::Index<usize> for Property<T> {
+impl<T, H: Copy + Deref<Target=Handle>> ::std::ops::Index<H> for Property<T, H> {
     type Output = T;
-    fn index(&self, index: usize) -> &Self::Output {
-        self.vec.index(index)
+    fn index(&self, index: H) -> &Self::Output {
+        self.vec.index(index.index_us())
     }
 }
 
-impl<T> IndexUnchecked<usize> for Property<T> {
-    unsafe fn index_unchecked(&self, index: usize) -> &Self::Output {
-        self.vec.index_unchecked(index)
+impl<T, H: Copy + Deref<Target=Handle>> IndexUnchecked<H> for Property<T, H> {
+    unsafe fn index_unchecked(&self, index: H) -> &Self::Output {
+        self.vec.index_unchecked(index.index_us())
     }
 }
 
-impl<T> IndexSetUnchecked<usize> for Property<T> {
-    unsafe fn index_set_unchecked(&mut self, index: usize, value: T) {
-        self.vec.index_set_unchecked(index, value);
+impl<T, H: Copy + Deref<Target=Handle>> IndexSetUnchecked<H> for Property<T, H> {
+    unsafe fn index_set_unchecked(&mut self, index: H, value: T) {
+        self.vec.index_set_unchecked(index.index_us(), value);
     }
 }
 
-impl<T> IndexSet<usize> for Property<T> {
-    fn index_set(&mut self, index: usize, value: T) {
-        self.vec.index_set(index, value);
+impl<T, H: Copy + Deref<Target=Handle>> IndexSet<H> for Property<T, H> {
+    fn index_set(&mut self, index: H, value: T) {
+        self.vec.index_set(index.index_us(), value);
     }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // impl `std::fmt::Debug`
 
-impl<T> ::std::fmt::Debug for Property<T> {
+impl<T, H> ::std::fmt::Debug for Property<T, H> {
     fn fmt(&self, formatter: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         writeln!(formatter, "  {}{}", self.name, if self.persistent { ", persistent" } else { "" })
     }
@@ -84,8 +92,10 @@ impl<T> ::std::fmt::Debug for Property<T> {
 ////////////////////////////////////////////////////////////////////////////////
 // impl `traits::Property`
 
-impl<T: Clone + Binary + Default + 'static> traits::Property for Property<T>
-    where Property<T>: ::std::any::Any,
+impl<T, H> traits::Property<H> for Property<T, H>
+    where T: Clone + Binary + Default + 'static,
+          H: ::std::any::Any + Copy + Deref<Target=Handle> + 'static,
+          Property<T, H>: ::std::any::Any,
           Vec<T>: Binary
 {
     impl_property_accessors!(<T as Binary>::is_streamable());
@@ -93,20 +103,31 @@ impl<T: Clone + Binary + Default + 'static> traits::Property for Property<T>
     ////////////////////////////////////////
     // synchronized array interface
 
-    fn reserve(&mut self, n: usize) {
+    fn reserve(&mut self, n: Size) {
+        if n >= INVALID_INDEX {
+            panic!("Reserve dimensions {} exceeded bounds {}-1", n, INVALID_INDEX);
+        }
+        let n = n as usize;
         let len = self.vec.len();
         if n > len {
             self.vec.reserve(n - len);
         }
     }
-    fn resize(&mut self, n: usize) { self.vec.resize(n, Default::default()); }
+    fn resize(&mut self, n: Size) {
+        if n >= INVALID_INDEX {
+            panic!("Resize dimensions {} exceeded bounds {}-1", n, INVALID_INDEX);
+        }
+        self.vec.resize(n as usize, Default::default());
+    }
     fn clear(&mut self) { self.vec.clear(); }
     fn push(&mut self) { self.vec.push(Default::default()); }
-    fn swap(&mut self, i0: usize, i1: usize) { self.vec.swap(i0, i1); }
-    fn copy(&mut self, i_src: usize, i_dst: usize) {
-        self.vec[i_dst] = self.vec[i_src].clone();
+    fn swap(&mut self, i0: H, i1: H) {
+        self.vec.swap(i0.index_us(), i1.index_us());
     }
-    fn clone_as_trait(&self) -> Box<traits::Property> { Box::new(self.clone()) }
+    fn copy(&mut self, i_src: H, i_dst: H) {
+        self.vec[i_dst.index_us()] = self.vec[i_src.index_us()].clone();
+    }
+    fn clone_as_trait(&self) -> Box<traits::Property<H>> { Box::new(self.clone()) }
 
     ////////////////////////////////////////
     // I/O support
@@ -125,19 +146,23 @@ impl<T: Clone + Binary + Default + 'static> traits::Property for Property<T>
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Named property encapsulating a `BitVec`.
+/// For type safety, it is parametrized by the Handle type which differentiates whether this is a
+/// vertex, halfedge, edge, or face property.
 #[derive(Clone)]
-pub struct PropertyBits {
+pub struct PropertyBits<H> {
     name: String,
     persistent: bool,
-    vec: BitVec
+    vec: BitVec,
+    _m: ::std::marker::PhantomData<H>
 }
 
-impl PropertyBits {
-    pub fn new(name: String) -> PropertyBits {
+impl<H> PropertyBits<H> {
+    pub fn new(name: String) -> PropertyBits<H> {
         PropertyBits {
             name: name,
             persistent: false,
-            vec: BitVec::new()
+            vec: BitVec::new(),
+            _m: ::std::marker::PhantomData
         }
     }
 }
@@ -145,35 +170,35 @@ impl PropertyBits {
 ////////////////////////////////////////////////////////////////////////////////
 // Index impls (pass through to vec).
 
-impl ::std::ops::Index<usize> for PropertyBits {
+impl<H: Copy + Deref<Target=Handle>> ::std::ops::Index<H> for PropertyBits<H> {
     type Output = bool;
-    fn index(&self, index: usize) -> &Self::Output {
-        self.vec.index(index)
+    fn index(&self, index: H) -> &Self::Output {
+        self.vec.index(index.index_us())
     }
 }
 
-impl IndexUnchecked<usize> for PropertyBits {
-    unsafe fn index_unchecked(&self, index: usize) -> &Self::Output {
-        self.vec.index_unchecked(index)
+impl<H: Copy + Deref<Target=Handle>> IndexUnchecked<H> for PropertyBits<H> {
+    unsafe fn index_unchecked(&self, index: H) -> &Self::Output {
+        self.vec.index_unchecked(index.index_us())
     }
 }
 
-impl IndexSetUnchecked<usize> for PropertyBits {
-    unsafe fn index_set_unchecked(&mut self, index: usize, value: bool) {
-        self.vec.index_set_unchecked(index, value);
+impl<H: Copy + Deref<Target=Handle>> IndexSetUnchecked<H> for PropertyBits<H> {
+    unsafe fn index_set_unchecked(&mut self, index: H, value: bool) {
+        self.vec.index_set_unchecked(index.index_us(), value);
     }
 }
 
-impl IndexSet<usize> for PropertyBits {
-    fn index_set(&mut self, index: usize, value: bool) {
-        self.vec.index_set(index, value);
+impl<H: Copy + Deref<Target=Handle>> IndexSet<H> for PropertyBits<H> {
+    fn index_set(&mut self, index: H, value: bool) {
+        self.vec.index_set(index.index_us(), value);
     }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // impl `std::fmt::Debug`
 
-impl ::std::fmt::Debug for PropertyBits {
+impl<H> ::std::fmt::Debug for PropertyBits<H> {
     fn fmt(&self, formatter: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         writeln!(formatter, "  {}{}", self.name, if self.persistent { ", persistent" } else { "" })
     }
@@ -182,27 +207,40 @@ impl ::std::fmt::Debug for PropertyBits {
 ////////////////////////////////////////////////////////////////////////////////
 // impl `traits::Property`
 
-impl traits::Property for PropertyBits {
+impl<H> traits::Property<H> for PropertyBits<H>
+    where H: ::std::any::Any + Copy + Deref<Target=Handle> + 'static
+{
     impl_property_accessors!(true); // is_streamable = true
 
     ////////////////////////////////////////
     // synchronized array interface
 
-    fn reserve(&mut self, n: usize) {
+    fn reserve(&mut self, n: Size) {
+        if n >= INVALID_INDEX {
+            panic!("Reserve dimensions {} exceeded bounds {}-1", n, INVALID_INDEX);
+        }
+        let n = n as usize;
         let len = self.vec.len();
         if n > len {
             self.vec.reserve(n - len);
         }
     }
-    fn resize(&mut self, n: usize) { self.vec.resize(n, Default::default()); }
+    fn resize(&mut self, n: Size) {
+        if n >= INVALID_INDEX {
+            panic!("Resize dimensions {} exceeded bounds {}-1", n, INVALID_INDEX);
+        }
+        self.vec.resize(n as usize, Default::default());
+    }
     fn clear(&mut self) { self.vec.clear(); }
     fn push(&mut self) { self.vec.push(Default::default()); }
-    fn swap(&mut self, i0: usize, i1: usize) { self.vec.swap(i0, i1); }
-    fn copy(&mut self, i_src: usize, i_dst: usize) {
-        let value = self.vec[i_src];
-        self.vec.set(i_dst, value);
+    fn swap(&mut self, i0: H, i1: H) {
+        self.vec.swap(i0.index_us(), i1.index_us());
     }
-    fn clone_as_trait(&self) -> Box<traits::Property> { Box::new(self.clone()) }
+    fn copy(&mut self, i_src: H, i_dst: H) {
+        let value = self.vec[i_src.index_us()];
+        self.vec.set(i_dst.index_us(), value);
+    }
+    fn clone_as_trait(&self) -> Box<traits::Property<H>> { Box::new(self.clone()) }
 
     ////////////////////////////////////////
     // I/O support

@@ -1,10 +1,12 @@
 use std::io::{Read, Write};
+use std::ops::Deref;
 
 use downcast_rs::Downcast;
 
 use io::binary::UNKNOWN_SIZE;
 use io::result::Result;
-
+use util::property::handle;
+use util::property::size::Size;
 
 /// All mesh types are stored in Properties which implement this trait. We distinuish between
 /// standard properties, which can be defined at compile time using the Attributes in the traits
@@ -12,18 +14,22 @@ use io::result::Result;
 ///
 /// If the property should be stored along with the default properties in the OM-format one must
 /// name the property and enable the persistant flag with set_persistent().
-pub trait Property: Downcast + ::std::fmt::Debug {
+pub trait Property<H>: Downcast + ::std::fmt::Debug
+    where H: ::std::any::Any + Copy + Deref<Target=handle::Handle> + 'static
+{
+
     ////////////////////////////////////////////////////////////////////////////////
     // synchronized array interface
 
     /// Reserve memory for `n` elements.
+    /// Panics if `n >= util::property::size::INVALID_INDEX`.
     ///
     /// NOTE that this is different from rust standard library (eg `Vec`) where reserve takes the
     /// additional number of items that can be added before reallocation is necessary.
-    fn reserve(&mut self, n: usize);
+    fn reserve(&mut self, n: Size);
 
     /// Resize storage to hold `n` elements.
-    fn resize(&mut self, n: usize);
+    fn resize(&mut self, n: Size);
 
     /// Clear all elements and free memory.
     fn clear(&mut self);
@@ -32,13 +38,13 @@ pub trait Property: Downcast + ::std::fmt::Debug {
     fn push(&mut self);
 
     /// Swaps two elements.
-    fn swap(&mut self, i0: usize, i1: usize);
+    fn swap(&mut self, i0: H, i1: H);
 
     /// Copy one element from index `i_src` to index `i_dst`.
-    fn copy(&mut self, i_src: usize, i_dst: usize);
+    fn copy(&mut self, i_src: H, i_dst: H);
 
     /// A deep copy of `self` as a trait object. Used to implement the `Clone` trait.
-    fn clone_as_trait(&self) -> Box<Property>;
+    fn clone_as_trait(&self) -> Box<Property<H>>;
 
     ////////////////////////////////////////////////////////////////////////////////
     // named property interface
@@ -83,10 +89,13 @@ pub trait Property: Downcast + ::std::fmt::Debug {
 
 
 // Support down-casting from `Property` to a struct implementing it.
-impl_downcast!(Property);
+impl_downcast!(Property<H>
+               where H: ::std::any::Any + Copy + Deref<Target=handle::Handle> + 'static);
 
 
-impl Clone for Box<Property> {
+impl<H> Clone for Box<Property<H>>
+    where H: ::std::any::Any + Copy + Deref<Target=handle::Handle> + 'static
+{
     fn clone(&self) -> Self {
         self.clone_as_trait()
     }
