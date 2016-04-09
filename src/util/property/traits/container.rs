@@ -1,7 +1,4 @@
-use std::ops::Deref;
-
 use io::binary::Binary;
-use util::property::handle;
 use util::property::property::Property;
 use util::property::size;
 use util::property::traits;
@@ -9,10 +6,8 @@ use util::property::traits;
 // TODO: Should there be a `RefCell` here to allow getting multiple properties mutably?
 pub type Properties<H> = Vec<Option<Box<traits::Property<H>>>>;
 
-pub trait PropertyContainer<H>
-    where H: ::std::any::Any + Copy + Deref<Target=handle::Handle> + 'static
+pub trait PropertyContainer<H: traits::Handle>
 {
-
     ////////////////////////////////////////////////////////////////////////////////
     // Addition/getting/removal of properties.
 

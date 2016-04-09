@@ -1,12 +1,7 @@
-use std::ops::Deref;
-
 use io::binary::Binary;
-use util::property::handle;
 use util::property::property;
 use util::property::size;
 use util::property::traits;
-use util::property::traits::Handle as HandleTrait; // to allow from_index().
-use util::property::traits::HandleConstructor; // to allow from_index().
 
 /// Contains a parallel collection of `Property` trait objects.
 pub struct PropertyContainer<Handle> {
@@ -25,8 +20,7 @@ impl<Handle> Clone for PropertyContainer<Handle>
 }
 
 
-impl<H> traits::PropertyContainer<H> for PropertyContainer<H>
-    where H: ::std::any::Any + Copy + Deref<Target=handle::Handle> + HandleConstructor + 'static
+impl<H: traits::Handle> traits::PropertyContainer<H> for PropertyContainer<H>
 {
     ////////////////////////////////////////////////////////////////////////////////
     // Addition/getting/removal of properties.

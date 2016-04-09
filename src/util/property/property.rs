@@ -1,15 +1,11 @@
 use std::io::{Read, Write};
-use std::ops::Deref;
-
 use io::binary::Binary;
 use io::binary::UNKNOWN_SIZE;
 use io::result::Result;
 use util::bitvec::BitVec;
 use util::index::{IndexUnchecked, IndexSetUnchecked, IndexSet};
-use util::property::handle::Handle;
 use util::property::size::{Size, INVALID_INDEX};
 use util::property::traits;
-use util::property::traits::Handle as HandleTrait; // to allow index_us().
 
 /// Implements getter/setters for the `name` and `persistent` properties.
 /// `$is_streamable` indicates whether the property is streamable, and thus, whether `persistent`
@@ -55,26 +51,26 @@ impl<T, H> Property<T, H> {
 ////////////////////////////////////////////////////////////////////////////////
 // Index impls (pass through to vec).
 
-impl<T, H: Copy + Deref<Target=Handle>> ::std::ops::Index<H> for Property<T, H> {
+impl<T, H: traits::Handle> ::std::ops::Index<H> for Property<T, H> {
     type Output = T;
     fn index(&self, index: H) -> &Self::Output {
         self.vec.index(index.index_us())
     }
 }
 
-impl<T, H: Copy + Deref<Target=Handle>> IndexUnchecked<H> for Property<T, H> {
+impl<T, H: traits::Handle> IndexUnchecked<H> for Property<T, H> {
     unsafe fn index_unchecked(&self, index: H) -> &Self::Output {
         self.vec.index_unchecked(index.index_us())
     }
 }
 
-impl<T, H: Copy + Deref<Target=Handle>> IndexSetUnchecked<H> for Property<T, H> {
+impl<T, H: traits::Handle> IndexSetUnchecked<H> for Property<T, H> {
     unsafe fn index_set_unchecked(&mut self, index: H, value: T) {
         self.vec.index_set_unchecked(index.index_us(), value);
     }
 }
 
-impl<T, H: Copy + Deref<Target=Handle>> IndexSet<H> for Property<T, H> {
+impl<T, H: traits::Handle> IndexSet<H> for Property<T, H> {
     fn index_set(&mut self, index: H, value: T) {
         self.vec.index_set(index.index_us(), value);
     }
@@ -94,7 +90,7 @@ impl<T, H> ::std::fmt::Debug for Property<T, H> {
 
 impl<T, H> traits::Property<H> for Property<T, H>
     where T: Clone + Binary + Default + 'static,
-          H: ::std::any::Any + Copy + Deref<Target=Handle> + 'static,
+          H: traits::Handle,
           Property<T, H>: ::std::any::Any,
           Vec<T>: Binary
 {
@@ -170,26 +166,26 @@ impl<H> PropertyBits<H> {
 ////////////////////////////////////////////////////////////////////////////////
 // Index impls (pass through to vec).
 
-impl<H: Copy + Deref<Target=Handle>> ::std::ops::Index<H> for PropertyBits<H> {
+impl<H: traits::Handle> ::std::ops::Index<H> for PropertyBits<H> {
     type Output = bool;
     fn index(&self, index: H) -> &Self::Output {
         self.vec.index(index.index_us())
     }
 }
 
-impl<H: Copy + Deref<Target=Handle>> IndexUnchecked<H> for PropertyBits<H> {
+impl<H: traits::Handle> IndexUnchecked<H> for PropertyBits<H> {
     unsafe fn index_unchecked(&self, index: H) -> &Self::Output {
         self.vec.index_unchecked(index.index_us())
     }
 }
 
-impl<H: Copy + Deref<Target=Handle>> IndexSetUnchecked<H> for PropertyBits<H> {
+impl<H: traits::Handle> IndexSetUnchecked<H> for PropertyBits<H> {
     unsafe fn index_set_unchecked(&mut self, index: H, value: bool) {
         self.vec.index_set_unchecked(index.index_us(), value);
     }
 }
 
-impl<H: Copy + Deref<Target=Handle>> IndexSet<H> for PropertyBits<H> {
+impl<H: traits::Handle> IndexSet<H> for PropertyBits<H> {
     fn index_set(&mut self, index: H, value: bool) {
         self.vec.index_set(index.index_us(), value);
     }
@@ -208,7 +204,7 @@ impl<H> ::std::fmt::Debug for PropertyBits<H> {
 // impl `traits::Property`
 
 impl<H> traits::Property<H> for PropertyBits<H>
-    where H: ::std::any::Any + Copy + Deref<Target=Handle> + 'static
+    where H: traits::Handle
 {
     impl_property_accessors!(true); // is_streamable = true
 

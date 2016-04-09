@@ -1,12 +1,11 @@
 use std::io::{Read, Write};
-use std::ops::Deref;
 
 use downcast_rs::Downcast;
 
 use io::binary::UNKNOWN_SIZE;
 use io::result::Result;
-use util::property::handle;
 use util::property::size::Size;
+use util::property::traits::Handle;
 
 /// All mesh types are stored in Properties which implement this trait. We distinuish between
 /// standard properties, which can be defined at compile time using the Attributes in the traits
@@ -14,8 +13,7 @@ use util::property::size::Size;
 ///
 /// If the property should be stored along with the default properties in the OM-format one must
 /// name the property and enable the persistant flag with set_persistent().
-pub trait Property<H>: Downcast + ::std::fmt::Debug
-    where H: ::std::any::Any + Copy + Deref<Target=handle::Handle> + 'static
+pub trait Property<H: Handle>: Downcast + ::std::fmt::Debug
 {
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -89,12 +87,10 @@ pub trait Property<H>: Downcast + ::std::fmt::Debug
 
 
 // Support down-casting from `Property` to a struct implementing it.
-impl_downcast!(Property<H>
-               where H: ::std::any::Any + Copy + Deref<Target=handle::Handle> + 'static);
+impl_downcast!(Property<H> where H: Handle);
 
 
-impl<H> Clone for Box<Property<H>>
-    where H: ::std::any::Any + Copy + Deref<Target=handle::Handle> + 'static
+impl<H: Handle> Clone for Box<Property<H>>
 {
     fn clone(&self) -> Self {
         self.clone_as_trait()
