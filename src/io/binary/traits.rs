@@ -3,6 +3,13 @@ use io::result::{Error, Result};
 
 pub const UNKNOWN_SIZE: usize = !0usize;
 
+/// Endianness for storing/restoring.
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+pub enum Endian {
+    Big,
+    Little,
+}
+
 /// A trait for describing whether an object can be serialized to file.
 ///
 /// See also the related `impl_binary_notstreamable` and `impl_binary_streamablevec` macros to
@@ -17,15 +24,15 @@ pub trait Binary {
     /// Size of a specific value of type T, if determinable.
     fn size_of_value(&self) -> usize { Self::size_of_type() }
 
-    /// Stores `self` into `writer`, `swap`ping byte order if specified. Returns the number of
-    /// bytes written on success.
-    fn store(&self, _writer: &mut Write, _swap: bool) -> Result<usize> {
+    /// Stores `self` into `writer` with the specified byte order. Returns the number of bytes
+    /// written on success.
+    fn store(&self, _writer: &mut Write, _endian: Endian) -> Result<usize> {
         Err(Error::Unsupported)
     }
 
-    /// Loads `self` from `reader`, `swap`ping byte order if specified. Returns the number of
-    /// bytes read on success.
-    fn restore(&mut self, _reader: &mut Read, _swap: bool) -> Result<usize> {
+    /// Loads `self` from `reader` with the specified byte order. Returns the number of bytes read
+    /// on success.
+    fn restore(&mut self, _reader: &mut Read, _endian: Endian) -> Result<usize> {
         Err(Error::Unsupported)
     }
 }
@@ -73,19 +80,19 @@ macro_rules! impl_binary_streamablevec {
                 self.iter().map(|s| s.size_of_value()).fold(0, |a, b| a + b)
             }
 
-            fn store(&self, writer: &mut Write, swap: bool) -> Result<usize> {
+            fn store(&self, writer: &mut Write, endian: Endian) -> Result<usize> {
                 let mut size = 0;
                 for s in self.iter() {
-                    size += try!(s.store(writer, swap));
+                    size += try!(s.store(writer, endian));
                 }
                 Ok(size)
             }
 
             /// Note: This reads exactly as many items as the existing length of self.
-            fn restore(&mut self, reader: &mut Read, swap: bool) -> Result<usize> {
+            fn restore(&mut self, reader: &mut Read, endian: Endian) -> Result<usize> {
                 let mut size = 0;
                 for s in self.iter_mut() {
-                    size += try!(s.restore(reader, swap));
+                    size += try!(s.restore(reader, endian));
                 }
                 Ok(size)
             }
@@ -99,23 +106,24 @@ pub mod test {
     use std::fmt::Debug;
     use std::io::Cursor;
     use io::binary::{Binary, UNKNOWN_SIZE};
+    use io::binary::traits::Endian;
 
-    pub fn test_store<T: Binary>(swap: bool, value: &T, expected_bytes: &[u8]) {
+    pub fn test_store<T: Binary>(endian: Endian, value: &T, expected_bytes: &[u8]) {
         let mut buf = Vec::<u8>::new();
         assert_eq!(value.size_of_value(), expected_bytes.len());
         if <T as Binary>::size_of_type() != UNKNOWN_SIZE {
             assert_eq!(value.size_of_value(), <T as Binary>::size_of_type());
         }
-        assert_eq!(value.store(&mut buf, swap).unwrap(), expected_bytes.len());
+        assert_eq!(value.store(&mut buf, endian).unwrap(), expected_bytes.len());
         assert_eq!(buf, expected_bytes);
     }
 
-    pub fn test_restore<F, T>(swap: bool, bytes: &[u8], new: F, expected_value: &T)
+    pub fn test_restore<F, T>(endian: Endian, bytes: &[u8], new: F, expected_value: &T)
         where T: Binary + Debug + PartialEq<T>, F: FnOnce() -> T
     {
         let mut buf = Cursor::new(Vec::from(bytes));
         let mut value = new();
-        assert_eq!(value.restore(&mut buf, swap).unwrap(), bytes.len());
+        assert_eq!(value.restore(&mut buf, endian).unwrap(), bytes.len());
         assert_eq!(&value, expected_value);
     }
 }

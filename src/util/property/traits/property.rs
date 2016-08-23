@@ -2,7 +2,7 @@ use std::io::{Read, Write};
 
 use downcast_rs::Downcast;
 
-use io::binary::UNKNOWN_SIZE;
+use io::binary::{Endian, UNKNOWN_SIZE};
 use io::result::Result;
 use util::property::size::Size;
 use util::property::traits::Handle;
@@ -79,10 +79,10 @@ pub trait Property<H: Handle>: Downcast + ::std::fmt::Debug
     }
 
     /// Store self as one binary block.
-    fn store(&self, writer: &mut Write, swap: bool) -> Result<usize>;
+    fn store(&self, writer: &mut Write, endian: Endian) -> Result<usize>;
 
     /// Restore self from a binary block. Uses reserve() to set the size of self before restoring.
-    fn restore(&mut self, reader: &mut Read, swap: bool) -> Result<usize>;
+    fn restore(&mut self, reader: &mut Read, endian: Endian) -> Result<usize>;
 }
 
 

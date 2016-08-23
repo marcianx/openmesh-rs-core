@@ -1,5 +1,5 @@
 use std::io::{Read, Write};
-use io::binary::Binary;
+use io::binary::{Binary, Endian};
 use io::binary::UNKNOWN_SIZE;
 use io::result::Result;
 use util::bitvec::BitVec;
@@ -131,11 +131,11 @@ impl<T, H> traits::Property<H> for Property<T, H>
     fn n_elements(&self) -> usize { self.vec.len() }
     fn element_size(&self) -> usize { <T as Binary>::size_of_type() }
     fn size_of(&self) -> usize { <Vec<T> as Binary>::size_of_value(&self.vec) }
-    fn store(&self, writer: &mut Write, swap: bool) -> Result<usize> {
-        <Vec<T> as Binary>::store(&self.vec, writer, swap)
+    fn store(&self, writer: &mut Write, endian: Endian) -> Result<usize> {
+        <Vec<T> as Binary>::store(&self.vec, writer, endian)
     }
-    fn restore(&mut self, reader: &mut Read, swap: bool) -> Result<usize> {
-        <Vec<T> as Binary>::restore(&mut self.vec, reader, swap)
+    fn restore(&mut self, reader: &mut Read, endian: Endian) -> Result<usize> {
+        <Vec<T> as Binary>::restore(&mut self.vec, reader, endian)
     }
 }
 
@@ -244,11 +244,11 @@ impl<H> traits::Property<H> for PropertyBits<H>
     fn n_elements(&self) -> usize { self.vec.len() }
     fn element_size(&self) -> usize { UNKNOWN_SIZE }
     fn size_of(&self) -> usize { <BitVec as Binary>::size_of_value(&self.vec) }
-    fn store(&self, writer: &mut Write, swap: bool) -> Result<usize> {
-        <BitVec as Binary>::store(&self.vec, writer, swap)
+    fn store(&self, writer: &mut Write, endian: Endian) -> Result<usize> {
+        <BitVec as Binary>::store(&self.vec, writer, endian)
     }
-    fn restore(&mut self, reader: &mut Read, swap: bool) -> Result<usize> {
-        <BitVec as Binary>::restore(&mut self.vec, reader, swap)
+    fn restore(&mut self, reader: &mut Read, endian: Endian) -> Result<usize> {
+        <BitVec as Binary>::restore(&mut self.vec, reader, endian)
     }
 }
 

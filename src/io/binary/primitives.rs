@@ -17,12 +17,12 @@ macro_rules! binary_impl_int8 {
             fn is_streamable() -> bool { true }
             fn size_of_type() -> usize { mem::size_of::<Self>() }
 
-            fn store(&self, writer: &mut Write, _swap: bool) -> Result<usize> {
+            fn store(&self, writer: &mut Write, _endian: Endian) -> Result<usize> {
                 try!(writer.$write_fn(*self));
                 Ok(mem::size_of::<Self>())
             }
 
-            fn restore(&mut self, reader: &mut Read, _swap: bool) -> Result<usize> {
+            fn restore(&mut self, reader: &mut Read, _endian: Endian) -> Result<usize> {
                 let value = try!(reader.$read_fn());
                 *self = value;
                 Ok(mem::size_of::<Self>())
@@ -42,15 +42,19 @@ macro_rules! binary_impl_primitive {
             fn is_streamable() -> bool { true }
             fn size_of_type() -> usize { mem::size_of::<Self>() }
 
-            fn store(&self, writer: &mut Write, swap: bool) -> Result<usize> {
-                try!(if swap { writer.$write_fn::<BigEndian>(*self) }
-                     else    { writer.$write_fn::<LittleEndian>(*self) });
+            fn store(&self, writer: &mut Write, endian: Endian) -> Result<usize> {
+                try!(match endian {
+                    Endian::Big    => writer.$write_fn::<BigEndian>(*self),
+                    Endian::Little => writer.$write_fn::<LittleEndian>(*self),
+                });
                 Ok(mem::size_of::<Self>())
             }
 
-            fn restore(&mut self, reader: &mut Read, swap: bool) -> Result<usize> {
-                *self = try!(if swap { reader.$read_fn::<BigEndian>() }
-                             else    { reader.$read_fn::<LittleEndian>() });
+            fn restore(&mut self, reader: &mut Read, endian: Endian) -> Result<usize> {
+                *self = try!(match endian {
+                    Endian::Big    => reader.$read_fn::<BigEndian>(),
+                    Endian::Little => reader.$read_fn::<LittleEndian>(),
+                });
                 Ok(mem::size_of::<Self>())
             }
         }
@@ -70,60 +74,61 @@ binary_impl_primitive!(f64, read_f64, write_f64);
 #[cfg(test)]
 mod test_primitives {
     use io::binary::test;
+    use io::binary::traits::Endian::{Big, Little};
     use std::mem::transmute;
     
     #[test]
     fn test_store() {
-        test::test_store(false, &0x01u8, &[0x01]);
-        test::test_store(true , &0x01u8, &[0x01]);
-        test::test_store(false, &0x0123u16, &[0x23, 0x01]);
-        test::test_store(true , &0x0123u16, &[0x01, 0x23]);
-        test::test_store(false, &0x01234567u32, &[0x67, 0x45, 0x23, 0x01]);
-        test::test_store(true , &0x01234567u32, &[0x01, 0x23, 0x45, 0x67]);
-        test::test_store(false, &0x0123456789abcdefu64, &[0xef, 0xcd, 0xab, 0x89, 0x67, 0x45, 0x23, 0x01]);
-        test::test_store(true , &0x0123456789abcdefu64, &[0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef]);
-        test::test_store(false, &0x01i8, &[0x01]);
-        test::test_store(true , &0x01i8, &[0x01]);
-        test::test_store(false, &0x0123i16, &[0x23, 0x01]);
-        test::test_store(true , &0x0123i16, &[0x01, 0x23]);
-        test::test_store(false, &0x01234567i32, &[0x67, 0x45, 0x23, 0x01]);
-        test::test_store(true , &0x01234567i32, &[0x01, 0x23, 0x45, 0x67]);
-        test::test_store(false, &0x0123456789abcdefi64, &[0xef, 0xcd, 0xab, 0x89, 0x67, 0x45, 0x23, 0x01]);
-        test::test_store(true , &0x0123456789abcdefi64, &[0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef]);
+        test::test_store(Little, &0x01u8, &[0x01]);
+        test::test_store(Big   , &0x01u8, &[0x01]);
+        test::test_store(Little, &0x0123u16, &[0x23, 0x01]);
+        test::test_store(Big   , &0x0123u16, &[0x01, 0x23]);
+        test::test_store(Little, &0x01234567u32, &[0x67, 0x45, 0x23, 0x01]);
+        test::test_store(Big   , &0x01234567u32, &[0x01, 0x23, 0x45, 0x67]);
+        test::test_store(Little, &0x0123456789abcdefu64, &[0xef, 0xcd, 0xab, 0x89, 0x67, 0x45, 0x23, 0x01]);
+        test::test_store(Big   , &0x0123456789abcdefu64, &[0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef]);
+        test::test_store(Little, &0x01i8, &[0x01]);
+        test::test_store(Big   , &0x01i8, &[0x01]);
+        test::test_store(Little, &0x0123i16, &[0x23, 0x01]);
+        test::test_store(Big   , &0x0123i16, &[0x01, 0x23]);
+        test::test_store(Little, &0x01234567i32, &[0x67, 0x45, 0x23, 0x01]);
+        test::test_store(Big   , &0x01234567i32, &[0x01, 0x23, 0x45, 0x67]);
+        test::test_store(Little, &0x0123456789abcdefi64, &[0xef, 0xcd, 0xab, 0x89, 0x67, 0x45, 0x23, 0x01]);
+        test::test_store(Big   , &0x0123456789abcdefi64, &[0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef]);
 
         let float32: f32 = unsafe { transmute(0x3e124925u32) };
         let float64: f64 = unsafe { transmute(0x3e12492589abcdefu64) };
-        test::test_store(false, &float32, &[0x25, 0x49, 0x12, 0x3e]);
-        test::test_store(true , &float32, &[0x3e, 0x12, 0x49, 0x25]);
-        test::test_store(false, &float64, &[0xef, 0xcd, 0xab, 0x89, 0x25, 0x49, 0x12, 0x3e]);
-        test::test_store(true , &float64, &[0x3e, 0x12, 0x49, 0x25, 0x89, 0xab, 0xcd, 0xef]);
+        test::test_store(Little, &float32, &[0x25, 0x49, 0x12, 0x3e]);
+        test::test_store(Big   , &float32, &[0x3e, 0x12, 0x49, 0x25]);
+        test::test_store(Little, &float64, &[0xef, 0xcd, 0xab, 0x89, 0x25, 0x49, 0x12, 0x3e]);
+        test::test_store(Big   , &float64, &[0x3e, 0x12, 0x49, 0x25, 0x89, 0xab, 0xcd, 0xef]);
     }
 
     #[test]
     fn test_restore() {
-        test::test_restore(false, &[0x01], || 0, &0x01u8);
-        test::test_restore(true , &[0x01], || 0, &0x01u8);
-        test::test_restore(false, &[0x23, 0x01], || 0, &0x0123u16);
-        test::test_restore(true , &[0x01, 0x23], || 0, &0x0123u16);
-        test::test_restore(false, &[0x67, 0x45, 0x23, 0x01], || 0, &0x01234567u32);
-        test::test_restore(true , &[0x01, 0x23, 0x45, 0x67], || 0, &0x01234567u32);
-        test::test_restore(false, &[0xef, 0xcd, 0xab, 0x89, 0x67, 0x45, 0x23, 0x01], || 0, &0x0123456789abcdefu64);
-        test::test_restore(true , &[0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef], || 0, &0x0123456789abcdefu64);
-        test::test_restore(false, &[0x01], || 0, &0x01i8);
-        test::test_restore(true , &[0x01], || 0, &0x01i8);
-        test::test_restore(false, &[0x23, 0x01], || 0, &0x0123i16);
-        test::test_restore(true , &[0x01, 0x23], || 0, &0x0123i16);
-        test::test_restore(false, &[0x67, 0x45, 0x23, 0x01], || 0, &0x01234567i32);
-        test::test_restore(true , &[0x01, 0x23, 0x45, 0x67], || 0, &0x01234567i32);
-        test::test_restore(false, &[0xef, 0xcd, 0xab, 0x89, 0x67, 0x45, 0x23, 0x01], || 0, &0x0123456789abcdefi64);
-        test::test_restore(true , &[0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef], || 0, &0x0123456789abcdefi64);
+        test::test_restore(Little, &[0x01], || 0, &0x01u8);
+        test::test_restore(Big   , &[0x01], || 0, &0x01u8);
+        test::test_restore(Little, &[0x23, 0x01], || 0, &0x0123u16);
+        test::test_restore(Big   , &[0x01, 0x23], || 0, &0x0123u16);
+        test::test_restore(Little, &[0x67, 0x45, 0x23, 0x01], || 0, &0x01234567u32);
+        test::test_restore(Big   , &[0x01, 0x23, 0x45, 0x67], || 0, &0x01234567u32);
+        test::test_restore(Little, &[0xef, 0xcd, 0xab, 0x89, 0x67, 0x45, 0x23, 0x01], || 0, &0x0123456789abcdefu64);
+        test::test_restore(Big   , &[0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef], || 0, &0x0123456789abcdefu64);
+        test::test_restore(Little, &[0x01], || 0, &0x01i8);
+        test::test_restore(Big   , &[0x01], || 0, &0x01i8);
+        test::test_restore(Little, &[0x23, 0x01], || 0, &0x0123i16);
+        test::test_restore(Big   , &[0x01, 0x23], || 0, &0x0123i16);
+        test::test_restore(Little, &[0x67, 0x45, 0x23, 0x01], || 0, &0x01234567i32);
+        test::test_restore(Big   , &[0x01, 0x23, 0x45, 0x67], || 0, &0x01234567i32);
+        test::test_restore(Little, &[0xef, 0xcd, 0xab, 0x89, 0x67, 0x45, 0x23, 0x01], || 0, &0x0123456789abcdefi64);
+        test::test_restore(Big   , &[0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef], || 0, &0x0123456789abcdefi64);
 
         let float32: f32 = unsafe { transmute(0x3e124925u32) };
         let float64: f64 = unsafe { transmute(0x3e12492589abcdefu64) };
-        test::test_restore(false, &[0x25, 0x49, 0x12, 0x3e], || 0.0, &float32);
-        test::test_restore(true , &[0x3e, 0x12, 0x49, 0x25], || 0.0, &float32);
-        test::test_restore(false, &[0xef, 0xcd, 0xab, 0x89, 0x25, 0x49, 0x12, 0x3e], || 0.0, &float64);
-        test::test_restore(true , &[0x3e, 0x12, 0x49, 0x25, 0x89, 0xab, 0xcd, 0xef], || 0.0, &float64);
+        test::test_restore(Little, &[0x25, 0x49, 0x12, 0x3e], || 0.0, &float32);
+        test::test_restore(Big   , &[0x3e, 0x12, 0x49, 0x25], || 0.0, &float32);
+        test::test_restore(Little, &[0xef, 0xcd, 0xab, 0x89, 0x25, 0x49, 0x12, 0x3e], || 0.0, &float64);
+        test::test_restore(Big   , &[0x3e, 0x12, 0x49, 0x25, 0x89, 0xab, 0xcd, 0xef], || 0.0, &float64);
     }
 }
 
