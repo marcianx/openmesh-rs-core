@@ -86,3 +86,65 @@ macro_rules! def_handle {
     }
 }
 
+/// Property handle - one that is tied to a `Property` enumerating a specific `Value` type.
+pub trait PropHandle: Handle {
+    type Value;
+}
+
+/// Defines a handle implementing `Handle` `PropHandle` with `Value = T` via
+///  `def_prop_handle!(Handle<T>)`
+/// `T` must be a generic type. This macro currently also requires `T: std::any::Any` on the
+/// definitions.
+#[macro_export]
+macro_rules! def_prop_handle {
+    // TODO: Reconsider the `Any` constraint on $arg.
+    ($handle:ident < $arg:ident >) => {
+        #[derive(Hash)]
+        pub struct $handle<$arg: ::std::any::Any>($crate::util::property::size::Index, ::std::marker::PhantomData<$arg>);
+        impl<$arg: ::std::any::Any> Copy for $handle<$arg> {}
+        impl<$arg: ::std::any::Any> Clone for $handle<$arg> { fn clone(&self) -> Self { *self } }
+
+        impl<$arg: ::std::any::Any> PartialEq for $handle<$arg> {
+            fn eq(&self, other: &Self) -> bool { self.0 == other.0 }
+        }
+        impl<$arg: ::std::any::Any> Eq for $handle<$arg> {}
+
+        impl<$arg: ::std::any::Any> $crate::util::property::traits::Handle for $handle<$arg> {
+            #[inline(always)]
+            fn new() -> Self {
+                $handle($crate::util::property::size::INVALID_INDEX, ::std::marker::PhantomData::<$arg>)
+            }
+            #[inline(always)]
+            fn from_index(idx: $crate::util::property::size::Index) -> Self {
+                assert!(idx != $crate::util::property::size::INVALID_INDEX);
+                $handle(idx, ::std::marker::PhantomData::<$arg>)
+            }
+            #[inline(always)]
+            fn index(self) -> $crate::util::property::size::Index { self.0 }
+            #[inline(always)]
+            fn set_index(&mut self, idx: $crate::util::property::size::Index) { self.0 = idx; }
+        }
+
+        impl<$arg: ::std::any::Any> ::std::fmt::Debug for $handle<$arg> {
+            fn fmt(&self, formatter: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+                self.0.fmt(formatter)
+            }
+        }
+
+        impl<$arg: ::std::any::Any> ::std::fmt::Display for $handle<$arg> {
+            fn fmt(&self, formatter: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+                self.0.fmt(formatter)
+            }
+        }
+
+        impl<$arg: ::std::any::Any> $crate::util::property::traits::PropHandle for $handle<$arg> {
+            type Value = $arg;
+        }
+    };
+}
+
+#[cfg(test)]
+mod test {
+    def_handle!(MyHandle1);
+    def_prop_handle!(MyHandle3<T>);
+}
