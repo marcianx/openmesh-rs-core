@@ -7,10 +7,10 @@ mod bitvec;
 mod primitives;
 mod string;
 mod status;
-mod vec;
+mod geometry;
 pub use self::bitvec::*;
 pub use self::primitives::*;
 pub use self::string::*;
 pub use self::status::*;
-pub use self::vec::*;
+pub use self::geometry::*;
 
