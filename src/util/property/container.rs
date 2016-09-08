@@ -31,8 +31,7 @@ impl<H: traits::Handle> traits::PropertyContainer<H> for PropertyContainer<H>
 
     fn add<T>(&mut self, name: Option<String>) -> H
         where T: Binary + Clone + Default + 'static,
-              property::Property<T, H>: ::std::any::Any,
-              Vec<T>: Binary
+              property::Property<T, H>: ::std::any::Any
     {
         let name = name.unwrap_or("<unknown>".to_owned());
         let pos = self.vec.iter().position(Option::is_none);
@@ -52,8 +51,7 @@ impl<H: traits::Handle> traits::PropertyContainer<H> for PropertyContainer<H>
 
     fn get<T>(&mut self, handle: H) -> Option<&property::Property<T, H>>
         where T: Binary + Clone + Default + 'static,
-              property::Property<T, H>: ::std::any::Any,
-              Vec<T>: Binary
+              property::Property<T, H>: ::std::any::Any
     {
         self.vec
             .get(handle.index() as usize)
@@ -65,8 +63,7 @@ impl<H: traits::Handle> traits::PropertyContainer<H> for PropertyContainer<H>
 
     fn get_mut<T>(&mut self, handle: H) -> Option<&mut property::Property<T, H>>
         where T: Binary + Clone + Default + 'static,
-              property::Property<T, H>: ::std::any::Any,
-              Vec<T>: Binary
+              property::Property<T, H>: ::std::any::Any
     {
         self.vec
             .get_mut(handle.index() as usize)

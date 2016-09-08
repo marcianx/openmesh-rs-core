@@ -19,18 +19,15 @@ pub trait PropertyContainer<H: traits::Handle>
     /// Adds a property whose elements are of type `T`.
     /// Panics in the unlikely case that the number of properties reaches `size::INVALID_INDEX`.
     fn add<T: Binary + Clone + Default + 'static>(&mut self, name: Option<String>) -> H
-        where Property<T, H>: ::std::any::Any,
-              Vec<T>: Binary;
+        where Property<T, H>: ::std::any::Any;
     /// Returns the property at the given handle if any exists and if the return type matches.
     fn get<T>(&mut self, handle: H) -> Option<&Property<T, H>>
         where T: Binary + Clone + Default + 'static,
-              Property<T, H>: ::std::any::Any,
-              Vec<T>: Binary;
+              Property<T, H>: ::std::any::Any;
     /// Returns the property at the given handle if any exists and if the return type matches.
     fn get_mut<T>(&mut self, handle: H) -> Option<&mut Property<T, H>>
         where T: Binary + Clone + Default + 'static,
-              Property<T, H>: ::std::any::Any,
-              Vec<T>: Binary;
+              Property<T, H>: ::std::any::Any;
     /// Returns the property at the given handle if any exists and if the return type matches.
     fn remove(&mut self, handle: H);
     /// Removes all properties.

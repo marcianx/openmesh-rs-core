@@ -91,8 +91,7 @@ impl<T, H> ::std::fmt::Debug for Property<T, H> {
 impl<T, H> traits::Property<H> for Property<T, H>
     where T: Clone + Binary + Default + 'static,
           H: traits::Handle,
-          Property<T, H>: ::std::any::Any,
-          Vec<T>: Binary
+          Property<T, H>: ::std::any::Any
 {
     impl_property_accessors!(<T as Binary>::is_streamable());
 
