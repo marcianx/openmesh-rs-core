@@ -1,5 +1,4 @@
 use std::io::{Read, Write};
-use std::vec::Vec;
 
 use io::binary::traits::{Binary, ByteOrder};
 use io::result::{Error, Result};
@@ -36,8 +35,6 @@ impl Binary for String {
         Ok(len + len_size)
     }
 }
-
-impl_binary_streamablevec!(String);
 
 
 #[cfg(test)]

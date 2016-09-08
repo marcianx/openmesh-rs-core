@@ -13,6 +13,4 @@ pub mod util;
 
 pub mod geometry;
 pub mod mesh;
-// TODO(amyles): Either make the `Binary` impl generation macros public or wait for rust to support
-// partial template specialization and refactor.
 pub mod io;

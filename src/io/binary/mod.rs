@@ -1,5 +1,4 @@
 // Trait definition
-#[macro_use]
 mod traits;
 pub use self::traits::*;
 
