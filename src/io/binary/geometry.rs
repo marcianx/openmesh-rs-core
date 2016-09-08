@@ -76,7 +76,7 @@ binary_impl_vec!(Vec6, f64, read_f64, write_f64);
 
 
 #[cfg(test)]
-mod test_geometry {
+mod test {
     // Test only a subset of the impls above but all lines in the macros.
     extern crate num;
     use self::num::Zero;

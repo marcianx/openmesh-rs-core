@@ -29,7 +29,7 @@ impl Binary for Status {
 
 
 #[cfg(test)]
-mod test_status {
+mod test {
     use io::binary::test;
     use io::binary::traits::Endian::{Big, Little};
     use mesh::status;

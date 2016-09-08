@@ -66,7 +66,7 @@ binary_impl_primitive!(f64, read_f64, write_f64);
 
 
 #[cfg(test)]
-mod test_primitives {
+mod test {
     use io::binary::test;
     use io::binary::traits::Endian::{Big, Little};
     use std::mem::transmute;
@@ -128,7 +128,7 @@ mod test_primitives {
 
 
 #[cfg(test)]
-mod test_primitives_vec {
+mod test_vec {
     use io::binary::test;
     use io::binary::traits::Endian::{Big, Little};
     use std::mem::transmute;

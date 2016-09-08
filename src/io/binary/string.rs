@@ -38,7 +38,7 @@ impl Binary for String {
 
 
 #[cfg(test)]
-mod test_string {
+mod test {
     use ::io::binary::test;
     use ::io::binary::traits::Endian::{Big, Little};
 
@@ -63,7 +63,7 @@ mod test_string {
 
 
 #[cfg(test)]
-mod test_string_vec {
+mod test_vec {
     use ::io::binary::test;
     use ::io::binary::traits::Endian::{Big, Little};
 
