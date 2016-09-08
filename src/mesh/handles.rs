@@ -1,24 +1,27 @@
-/// Vertex handle
+/// Vertex handle.
 def_handle!(VertexHandle);
 
-/// Halfedge handle
+/// Halfedge handle.
 def_handle!(HalfedgeHandle);
 
-/// Edge handle
+/// Edge handle.
 def_handle!(EdgeHandle);
 
-/// Face handle
+/// Face handle.
 def_handle!(FaceHandle);
 
-/// Vertex handle for a specific property
+/// Handle for a specific vertex property.
 def_prop_handle!(VPropHandle<T>);
 
-/// Halfedge handle for a specific property
+/// Handle for a specific halfedge property.
 def_prop_handle!(HPropHandle<T>);
 
-/// Edge handle for a specific property
+/// Handle for a specific edge property.
 def_prop_handle!(EPropHandle<T>);
 
-/// Face handle for a specific property
+/// Handle for a specific face property.
 def_prop_handle!(FPropHandle<T>);
+
+/// Handle for a specific mesh property.
+def_prop_handle!(MPropHandle<T>);
 
