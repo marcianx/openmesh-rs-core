@@ -3,13 +3,13 @@
 // * the dynamic-length `Vec` from the standard library
 
 extern crate byteorder;
-use self::byteorder::{BigEndian, LittleEndian, ReadBytesExt, WriteBytesExt};
+use self::byteorder::{ReadBytesExt, WriteBytesExt};
 
 use std::io::{Read, Write};
 use std::mem;
 
 use geometry::vector::*;
-use io::binary::traits::*;
+use io::binary::traits::{Binary, ByteOrder, UNKNOWN_SIZE};
 use io::result::Result;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -30,14 +30,14 @@ macro_rules! binary_impl_vec_int8 {
             fn size_of_value(&self) -> usize { self.len() * <$item_ty as Binary>::size_of_type() }
             fn size_of_type() -> usize { $static_length }
 
-            fn store(&self, writer: &mut Write, _endian: Endian) -> Result<usize> {
+            fn store_endian<B: ByteOrder>(&self, writer: &mut Write) -> Result<usize> {
                 for val in self.iterable().iter() {
                     try!(writer.$write_fn(*val));
                 }
                 Ok(self.size_of_value())
             }
 
-            fn restore(&mut self, reader: &mut Read, _endian: Endian) -> Result<usize> {
+            fn restore_endian<B: ByteOrder>(&mut self, reader: &mut Read) -> Result<usize> {
                 for val in self.iterable_mut().iter_mut() {
                     *val = try!(reader.$read_fn());
                 }
@@ -56,23 +56,18 @@ macro_rules! binary_impl_vec {
             fn size_of_value(&self) -> usize { self.len() * <$item_ty as Binary>::size_of_type() }
             fn size_of_type() -> usize { $static_length }
 
-            fn store(&self, writer: &mut Write, endian: Endian) -> Result<usize> {
-                let iter = self.iterable().iter();
-                match endian {
-                    Endian::Big    => for val in iter { try!(writer.$write_fn::<BigEndian>(*val)); },
-                    Endian::Little => for val in iter { try!(writer.$write_fn::<LittleEndian>(*val)); },
+            fn store_endian<B: ByteOrder>(&self, writer: &mut Write) -> Result<usize> {
+                for val in self.iterable().iter() {
+                    try!(writer.$write_fn::<B>(*val));
                 }
                 Ok(self.size_of_value())
             }
 
-            fn restore(&mut self, reader: &mut Read, endian: Endian) -> Result<usize> {
-                let size = self.size_of_value();
-                let iter_mut = self.iterable_mut().iter_mut();
-                match endian {
-                    Endian::Big    => for val in iter_mut { *val = try!(reader.$read_fn::<BigEndian>()); },
-                    Endian::Little => for val in iter_mut { *val = try!(reader.$read_fn::<LittleEndian>()); },
+            fn restore_endian<B: ByteOrder>(&mut self, reader: &mut Read) -> Result<usize> {
+                for val in self.iterable_mut().iter_mut() {
+                    *val = try!(reader.$read_fn::<B>());
                 }
-                Ok(size)
+                Ok(self.size_of_value())
             }
         }
     )

@@ -1,7 +1,7 @@
 use std::io::{Read, Write};
 use std::vec::Vec;
 
-use io::binary::traits::*;
+use io::binary::traits::{Binary, ByteOrder};
 use io::result::{Error, Result};
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -11,23 +11,23 @@ impl Binary for String {
     fn is_streamable() -> bool { true }
     fn size_of_value(&self) -> usize { self.len() + <u16 as Binary>::size_of_type() }
 
-    fn store(&self, writer: &mut Write, endian: Endian) -> Result<usize> {
+    fn store_endian<B: ByteOrder>(&self, writer: &mut Write) -> Result<usize> {
         let len = self.len();
         if len > u16::max_value() as usize {
             return Err(Error::StringExceeds64k)
         }
         // TODO: OpenMesh has a bug where len is double-swapped.
         // Reproduce the bug for backward-compatibility with OpenMesh files?
-        let len_size =try!((len as u16).store(writer, endian));
+        let len_size = try!((len as u16).store_endian::<B>(writer));
         try!(writer.write_all(self.as_bytes()));
         Ok(len + len_size)
     }
 
-    fn restore(&mut self, reader: &mut Read, endian: Endian) -> Result<usize> {
+    fn restore_endian<B: ByteOrder>(&mut self, reader: &mut Read) -> Result<usize> {
         let mut len = 0u16;
         // TODO: OpenMesh has a bug where len is double-swapped.
         // Reproduce the bug for backward-compatibility with OpenMesh files?
-        let len_size = try!(len.restore(reader, endian));
+        let len_size = try!(len.restore_endian::<B>(reader));
         let len = len as usize;
 
         self.clear();

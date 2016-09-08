@@ -1,6 +1,14 @@
 use std::io::{Read, Write};
 use io::result::{Error, Result};
 
+extern crate byteorder;
+// TODO: Reexporting byteorder's traits and types. Consider not leaking this implementation detail
+// by creating a wrapper trait/class around this.
+/// Trait for staticly-dispatched endianness.
+pub use self::byteorder::ByteOrder;
+/// Types implementing `ByteOrder` for staticly-dispatched endianness.
+pub use self::byteorder::{BigEndian, LittleEndian};
+
 pub const UNKNOWN_SIZE: usize = !0usize;
 
 /// Endianness for storing/restoring.
@@ -24,16 +32,36 @@ pub trait Binary {
     /// Size of a specific value of type T, if determinable.
     fn size_of_value(&self) -> usize { Self::size_of_type() }
 
+    /// Stores `self` into `writer` with statically-specified byte order. Returns the number of
+    /// bytes written on success.
+    #[inline(always)]
+    fn store_endian<B: ByteOrder>(&self, _writer: &mut Write) -> Result<usize> {
+        Err(Error::Unsupported)
+    }
+
+    /// Loads `self` from `reader` with statically-specified byte order. Returns the number of
+    /// bytes read on success.
+    #[inline(always)]
+    fn restore_endian<B: ByteOrder>(&mut self, _reader: &mut Read) -> Result<usize> {
+        Err(Error::Unsupported)
+    }
+
     /// Stores `self` into `writer` with the specified byte order. Returns the number of bytes
     /// written on success.
-    fn store(&self, _writer: &mut Write, _endian: Endian) -> Result<usize> {
-        Err(Error::Unsupported)
+    fn store(&self, writer: &mut Write, endian: Endian) -> Result<usize> {
+        match endian {
+            Endian::Big    => self.store_endian::<BigEndian>(writer),
+            Endian::Little => self.store_endian::<LittleEndian>(writer),
+        }
     }
 
     /// Loads `self` from `reader` with the specified byte order. Returns the number of bytes read
     /// on success.
-    fn restore(&mut self, _reader: &mut Read, _endian: Endian) -> Result<usize> {
-        Err(Error::Unsupported)
+    fn restore(&mut self, reader: &mut Read, endian: Endian) -> Result<usize> {
+        match endian {
+            Endian::Big    => self.restore_endian::<BigEndian>(reader),
+            Endian::Little => self.restore_endian::<LittleEndian>(reader),
+        }
     }
 }
 
@@ -80,19 +108,19 @@ macro_rules! impl_binary_streamablevec {
                 self.iter().map(|s| s.size_of_value()).fold(0, |a, b| a + b)
             }
 
-            fn store(&self, writer: &mut Write, endian: Endian) -> Result<usize> {
+            fn store_endian<B: ByteOrder>(&self, writer: &mut Write) -> Result<usize> {
                 let mut size = 0;
                 for s in self.iter() {
-                    size += try!(s.store(writer, endian));
+                    size += try!(s.store_endian::<B>(writer));
                 }
                 Ok(size)
             }
 
             /// Note: This reads exactly as many items as the existing length of self.
-            fn restore(&mut self, reader: &mut Read, endian: Endian) -> Result<usize> {
+            fn restore_endian<B: ByteOrder>(&mut self, reader: &mut Read) -> Result<usize> {
                 let mut size = 0;
                 for s in self.iter_mut() {
-                    size += try!(s.restore(reader, endian));
+                    size += try!(s.restore_endian::<B>(reader));
                 }
                 Ok(size)
             }

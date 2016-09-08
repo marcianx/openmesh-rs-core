@@ -1,6 +1,6 @@
 use std::io::{Read, Write};
 
-use io::binary::traits::*;
+use io::binary::traits::{Binary, ByteOrder};
 use io::result::Result;
 use util::bitvec::BitVec;
 
@@ -11,12 +11,12 @@ impl Binary for BitVec {
     fn is_streamable() -> bool { true }
     fn size_of_value(&self) -> usize { self.as_bytes().len() }
 
-    fn store(&self, writer: &mut Write, _endian: Endian) -> Result<usize> {
+    fn store_endian<B: ByteOrder>(&self, writer: &mut Write) -> Result<usize> {
         try!(writer.write_all(self.as_bytes()));
         Ok(self.size_of_value())
     }
 
-    fn restore(&mut self, reader: &mut Read, _endian: Endian) -> Result<usize> {
+    fn restore_endian<B: ByteOrder>(&mut self, reader: &mut Read) -> Result<usize> {
         try!(self.with_bytes_mut(|vec| reader.read_exact(vec)));
         Ok(self.size_of_value())
     }

@@ -1,10 +1,10 @@
 extern crate byteorder;
-use self::byteorder::{BigEndian, LittleEndian, ReadBytesExt, WriteBytesExt};
+use self::byteorder::{ReadBytesExt, WriteBytesExt};
 
 use std::io::{Read, Write};
 use std::mem;
 
-use io::binary::traits::*;
+use io::binary::traits::{Binary, ByteOrder};
 use io::result::Result;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -17,12 +17,12 @@ macro_rules! binary_impl_int8 {
             fn is_streamable() -> bool { true }
             fn size_of_type() -> usize { mem::size_of::<Self>() }
 
-            fn store(&self, writer: &mut Write, _endian: Endian) -> Result<usize> {
+            fn store_endian<B: ByteOrder>(&self, writer: &mut Write) -> Result<usize> {
                 try!(writer.$write_fn(*self));
                 Ok(mem::size_of::<Self>())
             }
 
-            fn restore(&mut self, reader: &mut Read, _endian: Endian) -> Result<usize> {
+            fn restore_endian<B: ByteOrder>(&mut self, reader: &mut Read) -> Result<usize> {
                 let value = try!(reader.$read_fn());
                 *self = value;
                 Ok(mem::size_of::<Self>())
@@ -42,19 +42,13 @@ macro_rules! binary_impl_primitive {
             fn is_streamable() -> bool { true }
             fn size_of_type() -> usize { mem::size_of::<Self>() }
 
-            fn store(&self, writer: &mut Write, endian: Endian) -> Result<usize> {
-                try!(match endian {
-                    Endian::Big    => writer.$write_fn::<BigEndian>(*self),
-                    Endian::Little => writer.$write_fn::<LittleEndian>(*self),
-                });
+            fn store_endian<B: ByteOrder>(&self, writer: &mut Write) -> Result<usize> {
+                try!(writer.$write_fn::<B>(*self));
                 Ok(mem::size_of::<Self>())
             }
 
-            fn restore(&mut self, reader: &mut Read, endian: Endian) -> Result<usize> {
-                *self = try!(match endian {
-                    Endian::Big    => reader.$read_fn::<BigEndian>(),
-                    Endian::Little => reader.$read_fn::<LittleEndian>(),
-                });
+            fn restore_endian<B: ByteOrder>(&mut self, reader: &mut Read) -> Result<usize> {
+                *self = try!(reader.$read_fn::<B>());
                 Ok(mem::size_of::<Self>())
             }
         }

@@ -4,7 +4,7 @@ use self::num::Zero;
 use std::io::{Read, Write};
 use std::mem;
 
-use io::binary::traits::*;
+use io::binary::traits::{Binary, ByteOrder};
 use io::result::Result;
 use mesh::status::{FlagBits, Status};
 
@@ -15,13 +15,13 @@ impl Binary for Status {
     fn is_streamable() -> bool { true }
     fn size_of_type() -> usize { mem::size_of::<Self>() }
 
-    fn store(&self, writer: &mut Write, endian: Endian) -> Result<usize> {
-        self.bits().store(writer, endian)
+    fn store_endian<B: ByteOrder>(&self, writer: &mut Write) -> Result<usize> {
+        self.bits().store_endian::<B>(writer)
     }
 
-    fn restore(&mut self, reader: &mut Read, endian: Endian) -> Result<usize> {
+    fn restore_endian<B: ByteOrder>(&mut self, reader: &mut Read) -> Result<usize> {
         let mut bits: FlagBits = Zero::zero();
-        let len = try!(bits.restore(reader, endian));
+        let len = try!(bits.restore_endian::<B>(reader));
         *self = Status::from_bits_truncate(bits);
         Ok(len)
     }
