@@ -1,7 +1,7 @@
 use util::property::size::{Index, INVALID_INDEX};
 
 /// Trait for handle types that wrap `HandleBase` which wraps an index.
-pub trait Handle: ::std::any::Any + Copy + ::std::fmt::Debug + 'static
+pub trait Handle: ::std::any::Any + Copy + Clone + ::std::fmt::Debug + 'static
 {
     /// Initialize a handle with an invalid index.
     fn new() -> Self;
@@ -97,7 +97,6 @@ pub trait PropHandle: Handle {
 /// definitions.
 #[macro_export]
 macro_rules! def_prop_handle {
-    // TODO: Reconsider the `Any` constraint on $arg.
     ($handle:ident < $arg:ident >) => {
         #[derive(Hash)]
         pub struct $handle<$arg: ::std::any::Any>($crate::util::property::size::Index, ::std::marker::PhantomData<$arg>);

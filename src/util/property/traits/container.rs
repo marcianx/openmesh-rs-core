@@ -1,4 +1,3 @@
-use io::binary::Binary;
 use util::property::property::Property;
 use util::property::size;
 use util::property::traits;
@@ -18,16 +17,14 @@ pub trait PropertyContainer<H: traits::Handle>
     fn vec(&self) -> &Properties<H>;
     /// Adds a property whose elements are of type `T`.
     /// Panics in the unlikely case that the number of properties reaches `size::INVALID_INDEX`.
-    fn add<T: Binary + Clone + Default + 'static>(&mut self, name: Option<String>) -> H
-        where Property<T, H>: ::std::any::Any;
+    fn add<T>(&mut self, name: Option<String>) -> H
+        where T: traits::Value;
     /// Returns the property at the given handle if any exists and if the return type matches.
     fn get<T>(&mut self, handle: H) -> Option<&Property<T, H>>
-        where T: Binary + Clone + Default + 'static,
-              Property<T, H>: ::std::any::Any;
+        where T: traits::Value;
     /// Returns the property at the given handle if any exists and if the return type matches.
     fn get_mut<T>(&mut self, handle: H) -> Option<&mut Property<T, H>>
-        where T: Binary + Clone + Default + 'static,
-              Property<T, H>: ::std::any::Any;
+        where T: traits::Value;
     /// Returns the property at the given handle if any exists and if the return type matches.
     fn remove(&mut self, handle: H);
     /// Removes all properties.

@@ -29,6 +29,12 @@ macro_rules! impl_property_accessors {
 /// Named property encapsulating a `Vec` of some type.
 /// For type safety, it is parametrized by the Handle type `H` which differentiates whether this is
 /// a vertex, halfedge, edge, or face property.
+///
+/// Note that for the reflection-based implementation to work, the user-composed type `T` that is
+/// stored in `Property` **must** satisfy the bound `T: traits::Value`.
+///
+/// The bound is not placed on this struct to avoid replicating it on most of the impls, which
+/// don't require this bound.
 #[derive(Clone)]
 pub struct Property<T, H> {
     name: String,
@@ -253,3 +259,16 @@ impl<H> traits::Property<H> for PropertyBits<H>
 
 ////////////////////////////////////////////////////////////////////////////////
 
+#[cfg(test)]
+mod test {
+    use util::property::{Property, traits};
+
+    fn _assert_any<P: ::std::any::Any>(_p: P) {}
+
+    // This method isn't used anywhere. Instead, it serves as a compile-time assertion that the
+    // constraints `T: traits::Value` and `H: traits::Handle` imply `Property: ::std::any::Any`.
+    // Test compilation will fail here if this fact is violated.
+    fn _assert_property_any<T: traits::Value, H: traits::Handle>() {
+        _assert_any(Property::<T, H>::new("test".into()));
+    }
+}
