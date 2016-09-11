@@ -1,6 +1,6 @@
-use util::property::property::Property;
-use util::property::size;
-use util::property::traits;
+use property::property::Property;
+use property::size;
+use property::traits;
 
 // TODO: Should there be a `RefCell` here to allow getting multiple properties mutably?
 pub type Properties<H> = Vec<Option<Box<traits::Property<H>>>>;

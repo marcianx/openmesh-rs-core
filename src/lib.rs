@@ -9,8 +9,9 @@ extern crate downcast_rs;
 #[macro_use]
 pub mod system;
 #[macro_use]
-pub mod util;
+pub mod property;
 
 pub mod geometry;
-pub mod mesh;
 pub mod io;
+pub mod mesh;
+pub mod util;

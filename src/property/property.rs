@@ -4,8 +4,8 @@ use io::binary::UNKNOWN_SIZE;
 use io::result::Result;
 use util::bitvec::BitVec;
 use util::index::{IndexUnchecked, IndexSetUnchecked, IndexSet};
-use util::property::size::{Size, INVALID_INDEX};
-use util::property::traits;
+use property::size::{Size, INVALID_INDEX};
+use property::traits;
 
 /// Implements getter/setters for the `name` and `persistent` properties.
 /// `$is_streamable` indicates whether the property is streamable, and thus, whether `persistent`
@@ -261,7 +261,7 @@ impl<H> traits::Property<H> for PropertyBits<H>
 
 #[cfg(test)]
 mod test {
-    use util::property::{Property, traits};
+    use property::{Property, traits};
 
     fn _assert_any<P: ::std::any::Any>(_p: P) {}
 

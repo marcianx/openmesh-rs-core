@@ -1,6 +1,6 @@
-use util::property::property;
-use util::property::size;
-use util::property::traits;
+use property::property;
+use property::size;
+use property::traits;
 
 /// Contains a parallel collection of `Property` trait objects.
 pub struct PropertyContainer<Handle> {

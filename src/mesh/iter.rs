@@ -1,7 +1,7 @@
 use mesh::status;
 use mesh::status::Status;
-use util::property::size::Size;
-use util::property::traits::Handle;
+use property::size::Size;
+use property::traits::Handle;
 
 
 pub trait MeshIterMeta {
@@ -194,8 +194,8 @@ mod test {
     use super::{MeshIterMeta, MeshFwdIter, MeshBwdIter};
     use mesh::handles::VertexHandle;
     use mesh::status::{Status, DELETED, HIDDEN, SELECTED};
-    use util::property::size::{Index, Size};
-    use util::property::traits::Handle;
+    use property::size::{Index, Size};
+    use property::traits::Handle;
 
     #[derive(Clone, Debug)]
     struct Meta;

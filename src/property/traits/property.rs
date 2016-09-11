@@ -4,8 +4,8 @@ use downcast_rs::Downcast;
 
 use io::binary::{Endian, UNKNOWN_SIZE};
 use io::result::Result;
-use util::property::size::Size;
-use util::property::traits::Handle;
+use property::size::Size;
+use property::traits::Handle;
 
 /// All mesh types are stored in Properties which implement this trait. We distinuish between
 /// standard properties, which can be defined at compile time using the Attributes in the traits
@@ -20,7 +20,7 @@ pub trait Property<H: Handle>: Downcast + ::std::fmt::Debug
     // synchronized array interface
 
     /// Reserve memory for `n` elements.
-    /// Panics if `n >= util::property::size::INVALID_INDEX`.
+    /// Panics if `n >= property::size::INVALID_INDEX`.
     ///
     /// NOTE that this is different from rust standard library (eg `Vec`) where reserve takes the
     /// additional number of items that can be added before reallocation is necessary.

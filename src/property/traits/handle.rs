@@ -1,4 +1,4 @@
-use util::property::size::{Index, INVALID_INDEX};
+use property::size::{Index, INVALID_INDEX};
 
 /// Trait for handle types that wrap `HandleBase` which wraps an index.
 pub trait Handle: ::std::any::Any + Copy + Clone + ::std::fmt::Debug + 'static
@@ -60,22 +60,22 @@ pub trait Handle: ::std::any::Any + Copy + Clone + ::std::fmt::Debug + 'static
 macro_rules! def_handle {
     ($handle: ident) => {
         #[derive(Eq, PartialEq, Clone, Hash, Debug, Copy)]
-        pub struct $handle($crate::util::property::size::Index);
+        pub struct $handle($crate::property::size::Index);
 
-        impl $crate::util::property::traits::Handle for $handle {
+        impl $crate::property::traits::Handle for $handle {
             #[inline(always)]
             fn new() -> Self {
-                $handle($crate::util::property::size::INVALID_INDEX)
+                $handle($crate::property::size::INVALID_INDEX)
             }
             #[inline(always)]
-            fn from_index(idx: $crate::util::property::size::Index) -> Self {
-                assert!(idx != $crate::util::property::size::INVALID_INDEX);
+            fn from_index(idx: $crate::property::size::Index) -> Self {
+                assert!(idx != $crate::property::size::INVALID_INDEX);
                 $handle(idx)
             }
             #[inline(always)]
-            fn index(self) -> $crate::util::property::size::Index { self.0 }
+            fn index(self) -> $crate::property::size::Index { self.0 }
             #[inline(always)]
-            fn set_index(&mut self, idx: $crate::util::property::size::Index) { self.0 = idx; }
+            fn set_index(&mut self, idx: $crate::property::size::Index) { self.0 = idx; }
         }
 
         impl ::std::fmt::Display for $handle {
@@ -99,7 +99,7 @@ pub trait PropHandle: Handle {
 macro_rules! def_prop_handle {
     ($handle:ident < $arg:ident >) => {
         #[derive(Hash)]
-        pub struct $handle<$arg: ::std::any::Any>($crate::util::property::size::Index, ::std::marker::PhantomData<$arg>);
+        pub struct $handle<$arg: ::std::any::Any>($crate::property::size::Index, ::std::marker::PhantomData<$arg>);
         impl<$arg: ::std::any::Any> Copy for $handle<$arg> {}
         impl<$arg: ::std::any::Any> Clone for $handle<$arg> { fn clone(&self) -> Self { *self } }
 
@@ -108,20 +108,20 @@ macro_rules! def_prop_handle {
         }
         impl<$arg: ::std::any::Any> Eq for $handle<$arg> {}
 
-        impl<$arg: ::std::any::Any> $crate::util::property::traits::Handle for $handle<$arg> {
+        impl<$arg: ::std::any::Any> $crate::property::traits::Handle for $handle<$arg> {
             #[inline(always)]
             fn new() -> Self {
-                $handle($crate::util::property::size::INVALID_INDEX, ::std::marker::PhantomData::<$arg>)
+                $handle($crate::property::size::INVALID_INDEX, ::std::marker::PhantomData::<$arg>)
             }
             #[inline(always)]
-            fn from_index(idx: $crate::util::property::size::Index) -> Self {
-                assert!(idx != $crate::util::property::size::INVALID_INDEX);
+            fn from_index(idx: $crate::property::size::Index) -> Self {
+                assert!(idx != $crate::property::size::INVALID_INDEX);
                 $handle(idx, ::std::marker::PhantomData::<$arg>)
             }
             #[inline(always)]
-            fn index(self) -> $crate::util::property::size::Index { self.0 }
+            fn index(self) -> $crate::property::size::Index { self.0 }
             #[inline(always)]
-            fn set_index(&mut self, idx: $crate::util::property::size::Index) { self.0 = idx; }
+            fn set_index(&mut self, idx: $crate::property::size::Index) { self.0 = idx; }
         }
 
         impl<$arg: ::std::any::Any> ::std::fmt::Debug for $handle<$arg> {
@@ -136,7 +136,7 @@ macro_rules! def_prop_handle {
             }
         }
 
-        impl<$arg: ::std::any::Any> $crate::util::property::traits::PropHandle for $handle<$arg> {
+        impl<$arg: ::std::any::Any> $crate::property::traits::PropHandle for $handle<$arg> {
             type Value = $arg;
         }
     };
