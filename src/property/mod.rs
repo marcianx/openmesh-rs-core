@@ -2,7 +2,8 @@
 pub mod traits;
 #[macro_use]
 mod property;
-pub use self::property::*;
+pub use self::property::{Property, PropertyBits};
 
-pub mod container;
+mod container;
+pub use self::container::PropertyContainer;
 pub mod size;
