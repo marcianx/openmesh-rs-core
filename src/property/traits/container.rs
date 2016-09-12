@@ -1,4 +1,4 @@
-use property::property::Property;
+use property::{BasePropHandle, Property};
 use property::size;
 use property::traits;
 
@@ -17,16 +17,16 @@ pub trait PropertyContainer<H: traits::Handle>
     fn vec(&self) -> &Properties<H>;
     /// Adds a property whose elements are of type `T`.
     /// Panics in the unlikely case that the number of properties reaches `size::INVALID_INDEX`.
-    fn add<T>(&mut self, name: Option<String>) -> H
+    fn add<T>(&mut self, name: Option<String>) -> BasePropHandle
         where T: traits::Value;
     /// Returns the property at the given handle if any exists and if the return type matches.
-    fn get<T>(&mut self, handle: H) -> Option<&Property<T, H>>
+    fn get<T>(&mut self, prop_handle: BasePropHandle) -> Option<&Property<T, H>>
         where T: traits::Value;
     /// Returns the property at the given handle if any exists and if the return type matches.
-    fn get_mut<T>(&mut self, handle: H) -> Option<&mut Property<T, H>>
+    fn get_mut<T>(&mut self, prop_handle: BasePropHandle) -> Option<&mut Property<T, H>>
         where T: traits::Value;
     /// Returns the property at the given handle if any exists and if the return type matches.
-    fn remove(&mut self, handle: H);
+    fn remove(&mut self, prop_handle: BasePropHandle);
     /// Removes all properties.
     fn clear(&mut self);
 

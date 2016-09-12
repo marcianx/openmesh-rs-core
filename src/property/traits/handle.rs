@@ -86,9 +86,34 @@ macro_rules! def_handle {
     }
 }
 
-/// Property handle - one that is tied to a `Property` enumerating a specific `Value` type.
-pub trait PropHandle: Handle {
+/// `PropertyContainer` handle to a contained `Property` (which is a list of `Value`s).
+def_handle!(BasePropHandle);
+
+/// Handle to a `Property` within a `PropertyContainer`. Each `Property` represents a list of items
+/// of type `Value`.
+pub trait PropHandle: Copy {
     type Value;
+
+    /// Create an invalidated handle.
+    fn new() -> Self;
+    /// Create from `BasePropHandle`.
+    fn from_base(h: BasePropHandle) -> Self;
+    /// Get `BasePropHandle` form.
+    fn to_base(self) -> BasePropHandle;
+    /// Set the handle from the given `BasePropHandle`.
+    fn set_base(&mut self, h: BasePropHandle);
+
+    /// Whether the handle is valid.
+    #[inline(always)]
+    fn is_valid(self) -> bool { self.to_base().index() != INVALID_INDEX }
+    /// Invalidates the handle.
+    #[inline(always)]
+    fn invalidate(&mut self) { self.set_base(BasePropHandle::new()); }
+    /// Converts the handle to `Some(self)` if valid, else `None`.
+    #[inline(always)]
+    fn to_option(self) -> Option<Self> {
+        if self.is_valid() { Some(self) } else { None }
+    }
 }
 
 /// Defines a handle implementing `Handle` `PropHandle` with `Value = T` via
@@ -97,47 +122,40 @@ pub trait PropHandle: Handle {
 /// definitions.
 #[macro_export]
 macro_rules! def_prop_handle {
-    ($handle:ident < $arg:ident >) => {
+    ($prop_handle:ident < $arg:ident >) => {
         #[derive(Hash)]
-        pub struct $handle<$arg: ::std::any::Any>($crate::property::size::Index, ::std::marker::PhantomData<$arg>);
-        impl<$arg: ::std::any::Any> Copy for $handle<$arg> {}
-        impl<$arg: ::std::any::Any> Clone for $handle<$arg> { fn clone(&self) -> Self { *self } }
+        pub struct $prop_handle<$arg: ::std::any::Any>($crate::property::BasePropHandle, ::std::marker::PhantomData<$arg>);
+        impl<$arg: ::std::any::Any> Copy for $prop_handle<$arg> {}
+        impl<$arg: ::std::any::Any> Clone for $prop_handle<$arg> { fn clone(&self) -> Self { *self } }
 
-        impl<$arg: ::std::any::Any> PartialEq for $handle<$arg> {
+        impl<$arg: ::std::any::Any> PartialEq for $prop_handle<$arg> {
             fn eq(&self, other: &Self) -> bool { self.0 == other.0 }
         }
-        impl<$arg: ::std::any::Any> Eq for $handle<$arg> {}
+        impl<$arg: ::std::any::Any> Eq for $prop_handle<$arg> {}
 
-        impl<$arg: ::std::any::Any> $crate::property::traits::Handle for $handle<$arg> {
-            #[inline(always)]
-            fn new() -> Self {
-                $handle($crate::property::size::INVALID_INDEX, ::std::marker::PhantomData::<$arg>)
-            }
-            #[inline(always)]
-            fn from_index(idx: $crate::property::size::Index) -> Self {
-                assert!(idx != $crate::property::size::INVALID_INDEX);
-                $handle(idx, ::std::marker::PhantomData::<$arg>)
-            }
-            #[inline(always)]
-            fn index(self) -> $crate::property::size::Index { self.0 }
-            #[inline(always)]
-            fn set_index(&mut self, idx: $crate::property::size::Index) { self.0 = idx; }
-        }
-
-        impl<$arg: ::std::any::Any> ::std::fmt::Debug for $handle<$arg> {
+        impl<$arg: ::std::any::Any> ::std::fmt::Debug for $prop_handle<$arg> {
             fn fmt(&self, formatter: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                 self.0.fmt(formatter)
             }
         }
 
-        impl<$arg: ::std::any::Any> ::std::fmt::Display for $handle<$arg> {
+        impl<$arg: ::std::any::Any> ::std::fmt::Display for $prop_handle<$arg> {
             fn fmt(&self, formatter: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                 self.0.fmt(formatter)
             }
         }
 
-        impl<$arg: ::std::any::Any> $crate::property::traits::PropHandle for $handle<$arg> {
+        impl<$arg: ::std::any::Any> $crate::property::traits::PropHandle for $prop_handle<$arg> {
             type Value = $arg;
+
+            fn new() -> Self {
+                Self::from_base($crate::property::traits::Handle::new())
+            }
+            fn from_base(h: $crate::property::BasePropHandle) -> Self {
+                $prop_handle(h, ::std::marker::PhantomData::<$arg>)
+            }
+            fn to_base(self) -> $crate::property::BasePropHandle { self.0 }
+            fn set_base(&mut self, h: $crate::property::BasePropHandle) { self.0 = h }
         }
     };
 }

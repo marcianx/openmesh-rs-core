@@ -7,7 +7,7 @@ use io::result::Result;
 use property::size::Size;
 use property::traits::Handle;
 
-/// All mesh types are stored in Properties which implement this trait. We distinuish between
+/// All mesh types are stored in Properties which implement this trait. We distinguish between
 /// standard properties, which can be defined at compile time using the Attributes in the traits
 /// definition and at runtime using the request property functions defined in one of the kernels.
 ///
@@ -15,7 +15,6 @@ use property::traits::Handle;
 /// name the property and enable the persistant flag with set_persistent().
 pub trait Property<H: Handle>: Downcast + ::std::fmt::Debug
 {
-
     ////////////////////////////////////////////////////////////////////////////////
     // synchronized array interface
 
