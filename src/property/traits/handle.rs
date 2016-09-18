@@ -116,52 +116,7 @@ pub trait PropHandle: Copy {
     }
 }
 
-/// Defines a handle implementing `Handle` `PropHandle` with `Value = T` via
-///  `def_prop_handle!(Handle<T>)`
-/// `T` must be a generic type. This macro currently also requires `T: std::any::Any` on the
-/// definitions.
-#[macro_export]
-macro_rules! def_prop_handle {
-    ($prop_handle:ident < $arg:ident >) => {
-        #[derive(Hash)]
-        pub struct $prop_handle<$arg: ::std::any::Any>($crate::property::BasePropHandle, ::std::marker::PhantomData<$arg>);
-        impl<$arg: ::std::any::Any> Copy for $prop_handle<$arg> {}
-        impl<$arg: ::std::any::Any> Clone for $prop_handle<$arg> { fn clone(&self) -> Self { *self } }
-
-        impl<$arg: ::std::any::Any> PartialEq for $prop_handle<$arg> {
-            fn eq(&self, other: &Self) -> bool { self.0 == other.0 }
-        }
-        impl<$arg: ::std::any::Any> Eq for $prop_handle<$arg> {}
-
-        impl<$arg: ::std::any::Any> ::std::fmt::Debug for $prop_handle<$arg> {
-            fn fmt(&self, formatter: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                self.0.fmt(formatter)
-            }
-        }
-
-        impl<$arg: ::std::any::Any> ::std::fmt::Display for $prop_handle<$arg> {
-            fn fmt(&self, formatter: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                self.0.fmt(formatter)
-            }
-        }
-
-        impl<$arg: ::std::any::Any> $crate::property::traits::PropHandle for $prop_handle<$arg> {
-            type Value = $arg;
-
-            fn new() -> Self {
-                Self::from_base($crate::property::traits::Handle::new())
-            }
-            fn from_base(h: $crate::property::BasePropHandle) -> Self {
-                $prop_handle(h, ::std::marker::PhantomData::<$arg>)
-            }
-            fn to_base(self) -> $crate::property::BasePropHandle { self.0 }
-            fn set_base(&mut self, h: $crate::property::BasePropHandle) { self.0 = h }
-        }
-    };
-}
-
 #[cfg(test)]
 mod test {
-    def_handle!(MyHandle1);
-    def_prop_handle!(MyHandle3<T>);
+    def_handle!(MyHandle);
 }
