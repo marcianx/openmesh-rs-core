@@ -1,5 +1,5 @@
 extern crate num;
-use self::num::traits::{Float, One, Zero};
+use self::num::traits::{One, Zero};
 use geometry::math::{BaseFloat, max, min};
 use geometry::vector::{Vec3, Dot};
 
