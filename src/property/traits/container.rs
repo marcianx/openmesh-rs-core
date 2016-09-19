@@ -20,7 +20,7 @@ pub trait PropertyContainer<H: traits::Handle>
     fn add<T>(&mut self, name: Option<String>) -> BasePropHandle
         where T: traits::Value;
     /// Returns the property at the given handle if any exists and if the return type matches.
-    fn get<T>(&mut self, prop_handle: BasePropHandle) -> Option<&Property<T, H>>
+    fn get<T>(&self, prop_handle: BasePropHandle) -> Option<&Property<T, H>>
         where T: traits::Value;
     /// Returns the property at the given handle if any exists and if the return type matches.
     fn get_mut<T>(&mut self, prop_handle: BasePropHandle) -> Option<&mut Property<T, H>>

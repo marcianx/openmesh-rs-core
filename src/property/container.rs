@@ -47,7 +47,7 @@ impl<H: traits::Handle> traits::PropertyContainer<H> for PropertyContainer<H>
         BasePropHandle::from_index(pos as size::Size)
     }
 
-    fn get<T>(&mut self, prop_handle: BasePropHandle) -> Option<&Property<T, H>>
+    fn get<T>(&self, prop_handle: BasePropHandle) -> Option<&Property<T, H>>
         where T: traits::Value
     {
         // NOTE: This handles prop_handle.index() == size::INVALID_INDEX just fine.
