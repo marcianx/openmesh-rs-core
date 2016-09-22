@@ -9,7 +9,6 @@ use property::traits;
 
 // Solely for trait methods.
 use property::traits::PropHandle as PropHandleTrait;
-use property::traits::PropertyContainer as PropertyContainerTrait;
 
 ////////////////////////////////////////////////////////////
 
