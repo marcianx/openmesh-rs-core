@@ -5,7 +5,10 @@ use property::traits::Handle as HandleTrait; // for `BasePropHandle` methods
 
 /// Contains a parallel collection of `Property` trait objects.
 pub struct PropertyContainer<Handle> {
-    vec: traits::Properties<Handle>
+    /// List of all the properties, whose lengths are kept in sync.
+    vec: traits::Properties<Handle>,
+    /// Length of each property.
+    prop_len: size::Size,
 }
 
 
@@ -14,7 +17,8 @@ impl<Handle> Clone for PropertyContainer<Handle>
 {
     fn clone(&self) -> Self {
         PropertyContainer {
-            vec: self.vec.clone()
+            vec: self.vec.clone(),
+            prop_len: self.prop_len,
         }
     }
 }
@@ -40,7 +44,7 @@ impl<H: traits::Handle> traits::PropertyContainer<H> for PropertyContainer<H>
                 self.vec.len() - 1
             }
         };
-        self.vec[pos] = Some(Box::new(Property::<T, H>::new(name)));
+        self.vec[pos] = Some(Box::new(Property::<T, H>::new(name, self.prop_len)));
         if pos >= size::INVALID_INDEX as usize {
             panic!("Number of properties {} exceeds bounds {}-1", pos, size::INVALID_INDEX);
         }
@@ -56,7 +60,7 @@ impl<H: traits::Handle> traits::PropertyContainer<H> for PropertyContainer<H>
             // &Option<Box<traits::Property>> -> Option<&Box<traits::Property>>
             .and_then(|opt_prop| opt_prop.as_ref()) // unwrap the `Option` wrapping the `Box`
             // prop: &Box<traits::Property>
-            .and_then(|prop| prop.downcast_ref::<Property<T, H>>())
+            .and_then(|prop| prop.as_property().downcast_ref::<Property<T, H>>())
     }
 
     fn get_mut<T>(&mut self, prop_handle: BasePropHandle) -> Option<&mut Property<T, H>>
@@ -68,7 +72,7 @@ impl<H: traits::Handle> traits::PropertyContainer<H> for PropertyContainer<H>
             // &Option<Box<traits::Property>> -> Option<&mut Box<traits::Property>>
             .and_then(|opt_prop| opt_prop.as_mut()) // unwrap the `Option` wrapping the `Box`
             // prop: &mut Box<traits::Property>
-            .and_then(|prop| prop.downcast_mut::<Property<T, H>>())
+            .and_then(|prop| prop.as_property_mut().downcast_mut::<Property<T, H>>())
     }
 
     fn remove(&mut self, prop_handle: BasePropHandle) {
@@ -89,6 +93,7 @@ impl<H: traits::Handle> traits::PropertyContainer<H> for PropertyContainer<H>
     // Collectively managing active property lists.
 
     fn clear_all(&mut self) {
+        self.prop_len = 0;
         for opt_prop in self.vec.iter_mut() {
             opt_prop.as_mut().map(|prop| prop.clear());
         }
@@ -101,6 +106,7 @@ impl<H: traits::Handle> traits::PropertyContainer<H> for PropertyContainer<H>
     }
 
     fn resize_all(&mut self, n: size::Size) {
+        self.prop_len = n;
         for opt_prop in self.vec.iter_mut() {
             opt_prop.as_mut().map(|prop| prop.resize(n));
         }

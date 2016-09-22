@@ -9,7 +9,6 @@ use property::traits;
 
 // Solely for trait methods.
 use property::traits::PropHandle as PropHandleTrait;
-use property::traits::Property as PropertyTrait;
 use property::traits::PropertyContainer as PropertyContainerTrait;
 
 ////////////////////////////////////////////////////////////
@@ -43,7 +42,8 @@ pub struct Props<RefContainer> {
 
 
 impl<Handle, RefContainer> Props<RefContainer>
-    where RefContainer: Deref<Target=PropertyContainer<Handle>>
+    where Handle: traits::Handle,
+          RefContainer: Deref<Target=PropertyContainer<Handle>>
 {
     /// Instantiates an `Item` property interface struct.
     pub fn new(props: RefContainer, len: usize) -> Self {
@@ -55,6 +55,13 @@ impl<Handle, RefContainer> Props<RefContainer>
 
     /// Number of elements of the given type.
     pub fn len(&self) -> Size { self.len }
+
+    /// Returns the `Property<T>`, if any, corresponding to `prop_handle`.
+    pub fn property<T: traits::Value>(&self, prop_handle: PropHandle<Handle, T>)
+        -> Option<&Property<T, Handle>>
+    {
+        self.props.get(prop_handle.to_base())
+    }
 }
 
 impl<Handle, RefContainer> Props<RefContainer>
@@ -70,10 +77,7 @@ impl<Handle, RefContainer> Props<RefContainer>
     /// - Max length: 256 characters
     /// - Names matching `/^[vhefm]:/` or `/^<.*>$/` are reserved for internal use.
     pub fn add_property<T: traits::Value>(&mut self, name: Option<String>) -> PropHandle<Handle, T> {
-        let len = self.len();
         let prop_handle = self.props.add::<T>(name);
-        let property: &mut Property<T, _> = self.props.get_mut(prop_handle).unwrap();
-        property.resize(len);
         PropHandle::<Handle, T>::from_base(prop_handle)
     }
 
@@ -83,4 +87,26 @@ impl<Handle, RefContainer> Props<RefContainer>
         self.props.remove(prop_handle.to_base());
         prop_handle.invalidate();
     }
+
+    /// Returns the `Property<T>`, if any, corresponding to `prop_handle`.
+    pub fn property_mut<T: traits::Value>(&mut self, prop_handle: PropHandle<Handle, T>)
+        -> Option<&mut Property<T, Handle>>
+    {
+        self.props.get_mut(prop_handle.to_base())
+    }
 }
+
+
+// TODO from BaseKernel
+// - Copy all properties from one item to another.
+// - Stats for property (output stream or string). (Also add PropertyStats on Mesh itself.)
+// - Property Iterator
+//
+// Should probably be in `Property`.
+// - Access an item's property from `Property`.
+// - Copy Property field from one item to another via static dispatch.
+//
+// // Only needed by non-native Kernel. Should be protected in original impl.
+// - Number of properties.
+// - Get `Property` trait object by name (mut and non-mut).
+// - Get `Property` trait object by index or BasePropHandle (mut and non-mut).

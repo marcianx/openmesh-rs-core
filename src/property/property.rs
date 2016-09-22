@@ -6,6 +6,7 @@ use util::bitvec::BitVec;
 use util::index::{IndexUnchecked, IndexSetUnchecked, IndexSet};
 use property::size::{Size, INVALID_INDEX};
 use property::traits;
+use property::traits::ResizeableProperty;
 
 /// Implements getter/setters for the `name` and `persistent` properties.
 /// `$is_streamable` indicates whether the property is streamable, and thus, whether `persistent`
@@ -43,14 +44,19 @@ pub struct Property<T, H> {
     _m: ::std::marker::PhantomData<H>
 }
 
-impl<T, H> Property<T, H> {
-    pub fn new(name: String) -> Property<T, H> {
-        Property {
+impl<T, H> Property<T, H>
+    where T: traits::Value,
+          H: traits::Handle
+{
+    pub fn new(name: String, size: Size) -> Property<T, H> {
+        let mut prop = Property {
             name: name,
             persistent: false,
             vec: Vec::new(),
             _m: ::std::marker::PhantomData
-        }
+        };
+        prop.resize(size);
+        prop
     }
 }
 
@@ -95,15 +101,39 @@ impl<T, H> ::std::fmt::Debug for Property<T, H> {
 // impl `traits::Property`
 
 impl<T, H> traits::Property<H> for Property<T, H>
-    where T: Clone + Binary + Default + 'static,
-          H: traits::Handle,
-          Property<T, H>: ::std::any::Any
+    where T: traits::Value,
+          H: traits::Handle
 {
     impl_property_accessors!(<T as Binary>::is_streamable());
 
     ////////////////////////////////////////
     // synchronized array interface
 
+    fn swap(&mut self, i0: H, i1: H) {
+        self.vec.swap(i0.index_us(), i1.index_us());
+    }
+    fn copy(&mut self, i_src: H, i_dst: H) {
+        self.vec[i_dst.index_us()] = self.vec[i_src.index_us()].clone();
+    }
+
+    ////////////////////////////////////////
+    // I/O support
+
+    fn n_elements(&self) -> usize { self.vec.len() }
+    fn element_size(&self) -> usize { <T as Binary>::size_of_type() }
+    fn size_of(&self) -> usize { <Vec<T> as Binary>::size_of_value(&self.vec) }
+    fn store(&self, writer: &mut Write, endian: Endian) -> Result<usize> {
+        <Vec<T> as Binary>::store(&self.vec, writer, endian)
+    }
+    fn restore(&mut self, reader: &mut Read, endian: Endian) -> Result<usize> {
+        <Vec<T> as Binary>::restore(&mut self.vec, reader, endian)
+    }
+}
+
+impl<T, H> ResizeableProperty<H> for Property<T, H>
+    where T: traits::Value,
+          H: traits::Handle
+{
     fn reserve(&mut self, n: Size) {
         if n >= INVALID_INDEX {
             panic!("Reserve dimensions {} exceeded bounds {}-1", n, INVALID_INDEX);
@@ -122,26 +152,9 @@ impl<T, H> traits::Property<H> for Property<T, H>
     }
     fn clear(&mut self) { self.vec.clear(); }
     fn push(&mut self) { self.vec.push(Default::default()); }
-    fn swap(&mut self, i0: H, i1: H) {
-        self.vec.swap(i0.index_us(), i1.index_us());
-    }
-    fn copy(&mut self, i_src: H, i_dst: H) {
-        self.vec[i_dst.index_us()] = self.vec[i_src.index_us()].clone();
-    }
-    fn clone_as_trait(&self) -> Box<traits::Property<H>> { Box::new(self.clone()) }
-
-    ////////////////////////////////////////
-    // I/O support
-
-    fn n_elements(&self) -> usize { self.vec.len() }
-    fn element_size(&self) -> usize { <T as Binary>::size_of_type() }
-    fn size_of(&self) -> usize { <Vec<T> as Binary>::size_of_value(&self.vec) }
-    fn store(&self, writer: &mut Write, endian: Endian) -> Result<usize> {
-        <Vec<T> as Binary>::store(&self.vec, writer, endian)
-    }
-    fn restore(&mut self, reader: &mut Read, endian: Endian) -> Result<usize> {
-        <Vec<T> as Binary>::restore(&mut self.vec, reader, endian)
-    }
+    fn clone_as_trait(&self) -> Box<ResizeableProperty<H>> { Box::new(self.clone()) }
+    fn as_property(&self) -> &traits::Property<H> { self }
+    fn as_property_mut(&mut self) -> &mut traits::Property<H> { self }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -157,14 +170,18 @@ pub struct PropertyBits<H> {
     _m: ::std::marker::PhantomData<H>
 }
 
-impl<H> PropertyBits<H> {
-    pub fn new(name: String) -> PropertyBits<H> {
-        PropertyBits {
+impl<H> PropertyBits<H>
+    where H: traits::Handle
+{
+    pub fn new(name: String, size: Size) -> PropertyBits<H> {
+        let mut prop = PropertyBits {
             name: name,
             persistent: false,
             vec: BitVec::new(),
             _m: ::std::marker::PhantomData
-        }
+        };
+        prop.resize(size);
+        prop
     }
 }
 
@@ -216,6 +233,31 @@ impl<H> traits::Property<H> for PropertyBits<H>
     ////////////////////////////////////////
     // synchronized array interface
 
+    fn swap(&mut self, i0: H, i1: H) {
+        self.vec.swap(i0.index_us(), i1.index_us());
+    }
+    fn copy(&mut self, i_src: H, i_dst: H) {
+        let value = self.vec[i_src.index_us()];
+        self.vec.set(i_dst.index_us(), value);
+    }
+
+    ////////////////////////////////////////
+    // I/O support
+
+    fn n_elements(&self) -> usize { self.vec.len() }
+    fn element_size(&self) -> usize { UNKNOWN_SIZE }
+    fn size_of(&self) -> usize { <BitVec as Binary>::size_of_value(&self.vec) }
+    fn store(&self, writer: &mut Write, endian: Endian) -> Result<usize> {
+        <BitVec as Binary>::store(&self.vec, writer, endian)
+    }
+    fn restore(&mut self, reader: &mut Read, endian: Endian) -> Result<usize> {
+        <BitVec as Binary>::restore(&mut self.vec, reader, endian)
+    }
+}
+
+impl<H> ResizeableProperty<H> for PropertyBits<H>
+    where H: traits::Handle
+{
     fn reserve(&mut self, n: Size) {
         if n >= INVALID_INDEX {
             panic!("Reserve dimensions {} exceeded bounds {}-1", n, INVALID_INDEX);
@@ -234,27 +276,9 @@ impl<H> traits::Property<H> for PropertyBits<H>
     }
     fn clear(&mut self) { self.vec.clear(); }
     fn push(&mut self) { self.vec.push(Default::default()); }
-    fn swap(&mut self, i0: H, i1: H) {
-        self.vec.swap(i0.index_us(), i1.index_us());
-    }
-    fn copy(&mut self, i_src: H, i_dst: H) {
-        let value = self.vec[i_src.index_us()];
-        self.vec.set(i_dst.index_us(), value);
-    }
-    fn clone_as_trait(&self) -> Box<traits::Property<H>> { Box::new(self.clone()) }
-
-    ////////////////////////////////////////
-    // I/O support
-
-    fn n_elements(&self) -> usize { self.vec.len() }
-    fn element_size(&self) -> usize { UNKNOWN_SIZE }
-    fn size_of(&self) -> usize { <BitVec as Binary>::size_of_value(&self.vec) }
-    fn store(&self, writer: &mut Write, endian: Endian) -> Result<usize> {
-        <BitVec as Binary>::store(&self.vec, writer, endian)
-    }
-    fn restore(&mut self, reader: &mut Read, endian: Endian) -> Result<usize> {
-        <BitVec as Binary>::restore(&mut self.vec, reader, endian)
-    }
+    fn clone_as_trait(&self) -> Box<ResizeableProperty<H>> { Box::new(self.clone()) }
+    fn as_property(&self) -> &traits::Property<H> { self }
+    fn as_property_mut(&mut self) -> &mut traits::Property<H> { self }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -269,6 +293,6 @@ mod test {
     // constraints `T: traits::Value` and `H: traits::Handle` imply `Property: ::std::any::Any`.
     // Test compilation will fail here if this fact is violated.
     fn _assert_property_any<T: traits::Value, H: traits::Handle>() {
-        _assert_any(Property::<T, H>::new("test".into()));
+        _assert_any(Property::<T, H>::new("test".into(), 10));
     }
 }

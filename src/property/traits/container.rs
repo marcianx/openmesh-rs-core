@@ -3,7 +3,7 @@ use property::size;
 use property::traits;
 
 // TODO: Should there be a `RefCell` here to allow getting multiple properties mutably?
-pub type Properties<H> = Vec<Option<Box<traits::Property<H>>>>;
+pub type Properties<H> = Vec<Option<Box<traits::ResizeableProperty<H>>>>;
 
 pub trait PropertyContainer<H: traits::Handle>
 {

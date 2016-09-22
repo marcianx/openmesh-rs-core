@@ -18,30 +18,11 @@ pub trait Property<H: Handle>: Downcast + ::std::fmt::Debug
     ////////////////////////////////////////////////////////////////////////////////
     // synchronized array interface
 
-    /// Reserve memory for `n` elements.
-    /// Panics if `n >= property::size::INVALID_INDEX`.
-    ///
-    /// NOTE that this is different from rust standard library (eg `Vec`) where reserve takes the
-    /// additional number of items that can be added before reallocation is necessary.
-    fn reserve(&mut self, n: Size);
-
-    /// Resize storage to hold `n` elements.
-    fn resize(&mut self, n: Size);
-
-    /// Clear all elements and free memory.
-    fn clear(&mut self);
-
-    /// Extend the number of elements by one.
-    fn push(&mut self);
-
     /// Swaps two elements.
     fn swap(&mut self, i0: H, i1: H);
 
     /// Copy one element from index `i_src` to index `i_dst`.
     fn copy(&mut self, i_src: H, i_dst: H);
-
-    /// A deep copy of `self` as a trait object. Used to implement the `Clone` trait.
-    fn clone_as_trait(&self) -> Box<Property<H>>;
 
     ////////////////////////////////////////////////////////////////////////////////
     // named property interface
@@ -85,11 +66,41 @@ pub trait Property<H: Handle>: Downcast + ::std::fmt::Debug
 }
 
 
+/// Trait for methods to be used only by `PropertyContainer` since it keeps all its comprising
+/// elements equally-sized.
+pub trait ResizeableProperty<H: Handle>: Property<H> {
+    /// A deep copy of `self` as a trait object. Used to implement the `Clone` trait.
+    fn clone_as_trait(&self) -> Box<ResizeableProperty<H>>;
+
+    /// Reserve memory for `n` elements.
+    /// Panics if `n >= property::size::INVALID_INDEX`.
+    ///
+    /// NOTE that this is different from rust standard library (eg `Vec`) where reserve takes the
+    /// additional number of items that can be added before reallocation is necessary.
+    fn reserve(&mut self, n: Size);
+
+    /// Resize storage to hold `n` elements.
+    fn resize(&mut self, n: Size);
+
+    /// Clear all elements and free memory.
+    fn clear(&mut self);
+
+    /// Extend the number of elements by one.
+    fn push(&mut self);
+
+    /// Convert to a mutable `Property` trait object.
+    fn as_property(&self) -> &Property<H>;
+
+    /// Convert to a mutable `Property` trait object.
+    fn as_property_mut(&mut self) -> &mut Property<H>;
+}
+
+
 // Support down-casting from `Property` to a struct implementing it.
 impl_downcast!(Property<H> where H: Handle);
 
 
-impl<H: Handle> Clone for Box<Property<H>>
+impl<H: Handle> Clone for Box<ResizeableProperty<H>>
 {
     fn clone(&self) -> Self {
         self.clone_as_trait()
