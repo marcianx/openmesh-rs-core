@@ -98,6 +98,14 @@ impl<H: traits::Handle> PropertyContainer<H>
     ////////////////////////////////////////////////////////////////////////////////
     // Collectively managing active property lists.
 
+    /// Copies a all properties from one item to another of the same type.
+    /// It may panic if either handle is invalid.
+    pub fn copy_all(&mut self, h_src: H, h_dst: H) {
+        for opt_prop in self.vec.iter_mut() {
+            opt_prop.as_mut().map(|prop| prop.copy(h_src, h_dst));
+        }
+    }
+
     /// Clears the contents of each active property list.
     pub fn clear_all(&mut self) {
         self.prop_len = 0;

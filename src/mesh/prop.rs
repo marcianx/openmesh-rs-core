@@ -9,10 +9,11 @@ use property::traits;
 
 // Solely for trait methods.
 use property::traits::PropHandle as PropHandleTrait;
+use property::traits::Property as PropertyTrait;
 
 ////////////////////////////////////////////////////////////
 
-/// Provides access to `Item` (vertex, halfedge, edge, face) properties.
+/// Provides access to item (vertex, halfedge, edge, face) properties.
 ///
 /// It is returned by each of the following methods on `mesh::Mesh`:
 ///
@@ -44,7 +45,7 @@ impl<Handle, RefContainer> Props<RefContainer>
     where Handle: traits::Handle,
           RefContainer: Deref<Target=PropertyContainer<Handle>>
 {
-    /// Instantiates an `Item` property interface struct.
+    /// Instantiates an item property interface struct.
     pub fn new(props: RefContainer, len: usize) -> Self {
         Props {
             props: props,
@@ -93,11 +94,27 @@ impl<Handle, RefContainer> Props<RefContainer>
     {
         self.props.get_mut(prop_handle.to_base())
     }
+
+    /// Copies a single property from one item to another of the same type.
+    /// It is a noop if any of the handles is invalid.
+    pub fn copy_property<T: traits::Value>(
+        &mut self, prop_handle: PropHandle<Handle, T>, h1: Handle, h2: Handle) {
+        if h1.is_valid() && h2.is_valid() {
+            self.property_mut(prop_handle).map(|p| p.copy(h1, h2));
+        }
+    }
+
+    /// Copies a all properties from one item to another of the same type.
+    /// It is a noop if either handle is invalid.
+    pub fn copy_all_properties<T: traits::Value>(&mut self, h_src: Handle, h_dst: Handle) {
+        if h_src.is_valid() && h_dst.is_valid() {
+            self.props.copy_all(h_src, h_dst);
+        }
+    }
 }
 
 
 // TODO from BaseKernel
-// - Copy all properties from one item to another.
 // - Stats for property (output stream or string). (Also add PropertyStats on Mesh itself.)
 // - Property Iterator
 //
@@ -109,3 +126,7 @@ impl<Handle, RefContainer> Props<RefContainer>
 // - Number of properties.
 // - Get `Property` trait object by name (mut and non-mut).
 // - Get `Property` trait object by index or BasePropHandle (mut and non-mut).
+//
+//
+// - See if `Property` trait ever needs to be exposed in the API.
+// - Rename Item to Element.
