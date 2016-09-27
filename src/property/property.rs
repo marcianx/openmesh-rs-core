@@ -70,6 +70,12 @@ impl<T, H: traits::Handle> ::std::ops::Index<H> for Property<T, H> {
     }
 }
 
+impl<T, H: traits::Handle> ::std::ops::IndexMut<H> for Property<T, H> {
+    fn index_mut(&mut self, index: H) -> &mut Self::Output {
+        self.vec.index_mut(index.index_us())
+    }
+}
+
 impl<T, H: traits::Handle> IndexUnchecked<H> for Property<T, H> {
     unsafe fn index_unchecked(&self, index: H) -> &Self::Output {
         self.vec.index_unchecked(index.index_us())
