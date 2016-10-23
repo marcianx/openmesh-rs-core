@@ -3,6 +3,7 @@ name = "openmesh"
 version = "0.1.0"
 dependencies = [
  "bitflags 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "bitvec-rs 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "byteorder 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "downcast-rs 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "nalgebra 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -12,6 +13,11 @@ dependencies = [
 [[package]]
 name = "bitflags"
 version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "bitvec-rs"
+version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -63,6 +69,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [metadata]
 "checksum bitflags 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "8dead7461c1127cf637931a1e50934eb6eee8bff2f74433ac7909e9afcee04a3"
+"checksum bitvec-rs 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "d359a1fff588424ad221fa6e3c233e47b3d82bc74a81093d427fa53450f5907e"
 "checksum byteorder 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)" = "96c8b41881888cc08af32d47ac4edd52bc7fa27fef774be47a92443756451304"
 "checksum downcast-rs 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "57cad659325ec47fe8b51b55e9343f17f99a37ef1241a219d1b93998998df3f6"
 "checksum libc 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)" = "95ca44454e7cfe7f8a2095a41a10c79d96a177c0b1672cbf1a30d901a9c16ee5"

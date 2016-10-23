@@ -6,6 +6,7 @@ authors = ["Ashish Myles <marcianx@gmail.com>"]
 [dependencies]
 nalgebra = "0.6"
 bitflags = "0.4"
+bitvec-rs = "0.1"
 byteorder = "0.4"
 downcast-rs = "0.1"
 num = "0.1"
