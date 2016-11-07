@@ -1,3 +1,5 @@
+#![feature(specialization)]
+
 #![crate_name = "openmesh"]
 
 #[macro_use(bitflags)]

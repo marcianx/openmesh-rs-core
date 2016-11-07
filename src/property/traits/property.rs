@@ -67,7 +67,8 @@ pub trait Property<H: Handle>: Downcast + ::std::fmt::Debug
 
 
 /// Trait for methods to be used only by `PropertyContainer` since it keeps all its comprising
-/// elements equally-sized.
+/// elements equally-sized. Excludes methods that would allow `ResizeableProperty` from being used
+/// as a trait object.
 pub trait ResizeableProperty<H: Handle>: Property<H> {
     /// A deep copy of `self` as a trait object. Used to implement the `Clone` trait.
     fn clone_as_trait(&self) -> Box<ResizeableProperty<H>>;
@@ -93,6 +94,19 @@ pub trait ResizeableProperty<H: Handle>: Property<H> {
 
     /// Convert to a mutable `Property` trait object.
     fn as_property_mut(&mut self) -> &mut Property<H>;
+}
+
+
+/// Includes `ResizeableProperty` and methods that are disallowed for trait objects.
+pub trait ConstructableProperty<H: Handle>: ResizeableProperty<H> {
+    /// Instantiate a property with the given `name` of length `size`.
+    fn new(name: String, size: Size) -> Self;
+}
+
+
+/// Allows picking the optimal property container for implemented type.
+pub trait PropertyFor<H: Handle> {
+    type Property: ConstructableProperty<H>;
 }
 
 

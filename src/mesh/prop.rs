@@ -3,9 +3,9 @@ use mesh::handles::{
     VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle, MeshHandle,
     PropHandle,
 };
-use property::{Property, PropertyContainer};
+use property::PropertyContainer;
 use property::size::Size;
-use property::traits;
+use property::traits::{self, PropertyFor};
 
 // Solely for trait methods.
 use property::traits::PropHandle as PropHandleTrait;
@@ -56,11 +56,12 @@ impl<Handle, RefContainer> Props<RefContainer>
     /// Number of elements of the given type.
     pub fn len(&self) -> Size { self.len }
 
-    /// Returns the `Property<T>`, if any, corresponding to `prop_handle`.
+    /// Returns the `Property<T>` or `PropertyBits` (for `T = bool`), if any, corresponding to
+    /// `prop_handle`.
     pub fn property<T: traits::Value>(&self, prop_handle: PropHandle<Handle, T>)
-        -> Option<&Property<T, Handle>>
+        -> Option<&<T as PropertyFor<Handle>>::Property>
     {
-        self.props.get(prop_handle.to_base())
+        self.props.get::<T>(prop_handle.to_base())
     }
 }
 
@@ -88,11 +89,12 @@ impl<Handle, RefContainer> Props<RefContainer>
         prop_handle.invalidate();
     }
 
-    /// Returns the `Property<T>`, if any, corresponding to `prop_handle`.
+    /// Returns the `Property<T>` or `PropertyBits` (for `T = bool`), if any, corresponding to
+    /// `prop_handle`.
     pub fn property_mut<T: traits::Value>(&mut self, prop_handle: PropHandle<Handle, T>)
-        -> Option<&mut Property<T, Handle>>
+        -> Option<&mut <T as PropertyFor<Handle>>::Property>
     {
-        self.props.get_mut(prop_handle.to_base())
+        self.props.get_mut::<T>(prop_handle.to_base())
     }
 
     /// Copies a single property from one item to another of the same type.

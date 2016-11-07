@@ -5,8 +5,8 @@ use io::result::Result;
 use util::bitvec::BitVec;
 use util::index::{IndexUnchecked, IndexSetUnchecked, IndexSet};
 use property::size::{Size, INVALID_INDEX};
-use property::traits;
-use property::traits::ResizeableProperty;
+use property::traits::{self, PropertyFor};
+use property::traits::{ConstructableProperty, ResizeableProperty};
 
 /// Implements getter/setters for the `name` and `persistent` properties.
 /// `$is_streamable` indicates whether the property is streamable, and thus, whether `persistent`
@@ -42,22 +42,6 @@ pub struct Property<T, H> {
     persistent: bool,
     vec: Vec<T>,
     _m: ::std::marker::PhantomData<H>
-}
-
-impl<T, H> Property<T, H>
-    where T: traits::Value,
-          H: traits::Handle
-{
-    pub fn new(name: String, size: Size) -> Property<T, H> {
-        let mut prop = Property {
-            name: name,
-            persistent: false,
-            vec: Vec::new(),
-            _m: ::std::marker::PhantomData
-        };
-        prop.resize(size);
-        prop
-    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -163,6 +147,29 @@ impl<T, H> ResizeableProperty<H> for Property<T, H>
     fn as_property_mut(&mut self) -> &mut traits::Property<H> { self }
 }
 
+impl<T, H> ConstructableProperty<H> for Property<T, H>
+    where T: traits::Value,
+          H: traits::Handle
+{
+    fn new(name: String, size: Size) -> Self {
+        let mut prop = Property {
+            name: name,
+            persistent: false,
+            vec: Vec::new(),
+            _m: ::std::marker::PhantomData
+        };
+        prop.resize(size);
+        prop
+    }
+}
+
+impl<T, H> PropertyFor<H> for T
+    where T: traits::Value,
+          H: traits::Handle
+{
+    default type Property = Property<T, H>;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Named property encapsulating a `BitVec`.
@@ -174,21 +181,6 @@ pub struct PropertyBits<H> {
     persistent: bool,
     vec: BitVec,
     _m: ::std::marker::PhantomData<H>
-}
-
-impl<H> PropertyBits<H>
-    where H: traits::Handle
-{
-    pub fn new(name: String, size: Size) -> PropertyBits<H> {
-        let mut prop = PropertyBits {
-            name: name,
-            persistent: false,
-            vec: BitVec::new(),
-            _m: ::std::marker::PhantomData
-        };
-        prop.resize(size);
-        prop
-    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -287,11 +279,33 @@ impl<H> ResizeableProperty<H> for PropertyBits<H>
     fn as_property_mut(&mut self) -> &mut traits::Property<H> { self }
 }
 
+impl<H> ConstructableProperty<H> for PropertyBits<H>
+    where H: traits::Handle
+{
+    fn new(name: String, size: Size) -> PropertyBits<H> {
+        let mut prop = PropertyBits {
+            name: name,
+            persistent: false,
+            vec: BitVec::new(),
+            _m: ::std::marker::PhantomData
+        };
+        prop.resize(size);
+        prop
+    }
+}
+
+impl<H> PropertyFor<H> for bool
+    where H: traits::Handle
+{
+    type Property = PropertyBits<H>;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 #[cfg(test)]
 mod test {
     use property::{Property, traits};
+    use property::traits::ConstructableProperty;
 
     fn _assert_any<P: ::std::any::Any>(_p: P) {}
 

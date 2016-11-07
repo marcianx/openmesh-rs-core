@@ -1,6 +1,7 @@
-use property::{BasePropHandle, Property};
+use property::BasePropHandle;
 use property::size;
-use property::traits;
+use property::traits::{self, PropertyFor};
+use property::traits::ConstructableProperty; // for ::new() on property
 use property::traits::Handle as HandleTrait; // for `BasePropHandle` methods
 
 /// Contains a parallel collection of `Property` trait objects.
@@ -46,7 +47,7 @@ impl<H: traits::Handle> PropertyContainer<H>
                 self.vec.len() - 1
             }
         };
-        self.vec[pos] = Some(Box::new(Property::<T, H>::new(name, self.prop_len)));
+        self.vec[pos] = Some(Box::new(<T as PropertyFor<H>>::Property::new(name, self.prop_len)));
         if pos >= size::INVALID_INDEX as usize {
             panic!("Number of properties {} exceeds bounds {}-1", pos, size::INVALID_INDEX);
         }
@@ -54,7 +55,7 @@ impl<H: traits::Handle> PropertyContainer<H>
     }
 
     /// Returns the property at the given handle if any exists and if the return type matches.
-    pub fn get<T>(&self, prop_handle: BasePropHandle) -> Option<&Property<T, H>>
+    pub fn get<T>(&self, prop_handle: BasePropHandle) -> Option<&<T as PropertyFor<H>>::Property>
         where T: traits::Value
     {
         // NOTE: This handles prop_handle.index() == size::INVALID_INDEX just fine.
@@ -63,11 +64,11 @@ impl<H: traits::Handle> PropertyContainer<H>
             // &Option<Box<traits::Property>> -> Option<&Box<traits::Property>>
             .and_then(|opt_prop| opt_prop.as_ref()) // unwrap the `Option` wrapping the `Box`
             // prop: &Box<traits::Property>
-            .and_then(|prop| prop.as_property().downcast_ref::<Property<T, H>>())
+            .and_then(|prop| prop.as_property().downcast_ref::<_>())
     }
 
     /// Returns the property at the given handle if any exists and if the return type matches.
-    pub fn get_mut<T>(&mut self, prop_handle: BasePropHandle) -> Option<&mut Property<T, H>>
+    pub fn get_mut<T>(&mut self, prop_handle: BasePropHandle) -> Option<&mut <T as PropertyFor<H>>::Property>
         where T: traits::Value
     {
         // NOTE: This handles prop_handle.index() == size::INVALID_INDEX just fine.
@@ -76,7 +77,7 @@ impl<H: traits::Handle> PropertyContainer<H>
             // &Option<Box<traits::Property>> -> Option<&mut Box<traits::Property>>
             .and_then(|opt_prop| opt_prop.as_mut()) // unwrap the `Option` wrapping the `Box`
             // prop: &mut Box<traits::Property>
-            .and_then(|prop| prop.as_property_mut().downcast_mut::<Property<T, H>>())
+            .and_then(|prop| prop.as_property_mut().downcast_mut::<_>())
     }
 
     /// Returns the property at the given handle if any exists and if the return type matches.
@@ -136,7 +137,5 @@ impl<H: traits::Handle> PropertyContainer<H>
             opt_prop.as_mut().map(|prop| prop.swap(i0, i1));
         }
     }
-
-    // TODO: Add methods for bit-vectors (`PropertyBits`) as well.
 }
 
