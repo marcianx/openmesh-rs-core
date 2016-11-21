@@ -65,6 +65,7 @@ impl<Handle, RefContainer> Props<RefContainer>
     }
 }
 
+
 impl<Handle, RefContainer> Props<RefContainer>
     where Handle: traits::Handle,
           RefContainer: DerefMut<Target=PropertyContainer<Handle>>
@@ -106,7 +107,7 @@ impl<Handle, RefContainer> Props<RefContainer>
         }
     }
 
-    /// Copies a all properties from one item to another of the same type.
+    /// Copies all properties from one item to another of the same type.
     /// It is a noop if either handle is invalid.
     pub fn copy_all_properties<T: traits::Value>(&mut self, h_src: Handle, h_dst: Handle) {
         if h_src.is_valid() && h_dst.is_valid() {
@@ -116,19 +117,17 @@ impl<Handle, RefContainer> Props<RefContainer>
 }
 
 
+impl<Handle, RefContainer> ::std::fmt::Debug for Props<RefContainer>
+    where Handle: traits::Handle,
+          RefContainer: Deref<Target=PropertyContainer<Handle>>
+{
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        self.props.fmt(f)
+    }
+}
+
+
 // TODO from BaseKernel
-// - Stats for property (output stream or string). (Also add PropertyStats on Mesh itself.)
 // - Property Iterator
 //
-// Should probably be in `Property`.
-// - Access an item's property from `Property`.
-// - Copy Property field from one item to another via static dispatch.
-//
-// // Only needed by non-native Kernel. Should be protected in original impl.
-// - Number of properties.
-// - Get `Property` trait object by name (mut and non-mut).
-// - Get `Property` trait object by index or BasePropHandle (mut and non-mut).
-//
-//
 // - See if `Property` trait ever needs to be exposed in the API.
-// - Rename Item to Element.
