@@ -117,3 +117,7 @@ EVENTUALLY (Eg. when implementing algorithms)
       external algorithms wanting to store properties for the duration of an
       algorithm, however. Seem extremely simple in behavior.)
 
+TODO:
+- IMPORTANT: Restrict visibility of all implementation details.
+
+- Linkify docs when structure solidified.
