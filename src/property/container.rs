@@ -8,7 +8,7 @@ use property::traits::Handle as HandleTrait; // for `BasePropHandle` methods
 pub struct PropertyContainer<H> {
     // TODO: Should there be a `RefCell` here to allow getting multiple properties mutably?
     /// List of all the properties, whose lengths are kept in sync.
-    vec: Vec<Option<Box<traits::ResizeableProperty<H>>>>,
+    vec: Vec<Option<Box<traits::ResizeableProperty<Handle=H>>>>,
     /// Length of each property.
     prop_len: size::Size,
 }

@@ -5,7 +5,7 @@ use downcast_rs::Downcast;
 use io::binary::{Endian, UNKNOWN_SIZE};
 use io::result::Result;
 use property::size::Size;
-use property::traits::Handle;
+use property::traits;
 
 /// All mesh types are stored in Properties which implement this trait. We distinguish between
 /// standard properties, which can be defined at compile time using the Attributes in the traits
@@ -13,16 +13,18 @@ use property::traits::Handle;
 ///
 /// If the property should be stored along with the default properties in the OM-format one must
 /// name the property and enable the persistant flag with set_persistent().
-pub trait Property<H: Handle>: Downcast + ::std::fmt::Debug
+pub trait Property: Downcast + ::std::fmt::Debug
 {
+    type Handle: traits::Handle;
+
     ////////////////////////////////////////////////////////////////////////////////
     // synchronized array interface
 
     /// Swaps two elements.
-    fn swap(&mut self, i0: H, i1: H);
+    fn swap(&mut self, i0: Self::Handle, i1: Self::Handle);
 
     /// Copy one element from index `i_src` to index `i_dst`.
-    fn copy(&mut self, i_src: H, i_dst: H);
+    fn copy(&mut self, i_src: Self::Handle, i_dst: Self::Handle);
 
     ////////////////////////////////////////////////////////////////////////////////
     // named property interface
@@ -69,9 +71,9 @@ pub trait Property<H: Handle>: Downcast + ::std::fmt::Debug
 /// Trait for methods to be used only by `PropertyContainer` since it keeps all its comprising
 /// elements equally-sized. Excludes methods that would allow `ResizeableProperty` from being used
 /// as a trait object.
-pub trait ResizeableProperty<H: Handle>: Property<H> {
+pub trait ResizeableProperty: Property {
     /// A deep copy of `self` as a trait object. Used to implement the `Clone` trait.
-    fn clone_as_trait(&self) -> Box<ResizeableProperty<H>>;
+    fn clone_as_trait(&self) -> Box<ResizeableProperty<Handle=Self::Handle>>;
 
     /// Reserve memory for `n` elements.
     /// Panics if `n >= property::size::INVALID_INDEX`.
@@ -90,31 +92,31 @@ pub trait ResizeableProperty<H: Handle>: Property<H> {
     fn push(&mut self);
 
     /// Convert to a mutable `Property` trait object.
-    fn as_property(&self) -> &Property<H>;
+    fn as_property(&self) -> &Property<Handle=Self::Handle>;
 
     /// Convert to a mutable `Property` trait object.
-    fn as_property_mut(&mut self) -> &mut Property<H>;
+    fn as_property_mut(&mut self) -> &mut Property<Handle=Self::Handle>;
 }
 
 
 /// Includes `ResizeableProperty` and methods that are disallowed for trait objects.
-pub trait ConstructableProperty<H: Handle>: ResizeableProperty<H> {
+pub trait ConstructableProperty: ResizeableProperty {
     /// Instantiate a property with the given `name` of length `size`.
     fn new(name: String, size: Size) -> Self;
 }
 
 
 /// Allows picking the optimal property container for implemented type.
-pub trait PropertyFor<H: Handle> {
-    type Property: ConstructableProperty<H>;
+pub trait PropertyFor<H: traits::Handle> {
+    type Property: ConstructableProperty<Handle=H>;
 }
 
 
 // Support down-casting from `Property` to a struct implementing it.
-impl_downcast!(Property<H> where H: Handle);
+impl_downcast!(Property assoc Handle where Handle: traits::Handle);
 
 
-impl<H: Handle> Clone for Box<ResizeableProperty<H>>
+impl<H> Clone for Box<ResizeableProperty<Handle=H>>
 {
     fn clone(&self) -> Self {
         self.clone_as_trait()

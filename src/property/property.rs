@@ -90,10 +90,12 @@ impl<T, H> ::std::fmt::Debug for Property<T, H> {
 ////////////////////////////////////////////////////////////////////////////////
 // impl `traits::Property`
 
-impl<T, H> traits::Property<H> for Property<T, H>
+impl<T, H> traits::Property for Property<T, H>
     where T: traits::Value,
           H: traits::Handle
 {
+    type Handle = H;
+
     impl_property_accessors!(<T as Binary>::is_streamable());
 
     ////////////////////////////////////////
@@ -120,7 +122,7 @@ impl<T, H> traits::Property<H> for Property<T, H>
     }
 }
 
-impl<T, H> ResizeableProperty<H> for Property<T, H>
+impl<T, H> ResizeableProperty for Property<T, H>
     where T: traits::Value,
           H: traits::Handle
 {
@@ -142,12 +144,12 @@ impl<T, H> ResizeableProperty<H> for Property<T, H>
     }
     fn clear(&mut self) { self.vec.clear(); }
     fn push(&mut self) { self.vec.push(Default::default()); }
-    fn clone_as_trait(&self) -> Box<ResizeableProperty<H>> { Box::new(self.clone()) }
-    fn as_property(&self) -> &traits::Property<H> { self }
-    fn as_property_mut(&mut self) -> &mut traits::Property<H> { self }
+    fn clone_as_trait(&self) -> Box<ResizeableProperty<Handle=H>> { Box::new(self.clone()) }
+    fn as_property(&self) -> &traits::Property<Handle=H> { self }
+    fn as_property_mut(&mut self) -> &mut traits::Property<Handle=H> { self }
 }
 
-impl<T, H> ConstructableProperty<H> for Property<T, H>
+impl<T, H> ConstructableProperty for Property<T, H>
     where T: traits::Value,
           H: traits::Handle
 {
@@ -223,9 +225,11 @@ impl<H> ::std::fmt::Debug for PropertyBits<H> {
 ////////////////////////////////////////////////////////////////////////////////
 // impl `traits::Property`
 
-impl<H> traits::Property<H> for PropertyBits<H>
+impl<H> traits::Property for PropertyBits<H>
     where H: traits::Handle
 {
+    type Handle = H;
+
     impl_property_accessors!(true); // is_streamable = true
 
     ////////////////////////////////////////
@@ -253,7 +257,7 @@ impl<H> traits::Property<H> for PropertyBits<H>
     }
 }
 
-impl<H> ResizeableProperty<H> for PropertyBits<H>
+impl<H> ResizeableProperty for PropertyBits<H>
     where H: traits::Handle
 {
     fn reserve(&mut self, n: Size) {
@@ -274,12 +278,12 @@ impl<H> ResizeableProperty<H> for PropertyBits<H>
     }
     fn clear(&mut self) { self.vec.clear(); }
     fn push(&mut self) { self.vec.push(Default::default()); }
-    fn clone_as_trait(&self) -> Box<ResizeableProperty<H>> { Box::new(self.clone()) }
-    fn as_property(&self) -> &traits::Property<H> { self }
-    fn as_property_mut(&mut self) -> &mut traits::Property<H> { self }
+    fn clone_as_trait(&self) -> Box<ResizeableProperty<Handle=H>> { Box::new(self.clone()) }
+    fn as_property(&self) -> &traits::Property<Handle=H> { self }
+    fn as_property_mut(&mut self) -> &mut traits::Property<Handle=H> { self }
 }
 
-impl<H> ConstructableProperty<H> for PropertyBits<H>
+impl<H> ConstructableProperty for PropertyBits<H>
     where H: traits::Handle
 {
     fn new(name: String, size: Size) -> PropertyBits<H> {
