@@ -71,7 +71,9 @@ BaseHandle
   - Containers for Vertex, Edge, etc (halfedge-edge) connectivity objects.
   - Containers for Vertex, Edge, etc STATUS
   - Ref counts for each STATUS container type
-  - Bitmask container type
+  - StatusSet API
+    - StatusSetT, AutoStatusSetT, ExtStatusSetT
+    - BitMaskContainer
 - methods:
   - Constructors for Vertex, HalfEdge, and Face
   - Container (array) access and modification operations
@@ -116,6 +118,7 @@ EVENTUALLY (Eg. when implementing algorithms)
     - What are these used for? Absolutely nuthin, WUH! (Potentially useful for
       external algorithms wanting to store properties for the duration of an
       algorithm, however. Seem extremely simple in behavior.)
+  - ArrayKernel: StatusSet API (see above)
 
 TODO:
 - IMPORTANT: Restrict visibility of all implementation details.
