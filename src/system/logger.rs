@@ -1,3 +1,4 @@
+//! Macros for logging.
 
 /// Writes to stdout.
 #[macro_export]

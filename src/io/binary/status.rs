@@ -39,7 +39,7 @@ mod test {
         let flags1 = status::DELETED | status::LOCKED | status::HIDDEN | status::TAGGED | status::TAGGED2;
         test::test_store(Little, &flags1, &[0x6b, 0x00, 0x00, 0x00]);
         test::test_store(Big   , &flags1, &[0x00, 0x00, 0x00, 0x6b]);
-        let flags2 = status::SELECTED | status::FEATURE | status::FIXED_NONMANIFOLD;
+        let flags2 = status::SELECTED | status::FEATURE | status::FIXED_NON_MANIFOLD;
         test::test_store(Little, &flags2, &[0x94, 0x00, 0x00, 0x00]);
         test::test_store(Big   , &flags2, &[0x00, 0x00, 0x00, 0x94]);
     }
@@ -49,7 +49,7 @@ mod test {
         let flags1 = status::DELETED | status::LOCKED | status::HIDDEN | status::TAGGED | status::TAGGED2;
         test::test_restore(Little, &[0x6b, 0xff, 0xff, 0xff], status::Status::empty, &flags1);
         test::test_restore(Big   , &[0xff, 0xff, 0xff, 0x6b], status::Status::empty, &flags1);
-        let flags2 = status::SELECTED | status::FEATURE | status::FIXED_NONMANIFOLD;
+        let flags2 = status::SELECTED | status::FEATURE | status::FIXED_NON_MANIFOLD;
         test::test_restore(Little, &[0x94, 0xff, 0xff, 0xff], status::Status::empty, &flags2);
         test::test_restore(Big   , &[0xff, 0xff, 0xff, 0x94], status::Status::empty, &flags2);
     }

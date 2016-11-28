@@ -1,3 +1,5 @@
+//! Result type for mesh I/O operations.
+
 extern crate byteorder;
 
 use std::error;
@@ -9,10 +11,15 @@ use std::io;
 /// OpenMesh I/O Error.
 #[derive(Debug)]
 pub enum Error {
+    /// Unsupported functionality.
     Unsupported,
+    /// Unexpected EOF.
     UnexpectedEOF,
+    /// String exceeds 64Kb.
     StringExceeds64k,
+    /// Invalid UTF-8.
     FromUtf8(string::FromUtf8Error),
+    /// IO error.
     Io(io::Error)
 }
 

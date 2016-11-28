@@ -9,16 +9,19 @@ pub use self::byteorder::ByteOrder;
 /// Types implementing `ByteOrder` for staticly-dispatched endianness.
 pub use self::byteorder::{BigEndian, LittleEndian};
 
+/// Value representing unknown size.
 pub const UNKNOWN_SIZE: usize = !0usize;
 
 /// Endianness for storing/restoring.
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
 pub enum Endian {
+    #[allow(missing_docs)]
     Big,
+    #[allow(missing_docs)]
     Little,
 }
 
-/// A trait for describing whether an object can be serialized to file.
+/// A trait for describing whether and how an object can be serialized to file.
 ///
 /// The default implementation is for a type that doesn't support streaming.
 /// So such types can be implemented via the 1-liner `impl Binary for MyNonStreamableType {}`.

@@ -1,5 +1,8 @@
+//! I/O options.
+
 extern crate bitflags;
 
+#[doc(hidden)]
 pub type FlagBits = u32;
 
 bitflags! {
@@ -44,15 +47,25 @@ impl Options {
         if b { self.insert(other) } else { self.remove(other) }
     }
 
+    #[allow(missing_docs)] 
     pub fn is_binary          (&self) -> bool { self.contains(BINARY          ) }
+    #[allow(missing_docs)] 
     pub fn vertex_has_normal  (&self) -> bool { self.contains(VERTEX_NORMAL   ) }
+    #[allow(missing_docs)] 
     pub fn vertex_has_color   (&self) -> bool { self.contains(VERTEX_COLOR    ) }
+    #[allow(missing_docs)] 
     pub fn vertex_has_texcoord(&self) -> bool { self.contains(VERTEX_TEX_COORD) }
+    #[allow(missing_docs)] 
     pub fn edge_has_color     (&self) -> bool { self.contains(EDGE_COLOR      ) }
+    #[allow(missing_docs)] 
     pub fn face_has_normal    (&self) -> bool { self.contains(FACE_NORMAL     ) }
+    #[allow(missing_docs)] 
     pub fn face_has_color     (&self) -> bool { self.contains(FACE_COLOR      ) }
+    #[allow(missing_docs)] 
     pub fn face_has_texcoord  (&self) -> bool { self.contains(FACE_TEX_COORD  ) }
+    #[allow(missing_docs)] 
     pub fn color_has_alpha    (&self) -> bool { self.contains(COLOR_ALPHA     ) }
+    #[allow(missing_docs)] 
     pub fn color_is_float     (&self) -> bool { self.contains(COLOR_FLOAT     ) }
 }
 

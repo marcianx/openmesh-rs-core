@@ -1,3 +1,6 @@
+//! Defines the `Binary` trait which must be defined for all types storable in mesh property lists.
+//! Implements this trait for various common data types.
+
 // Trait definition
 mod traits;
 pub use self::traits::*;
