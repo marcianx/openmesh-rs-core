@@ -15,6 +15,7 @@ use property::traits;
 /// name the property and enable the persistant flag with set_persistent().
 pub trait Property: Downcast + ::std::fmt::Debug
 {
+    /// Handle for the item type (Vertex, Halfedge, Edge, Face) to which the property belongs.
     type Handle: traits::Handle;
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -108,6 +109,7 @@ pub trait ConstructableProperty: ResizeableProperty {
 
 /// Allows picking the optimal property container for implemented type.
 pub trait PropertyFor<H: traits::Handle> {
+    /// Property container type to be used to store objects of type `Self`.
     type Property: ConstructableProperty<Handle=H>;
 }
 

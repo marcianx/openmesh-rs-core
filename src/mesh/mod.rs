@@ -1,3 +1,5 @@
+//! 2-manifold surface mesh represented as a halfedge data structure.
+
 // TODO: Determine carefully what ought to be reexported.
 pub mod handles;
 pub mod iter;

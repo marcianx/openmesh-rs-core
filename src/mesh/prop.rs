@@ -1,3 +1,6 @@
+//! Defines a helper struct `Props` to add, remove, or access property lists (associated with
+//! vectices, halfedge, edge, and faces) within a mesh.
+
 use std::ops::{Deref, DerefMut};
 use mesh::handles::{
     VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle, MeshHandle,
@@ -27,18 +30,30 @@ pub struct Props<RefContainer> {
     len: Size,
 }
 
-#[allow(missing_docs)] pub type ItemProps<'a, Handle> = Props<&'a PropertyContainer<Handle>>;
-#[allow(missing_docs)] pub type VProps<'a> = ItemProps<'a, VertexHandle>;
-#[allow(missing_docs)] pub type HProps<'a> = ItemProps<'a, HalfedgeHandle>;
-#[allow(missing_docs)] pub type EProps<'a> = ItemProps<'a, EdgeHandle>;
-#[allow(missing_docs)] pub type FProps<'a> = ItemProps<'a, FaceHandle>;
-#[allow(missing_docs)] pub type MProps<'a> = ItemProps<'a, MeshHandle>;
-#[allow(missing_docs)] pub type ItemPropsMut<'a, Handle> = Props<&'a mut PropertyContainer<Handle>>;
-#[allow(missing_docs)] pub type VPropsMut<'a> = ItemPropsMut<'a, VertexHandle>;
-#[allow(missing_docs)] pub type HPropsMut<'a> = ItemPropsMut<'a, HalfedgeHandle>;
-#[allow(missing_docs)] pub type EPropsMut<'a> = ItemPropsMut<'a, EdgeHandle>;
-#[allow(missing_docs)] pub type FPropsMut<'a> = ItemPropsMut<'a, FaceHandle>;
-#[allow(missing_docs)] pub type MPropsMut<'a> = ItemPropsMut<'a, MeshHandle>;
+/// For immutable access to property lists.
+pub type ItemProps<'a, Handle> = Props<&'a PropertyContainer<Handle>>;
+/// For immutable access to vertex properties.
+pub type VProps<'a> = ItemProps<'a, VertexHandle>;
+/// For immutable access to halfedge properties.
+pub type HProps<'a> = ItemProps<'a, HalfedgeHandle>;
+/// For immutable access to edge properties.
+pub type EProps<'a> = ItemProps<'a, EdgeHandle>;
+/// For immutable access to face properties.
+pub type FProps<'a> = ItemProps<'a, FaceHandle>;
+/// For immutable access to mesh properties.
+pub type MProps<'a> = ItemProps<'a, MeshHandle>;
+/// For mutable access to property lists.
+pub type ItemPropsMut<'a, Handle> = Props<&'a mut PropertyContainer<Handle>>;
+/// For mutable access to vertex properties.
+pub type VPropsMut<'a> = ItemPropsMut<'a, VertexHandle>;
+/// For mutable access to halfedge properties.
+pub type HPropsMut<'a> = ItemPropsMut<'a, HalfedgeHandle>;
+/// For mutable access to edge properties.
+pub type EPropsMut<'a> = ItemPropsMut<'a, EdgeHandle>;
+/// For mutable access to face properties.
+pub type FPropsMut<'a> = ItemPropsMut<'a, FaceHandle>;
+/// For mutable access to mesh properties.
+pub type MPropsMut<'a> = ItemPropsMut<'a, MeshHandle>;
 
 
 impl<Handle, RefContainer> Props<RefContainer>

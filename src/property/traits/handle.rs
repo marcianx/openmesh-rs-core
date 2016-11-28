@@ -1,3 +1,5 @@
+//! Handle trait for mesh item and item property handles.
+
 use property::size::{Index, INVALID_INDEX};
 
 /// Trait for handle types that wrap `HandleBase` which wraps an index.
@@ -58,7 +60,8 @@ pub trait Handle: ::std::any::Any + Copy + Clone + ::std::fmt::Debug + 'static
 
 #[macro_export]
 macro_rules! def_handle {
-    ($handle: ident) => {
+    ($handle:ident, $doc:expr) => {
+        #[doc=$doc]
         #[derive(Eq, PartialEq, Clone, Hash, Debug, Copy)]
         pub struct $handle($crate::property::size::Index);
 
@@ -86,12 +89,15 @@ macro_rules! def_handle {
     }
 }
 
-/// `PropertyContainer` handle to a contained `Property` (which is a list of `Value`s).
-def_handle!(BasePropHandle);
+
+def_handle!(
+    BasePropHandle,
+    "`PropertyContainer` handle to a contained `Property` (which is a list of `Value`s).");
 
 /// Handle to a `Property` within a `PropertyContainer`. Each `Property` represents a list of items
 /// of type `Value`.
 pub trait PropHandle: Copy {
+    /// The value type stored in the property list into which `self` is a handle.
     type Value;
 
     /// Create an invalidated handle.
@@ -118,5 +124,5 @@ pub trait PropHandle: Copy {
 
 #[cfg(test)]
 mod test {
-    def_handle!(MyHandle);
+    def_handle!(MyHandle, "Test Handle Trait.");
 }

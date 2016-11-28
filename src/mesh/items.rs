@@ -1,3 +1,5 @@
+//! Defines the core primitives (`Vertex`, `Halfedge`, `Edge`, `Face`) encoding mesh connectivity.
+
 use mesh::handles::{
     VertexHandle, HalfedgeHandle, FaceHandle,
 };

@@ -1,18 +1,29 @@
+//! Status flags for mesh items.
+
 extern crate bitflags;
 
+#[doc(hidden)]
 pub type FlagBits = u32;
 
 bitflags! {
     #[doc = "Flags for each vertex/halfedge/edge/face field."]
     flags Status: FlagBits {
+        #[doc = "Whether the item is deleted."]
         const DELETED           = 1,
+        #[doc = "Whether the item is locked."]
         const LOCKED            = 2,
+        #[doc = "Whether the item is selected."]
         const SELECTED          = 4,
+        #[doc = "Whether the item is hidden."]
         const HIDDEN            = 8,
+        #[doc = "Whether the item is a feature."]
         const FEATURE           = 16,
+        #[doc = "Whether the item is a tagged."]
         const TAGGED            = 32,
+        #[doc = "Whether the item is a tagged (alternate flag)."]
         const TAGGED2           = 64,
-        const FIXED_NONMANIFOLD = 128,
+        #[doc = "Whether the item was non-2-manifold and was fixed."]
+        const FIXED_NON_MANIFOLD = 128,
     }
 }
 
@@ -22,24 +33,41 @@ impl Status {
         if b { self.insert(other) } else { self.remove(other) }
     }
 
+    /// Whether the DELETED flag is set.
     pub fn deleted          (&self) -> bool { self.contains(DELETED          ) }
+    /// Whether the LOCKED flag is set.
     pub fn locked           (&self) -> bool { self.contains(LOCKED           ) }
+    /// Whether the SELECTED flag is set.
     pub fn selected         (&self) -> bool { self.contains(SELECTED         ) }
+    /// Whether the HIDDEN flag is set.
     pub fn hidden           (&self) -> bool { self.contains(HIDDEN           ) }
+    /// Whether the FEATURE flag is set.
     pub fn feature          (&self) -> bool { self.contains(FEATURE          ) }
+    /// Whether the TAGGED flag is set.
     pub fn tagged           (&self) -> bool { self.contains(TAGGED           ) }
+    /// Whether the TAGGED2 flag is set.
     pub fn tagged2          (&self) -> bool { self.contains(TAGGED2          ) }
-    pub fn fixed_nonmanifold(&self) -> bool { self.contains(FIXED_NONMANIFOLD) }
+    /// Whether the FIXED_NON_MANIFOLD flag is set.
+    pub fn fixed_non_manifold(&self) -> bool { self.contains(FIXED_NON_MANIFOLD) }
 
+    /// Sets the DELETED flag.
     pub fn set_deleted          (&mut self, b: bool) { self.update(DELETED          , b) }
+    /// Sets the LOCKED flag.
     pub fn set_locked           (&mut self, b: bool) { self.update(LOCKED           , b) }
+    /// Sets the SELECTED flag.
     pub fn set_selected         (&mut self, b: bool) { self.update(SELECTED         , b) }
+    /// Sets the HIDDEN flag.
     pub fn set_hidden           (&mut self, b: bool) { self.update(HIDDEN           , b) }
+    /// Sets the FEATURE flag.
     pub fn set_feature          (&mut self, b: bool) { self.update(FEATURE          , b) }
+    /// Sets the TAGGED flag.
     pub fn set_tagged           (&mut self, b: bool) { self.update(TAGGED           , b) }
+    /// Sets the TAGGED2 flag.
     pub fn set_tagged2          (&mut self, b: bool) { self.update(TAGGED2          , b) }
-    pub fn set_fixed_nonmanifold(&mut self, b: bool) { self.update(FIXED_NONMANIFOLD, b) }
+    /// Sets the FIXED_NON_MANIFOLD flag.
+    pub fn set_fixed_non_manifold(&mut self, b: bool) { self.update(FIXED_NON_MANIFOLD, b) }
 
+    /// Iterator to enumerate all `Status` flags.
     pub fn iter() -> Iter {
         Iter {
             cond: Status::all().bits(),
@@ -50,7 +78,7 @@ impl Status {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-/// Iterator to enumerate all Status flags.
+/// Iterator to enumerate all `Status` bits/flags.
 pub struct Iter {
     cond: FlagBits,
     flag: FlagBits
@@ -87,7 +115,7 @@ mod test {
         assert!(!flags.feature());
         assert!(!flags.tagged());
         assert!(!flags.tagged2());
-        assert!(!flags.fixed_nonmanifold());
+        assert!(!flags.fixed_non_manifold());
     }
 
     #[test]
@@ -100,7 +128,7 @@ mod test {
         assert!(flags.feature());
         assert!(flags.tagged());
         assert!(flags.tagged2());
-        assert!(flags.fixed_nonmanifold());
+        assert!(flags.fixed_non_manifold());
     }
 
     #[test]
@@ -113,7 +141,7 @@ mod test {
         flags.set_feature(true);
         flags.set_tagged(true);
         flags.set_tagged2(true);
-        flags.set_fixed_nonmanifold(true);
+        flags.set_fixed_non_manifold(true);
         assert_eq!(flags, Status::all());
         flags.set_deleted(false);
         flags.set_locked(false);
@@ -122,7 +150,7 @@ mod test {
         flags.set_feature(false);
         flags.set_tagged(false);
         flags.set_tagged2(false);
-        flags.set_fixed_nonmanifold(false);
+        flags.set_fixed_non_manifold(false);
         assert_eq!(flags, Status::empty());
     }
 

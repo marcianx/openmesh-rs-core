@@ -1,3 +1,5 @@
+//! 2-manifold surface mesh represented as a halfedge data structure.
+
 use mesh::handles::{
     VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle, MeshHandle,
 };

@@ -1,3 +1,5 @@
+//! Defines mesh `Property` lists and related traits and data types.
+
 #[macro_use]
 pub mod traits;
 pub use self::traits::BasePropHandle;

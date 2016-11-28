@@ -1,3 +1,5 @@
+//! Mesh item and item property handle types.
+
 use std::any::Any;
 use std::marker::PhantomData;
 use property::BasePropHandle;
@@ -6,20 +8,11 @@ use property::traits;
 ////////////////////////////////////////////////////////////////////////////////
 // Handle to an item.
 
-/// Vertex handle.
-def_handle!(VertexHandle);
-
-/// Halfedge handle.
-def_handle!(HalfedgeHandle);
-
-/// Edge handle.
-def_handle!(EdgeHandle);
-
-/// Face handle.
-def_handle!(FaceHandle);
-
-/// Mesh handle (only needed for parametrizing PropertyContainer).
-def_handle!(MeshHandle);
+def_handle!(VertexHandle, "Vertex handle.");
+def_handle!(HalfedgeHandle, "Halfedge handle.");
+def_handle!(EdgeHandle, "Edge handle.");
+def_handle!(FaceHandle, "Face handle.");
+def_handle!(MeshHandle, "Mesh handle (only needed for parametrizing PropertyContainer).");
 
 ////////////////////////////////////////////////////////////////////////////////
 // Handle to a property lists for an item type.

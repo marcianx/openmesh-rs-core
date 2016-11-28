@@ -1,3 +1,7 @@
+//! Additional indexing traits analagous to `std::ops::Index` and `std::ops::IndexMut`, including
+//! unsafe indexing variants and a setter trait. Includes implementations for the `std::vec::Vec`
+//! and `util::vec::BitVec` types.
+
 /// An unsafe alternative to `std::ops::Index` for getting the value at an index.
 pub trait IndexUnchecked<Idx>: ::std::ops::Index<Idx> {
     /// Gets a value at index `index` without bounds checking.

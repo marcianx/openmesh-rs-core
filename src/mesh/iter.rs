@@ -1,11 +1,16 @@
+//! Iterators to enumerate all items in the mesh, skipping DELETED and HIDDEN items.
+
 use mesh::status;
 use mesh::status::Status;
 use property::size::Size;
 use property::traits::Handle;
 
 
+/// Supports bidirectional iteration through all elements of a mesh.
 pub trait MeshIterMeta {
+    /// Mesh to iterate through.
     type Mesh: ::std::fmt::Debug;
+    /// Underlying mesh handle type used to do the iteration.
     type Handle: Handle;
 
     /// Whether a `Status` field is provided for this Handle type in the mesh.
@@ -134,6 +139,9 @@ impl<'a, Meta: MeshIterMeta> Clone for MeshFwdIter<'a, Meta> where Meta::Mesh: '
 impl<'a, Meta: MeshIterMeta> MeshFwdIter<'a, Meta>
     where Meta::Mesh: 'a
 {
+    /// Initialize a forward iterator through the mesh starting at the given handle.
+    /// If `skip` is true and the mesh stores a status field, then the iterator skips
+    /// all elements with DELETED or HIDDEN status.
     pub fn new(mesh: &'a Meta::Mesh, handle: Meta::Handle, skip: bool)
         -> MeshFwdIter<'a, Meta>
     {
@@ -165,7 +173,7 @@ impl<'a, Meta: MeshIterMeta> Clone for MeshBwdIter<'a, Meta> where Meta::Mesh: '
 impl<'a, Meta: MeshIterMeta> MeshBwdIter<'a, Meta>
     where Meta::Mesh: 'a
 {
-    /// Initialize a forward iterator through the mesh starting at the given handle.
+    /// Initialize a backward iterator through the mesh starting at the given handle.
     /// If `skip` is true and the mesh stores a status field, then the iterator skips
     /// all elements with DELETED or HIDDEN status.
     pub fn new(mesh: &'a Meta::Mesh, handle: Meta::Handle, skip: bool)
@@ -180,9 +188,6 @@ impl<'a, Meta: MeshIterMeta> Iterator for MeshBwdIter<'a, Meta>
 {
     type Item = Meta::Handle;
 
-    /// Initialize a backward iterator through the mesh starting at the given handle.
-    /// If `skip` is true and the mesh stores a status field, then the iterator skips
-    /// all elements with DELETED or HIDDEN status.
     fn next(&mut self) -> Option<Self::Item> {
         self.0.next_bwd()
     }
@@ -209,7 +214,7 @@ mod test {
         }
     }
 
-    static mut skip_index: u32 = 0;
+    static mut SKIP_INDEX: u32 = 0;
 
     impl MeshIterMeta for Meta {
         type Mesh = Mesh;
@@ -217,8 +222,8 @@ mod test {
         fn has_status() -> bool { true }
         fn status(mesh: &Mesh, h: Self::Handle) -> Status {
             if (*mesh.skip)(h.index()) {
-                unsafe { skip_index += 1; }
-                (match unsafe { skip_index } % 3 {
+                unsafe { SKIP_INDEX += 1; }
+                (match unsafe { SKIP_INDEX } % 3 {
                     0 => DELETED,
                     1 => HIDDEN,
                     _ => DELETED | HIDDEN
