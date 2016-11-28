@@ -1,3 +1,5 @@
+//! See documentation for the `NormalCone` struct.
+
 extern crate num;
 use self::num::traits::{One, Zero};
 use geometry::math::{BaseFloat, max, min};

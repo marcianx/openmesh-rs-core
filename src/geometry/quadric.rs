@@ -1,3 +1,5 @@
+//! See documentation for the `Quadric` struct.
+
 extern crate num;
 use self::num::traits::{One,Zero};
 use std::ops::{Add, Mul};
@@ -70,26 +72,46 @@ impl<Scalar: BaseFloat> Quadric<Scalar> {
         self.m = [Zero::zero(); 10]
     }
 
+    #[allow(missing_docs)]
     pub fn a(&self)  -> Scalar { self.m[0] }
+    #[allow(missing_docs)]
     pub fn b(&self)  -> Scalar { self.m[1] }
+    #[allow(missing_docs)]
     pub fn c(&self)  -> Scalar { self.m[2] }
+    #[allow(missing_docs)]
     pub fn d(&self)  -> Scalar { self.m[3] }
+    #[allow(missing_docs)]
     pub fn e(&self)  -> Scalar { self.m[4] }
+    #[allow(missing_docs)]
     pub fn f(&self)  -> Scalar { self.m[5] }
+    #[allow(missing_docs)]
     pub fn g(&self)  -> Scalar { self.m[6] }
+    #[allow(missing_docs)]
     pub fn h(&self)  -> Scalar { self.m[7] }
+    #[allow(missing_docs)]
     pub fn i(&self)  -> Scalar { self.m[8] }
+    #[allow(missing_docs)]
     pub fn j(&self)  -> Scalar { self.m[9] }
 
+    #[allow(missing_docs)]
     pub fn xx(&self) -> Scalar { self.m[0] }
+    #[allow(missing_docs)]
     pub fn xy(&self) -> Scalar { self.m[1] }
+    #[allow(missing_docs)]
     pub fn xz(&self) -> Scalar { self.m[2] }
+    #[allow(missing_docs)]
     pub fn xw(&self) -> Scalar { self.m[3] }
+    #[allow(missing_docs)]
     pub fn yy(&self) -> Scalar { self.m[4] }
+    #[allow(missing_docs)]
     pub fn yz(&self) -> Scalar { self.m[5] }
+    #[allow(missing_docs)]
     pub fn yw(&self) -> Scalar { self.m[6] }
+    #[allow(missing_docs)]
     pub fn zz(&self) -> Scalar { self.m[7] }
+    #[allow(missing_docs)]
     pub fn zw(&self) -> Scalar { self.m[8] }
+    #[allow(missing_docs)]
     pub fn ww(&self) -> Scalar { self.m[9] }
 }
 

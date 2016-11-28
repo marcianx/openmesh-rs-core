@@ -1,8 +1,11 @@
+//! Floating point utility functions.
+
 extern crate num;
 extern crate nalgebra as na;
 
 use self::num::traits::Float;
 
+/// Methods for floating point representations, building on `nalgebra`'s eponymous trait.
 pub trait BaseFloat : self::na::BaseFloat {
     /// Returns the default epsilon value for floating point equality tests.
     #[inline(always)]
@@ -22,6 +25,7 @@ impl BaseFloat for f64 {
     fn from_f32(val: f32) -> Self { val as f64 }
 }
 
+/// Comparison methods for all `BaseFloat` types.
 pub trait FloatCompare : BaseFloat {
     /// Returns whether self is within the provided epsilon from 0.
     #[inline(always)]

@@ -1,3 +1,5 @@
+//! See documentation for the `Plane3` struct.
+
 extern crate num;
 use self::num::traits::Zero;
 use geometry::math::BaseFloat;
@@ -8,7 +10,9 @@ use geometry::vector::{Vec3, Dot, Norm};
 /// Defines a plane in the form:
 ///   n . <x, y, z> + d = 0
 pub struct Plane3<T> {
+  #[allow(missing_docs)]
   pub n: Vec3<T>,
+  #[allow(missing_docs)]
   pub d: T
 }
 
