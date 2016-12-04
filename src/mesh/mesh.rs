@@ -8,6 +8,10 @@ use mesh::prop::{
     ItemProps, VProps, HProps, EProps, FProps, MProps,
     ItemPropsMut, VPropsMut, HPropsMut, EPropsMut, FPropsMut, MPropsMut,
 };
+use mesh::rc::{
+    RcVPropHandle, RcHPropHandle, RcEPropHandle, RcFPropHandle,
+};
+use mesh::status::Status;
 use property::PropertyContainer;
 use property::size::Size;
 use property::traits;
@@ -28,6 +32,12 @@ pub struct _Mesh {
     pub e_props: PropertyContainer<EdgeHandle>,
     pub f_props: PropertyContainer<FaceHandle>,
     pub m_props: PropertyContainer<MeshHandle>,
+
+    // Handles for mesh status. 
+    pub v_status: RcVPropHandle<Status>,
+    pub h_status: RcHPropHandle<Status>,
+    pub e_status: RcEPropHandle<Status>,
+    pub f_status: RcFPropHandle<Status>,
 }
 
 ////////////////////////////////////////////////////////////

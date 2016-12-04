@@ -76,6 +76,10 @@ impl Status {
     }
 }
 
+impl Default for Status {
+    fn default() -> Self { Status::empty() }
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 /// Iterator to enumerate all `Status` bits/flags.
