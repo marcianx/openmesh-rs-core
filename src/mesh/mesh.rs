@@ -5,13 +5,15 @@ use mesh::handles::{
 };
 use mesh::items::{Vertex, Edge, Face};
 use mesh::prop::{
-    VProps, HProps, EProps, FProps, MProps,
-    VPropsMut, HPropsMut, EPropsMut, FPropsMut, MPropsMut,
+    ItemProps, VProps, HProps, EProps, FProps, MProps,
+    ItemPropsMut, VPropsMut, HPropsMut, EPropsMut, FPropsMut, MPropsMut,
 };
 use property::PropertyContainer;
+use property::size::Size;
+use property::traits;
 
-////////////////////////////////////////////////////////////
-// Mesh
+////////////////////////////////////////////////////////////////////////////////
+// Module-private
 
 /// Mesh implementation detail.
 pub struct _Mesh {
@@ -28,34 +30,76 @@ pub struct _Mesh {
     pub mprops: PropertyContainer<MeshHandle>,
 }
 
-/// Halfedge data structure.
-pub struct Mesh(_Mesh);
+////////////////////////////////////////////////////////////
+// General property accessors and methods
 
-////////////////////////////////////////////////////////////////////////////////
-// Properties
+/// For getting the right mesh properties based on the handle type.
+/// This is useful for implementing for helper structs parametrized by handle, like `RcPropHandle`.
+pub trait _ToProps where Self: traits::Handle {
+    fn len(m: &_Mesh) -> Size;
+    fn props(m: &_Mesh) -> &PropertyContainer<Self>;
+    fn props_mut(m: &mut _Mesh) -> &mut PropertyContainer<Self>;
+}
 
-macro_rules! prop_accessors {
-    ($method:ident, $method_mut:ident, $Struct:ident, $StructMut:ident, $field:ident, $item:expr, $len_fn:expr) => {
-        #[doc="Returns a struct to access "] #[doc=$item] #[doc=" properties."]
-        pub fn $method(&self) -> $Struct {
-            let len = $len_fn(&self.0);
-            $Struct::new(&(self.0).$field, len)
-        }
-        #[doc="Returns a struct to mutably access "] #[doc=$item] #[doc=" properties."]
-        pub fn $method_mut(&mut self) -> $StructMut {
-            let len = $len_fn(&self.0);
-            $StructMut::new(&mut (self.0).$field, len)
+macro_rules! impl_to_props {
+    ($Handle:ty, $field:ident, $len_fn:expr) => {
+        impl<'a> _ToProps for $Handle {
+            fn len(m: &_Mesh) -> Size { $len_fn(m) }
+            fn props(m: &_Mesh) -> &PropertyContainer<Self> { &m.$field }
+            fn props_mut(m: &mut _Mesh) -> &mut PropertyContainer<Self> { &mut m.$field }
         }
     }
 }
 
+impl_to_props!(  VertexHandle, vprops,  | m: &_Mesh| { m.vertices.len() as Size });
+impl_to_props!(HalfedgeHandle, hprops,  | m: &_Mesh| { (m.edges.len() * 2) as Size });
+impl_to_props!(    EdgeHandle, eprops,  | m: &_Mesh| { m.edges.len() as Size });
+impl_to_props!(    FaceHandle, fprops,  | m: &_Mesh| { m.faces.len() as Size });
+impl_to_props!(    MeshHandle, mprops,  |_m: &_Mesh| { 1 });
+
+// Private to `mesh` module.
+// These property accessor methods are generic and useful for all helper objects parametrized by
+// item handle type.
+impl _Mesh {
+    /// Returns the property container associated with the mesh item type identified by `Handle`.
+    pub fn props<Handle: _ToProps>(&self) -> ItemProps<Handle> {
+        let len = <Handle as _ToProps>::len(self);
+        ItemProps::new(<Handle as _ToProps>::props(self), len)
+    }
+
+    /// Returns the property container associated with the mesh item type identified by `Handle`.
+    pub fn props_mut<Handle: _ToProps>(&mut self) -> ItemPropsMut<Handle> {
+        let len = <Handle as _ToProps>::len(self);
+        ItemPropsMut::new(<Handle as _ToProps>::props_mut(self), len)
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Public interface
+
+/// Halfedge data structure.
+pub struct Mesh(_Mesh);
+
+////////////////////////////////////////////////////////////
+// General property accessors and methods
+
+// Public accessor methods
+macro_rules! prop_accessors {
+    ($Handle:ty, $method:ident, $method_mut:ident, $Struct:ident, $StructMut:ident, $item:expr) => {
+        #[doc="Returns a struct to access "] #[doc=$item] #[doc=" properties."]
+        pub fn $method(&self) -> $Struct { self.0.props() }
+        #[doc="Returns a struct to mutably access "] #[doc=$item] #[doc=" properties."]
+        pub fn $method_mut(&mut self) -> $StructMut { self.0.props_mut() }
+    }
+}
+
 impl Mesh {
-    // Property accessors.
-    prop_accessors!( vertices,  vertices_mut, VProps, VPropsMut, vprops,   "vertex", | m: &_Mesh| { m.vertices.len() });
-    prop_accessors!(halfedges, halfedges_mut, HProps, HPropsMut, hprops, "halfedge", | m: &_Mesh| { m.edges.len() * 2 });
-    prop_accessors!(    edges,     edges_mut, EProps, EPropsMut, eprops,     "edge", | m: &_Mesh| { m.edges.len() });
-    prop_accessors!(    faces,     faces_mut, FProps, FPropsMut, fprops,     "face", | m: &_Mesh| { m.faces.len() });
-    prop_accessors!(     mesh,      mesh_mut, MProps, MPropsMut, mprops,     "mesh", |_m: &_Mesh| { 1 });
+    // Property accessors
+    prop_accessors!(  VertexHandle,  vertices,  vertices_mut, VProps, VPropsMut,   "vertex");
+    prop_accessors!(HalfedgeHandle, halfedges, halfedges_mut, HProps, HPropsMut, "halfedge");
+    prop_accessors!(    EdgeHandle,     edges,     edges_mut, EProps, EPropsMut,     "edge");
+    prop_accessors!(    FaceHandle,     faces,     faces_mut, FProps, FPropsMut,     "face");
+    prop_accessors!(    MeshHandle,      mesh,      mesh_mut, MProps, MPropsMut,     "mesh");
 
     /// Struct implementing `std::fmt::Debug`, which outputs property list stats.
     pub fn prop_stats(&self) -> FormattedPropStats { FormattedPropStats(self) }
