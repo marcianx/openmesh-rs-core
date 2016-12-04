@@ -23,11 +23,11 @@ pub struct _Mesh {
     pub faces: Vec<Face>,
 
     // Properties by item type.
-    pub vprops: PropertyContainer<VertexHandle>,
-    pub hprops: PropertyContainer<HalfedgeHandle>,
-    pub eprops: PropertyContainer<EdgeHandle>,
-    pub fprops: PropertyContainer<FaceHandle>,
-    pub mprops: PropertyContainer<MeshHandle>,
+    pub v_props: PropertyContainer<VertexHandle>,
+    pub h_props: PropertyContainer<HalfedgeHandle>,
+    pub e_props: PropertyContainer<EdgeHandle>,
+    pub f_props: PropertyContainer<FaceHandle>,
+    pub m_props: PropertyContainer<MeshHandle>,
 }
 
 ////////////////////////////////////////////////////////////
@@ -51,11 +51,11 @@ macro_rules! impl_to_props {
     }
 }
 
-impl_to_props!(  VertexHandle, vprops,  | m: &_Mesh| { m.vertices.len() as Size });
-impl_to_props!(HalfedgeHandle, hprops,  | m: &_Mesh| { (m.edges.len() * 2) as Size });
-impl_to_props!(    EdgeHandle, eprops,  | m: &_Mesh| { m.edges.len() as Size });
-impl_to_props!(    FaceHandle, fprops,  | m: &_Mesh| { m.faces.len() as Size });
-impl_to_props!(    MeshHandle, mprops,  |_m: &_Mesh| { 1 });
+impl_to_props!(  VertexHandle, v_props, | m: &_Mesh| { m.vertices.len() as Size });
+impl_to_props!(HalfedgeHandle, h_props, | m: &_Mesh| { (m.edges.len() * 2) as Size });
+impl_to_props!(    EdgeHandle, e_props, | m: &_Mesh| { m.edges.len() as Size });
+impl_to_props!(    FaceHandle, f_props, | m: &_Mesh| { m.faces.len() as Size });
+impl_to_props!(    MeshHandle, m_props, |_m: &_Mesh| { 1 });
 
 // Private to `mesh` module.
 // These property accessor methods are generic and useful for all helper objects parametrized by
@@ -110,17 +110,18 @@ pub struct FormattedPropStats<'a>(&'a Mesh);
 
 impl<'a> ::std::fmt::Debug for FormattedPropStats<'a> {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-        "vprops:\n".fmt(f)?;
+        "vertex props:\n".fmt(f)?;
         self.0.vertices().fmt(f)?;
-        "hprops:\n".fmt(f)?;
+        "halfedge props:\n".fmt(f)?;
         self.0.halfedges().fmt(f)?;
-        "eprops:\n".fmt(f)?;
+        "edge props:\n".fmt(f)?;
         self.0.edges().fmt(f)?;
-        "fprops:\n".fmt(f)?;
+        "face props:\n".fmt(f)?;
         self.0.faces().fmt(f)?;
-        "mprops:\n".fmt(f)?;
+        "mesh props:\n".fmt(f)?;
         self.0.mesh().fmt(f)?;
         Ok(())
     }
 }
+
 
