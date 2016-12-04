@@ -3,10 +3,11 @@
 use property::size::{Index, INVALID_INDEX};
 
 /// Trait for handle types that wrap `HandleBase` which wraps an index.
-pub trait Handle: ::std::any::Any + Copy + Clone + ::std::fmt::Debug + 'static
+/// The `Default` implementation must initialize the handle to an invalid index.
+pub trait Handle: ::std::any::Any + Copy + Clone + Default + ::std::fmt::Debug + 'static
 {
     /// Initialize a handle with an invalid index.
-    fn new() -> Self;
+    fn new() -> Self { Default::default() }
     /// Construct from index.
     fn from_index(idx: Index) -> Self;
 
@@ -65,11 +66,13 @@ macro_rules! def_handle {
         #[derive(Eq, PartialEq, Clone, Hash, Debug, Copy)]
         pub struct $handle($crate::property::size::Index);
 
-        impl $crate::property::traits::Handle for $handle {
-            #[inline(always)]
-            fn new() -> Self {
+        impl ::std::default::Default for $handle {
+            fn default() -> Self {
                 $handle($crate::property::size::INVALID_INDEX)
             }
+        }
+
+        impl $crate::property::traits::Handle for $handle {
             #[inline(always)]
             fn from_index(idx: $crate::property::size::Index) -> Self {
                 assert!(idx != $crate::property::size::INVALID_INDEX);
@@ -95,13 +98,13 @@ def_handle!(
     "`PropertyContainer` handle to a contained `Property` (which is a list of `Value`s).");
 
 /// Handle to a `Property` within a `PropertyContainer`. Each `Property` represents a list of items
-/// of type `Value`.
-pub trait PropHandle: Copy {
+/// of type `Value`. The `Default` implementation must initialize the handle to an invalid index.
+pub trait PropHandle: Copy + Default {
     /// The value type stored in the property list into which `self` is a handle.
     type Value;
 
     /// Create an invalidated handle.
-    fn new() -> Self;
+    fn new() -> Self { Default::default() }
     /// Create from `BasePropHandle`.
     fn from_base(h: BasePropHandle) -> Self;
     /// Get `BasePropHandle` form.

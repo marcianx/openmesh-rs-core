@@ -42,12 +42,15 @@ impl<H, T> ::std::fmt::Display for PropHandle<H, T> {
     }
 }
 
+impl<H: traits::Handle, T: Any> Default for PropHandle<H, T> {
+    fn default() -> Self {
+        <Self as traits::PropHandle>::from_base(traits::Handle::new())
+    }
+}
+
 impl<H: traits::Handle, T: Any> traits::PropHandle for PropHandle<H, T> {
     type Value = T;
 
-    fn new() -> Self {
-        Self::from_base(traits::Handle::new())
-    }
     fn from_base(h: BasePropHandle) -> Self {
         PropHandle(h, ::std::marker::PhantomData::<H>, ::std::marker::PhantomData::<T>)
     }
