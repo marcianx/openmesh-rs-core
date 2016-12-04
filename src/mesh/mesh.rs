@@ -36,14 +36,19 @@ pub struct _Mesh {
 /// For getting the right mesh properties based on the handle type.
 /// This is useful for implementing for helper structs parametrized by handle, like `RcPropHandle`.
 pub trait _ToProps where Self: traits::Handle {
+    const PREFIX: &'static str;
+    fn with_prefix(name: &str) -> String {
+        format!("{}{}", Self::PREFIX, name)
+    }
     fn len(m: &_Mesh) -> Size;
     fn props(m: &_Mesh) -> &PropertyContainer<Self>;
     fn props_mut(m: &mut _Mesh) -> &mut PropertyContainer<Self>;
 }
 
 macro_rules! impl_to_props {
-    ($Handle:ty, $field:ident, $len_fn:expr) => {
+    ($Handle:ty, $field:ident, $prefix:expr, $len_fn:expr) => {
         impl<'a> _ToProps for $Handle {
+            const PREFIX: &'static str = $prefix;
             fn len(m: &_Mesh) -> Size { $len_fn(m) }
             fn props(m: &_Mesh) -> &PropertyContainer<Self> { &m.$field }
             fn props_mut(m: &mut _Mesh) -> &mut PropertyContainer<Self> { &mut m.$field }
@@ -51,11 +56,11 @@ macro_rules! impl_to_props {
     }
 }
 
-impl_to_props!(  VertexHandle, v_props, | m: &_Mesh| { m.vertices.len() as Size });
-impl_to_props!(HalfedgeHandle, h_props, | m: &_Mesh| { (m.edges.len() * 2) as Size });
-impl_to_props!(    EdgeHandle, e_props, | m: &_Mesh| { m.edges.len() as Size });
-impl_to_props!(    FaceHandle, f_props, | m: &_Mesh| { m.faces.len() as Size });
-impl_to_props!(    MeshHandle, m_props, |_m: &_Mesh| { 1 });
+impl_to_props!(  VertexHandle, v_props, &"v:", | m: &_Mesh| { m.vertices.len() as Size });
+impl_to_props!(HalfedgeHandle, h_props, &"h:", | m: &_Mesh| { (m.edges.len() * 2) as Size });
+impl_to_props!(    EdgeHandle, e_props, &"e:", | m: &_Mesh| { m.edges.len() as Size });
+impl_to_props!(    FaceHandle, f_props, &"f:", | m: &_Mesh| { m.faces.len() as Size });
+impl_to_props!(    MeshHandle, m_props, &"m:", |_m: &_Mesh| { 1 });
 
 // Private to `mesh` module.
 // These property accessor methods are generic and useful for all helper objects parametrized by

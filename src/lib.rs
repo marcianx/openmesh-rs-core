@@ -6,6 +6,7 @@
 //! 
 //! * nalgebra-rs is used for geometric primitives like vectors.
 
+#![feature(associated_consts)]
 #![feature(specialization)]
 
 #![warn(missing_docs)]

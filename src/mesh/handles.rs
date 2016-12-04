@@ -19,7 +19,7 @@ def_handle!(MeshHandle, "Mesh handle (only needed for parametrizing PropertyCont
 
 /// Mesh property handle, parametrized byto mesh item handle type (handles to vertex, halfedge,
 /// edge, face, mesh), and the property item type `T`.
-#[derive(Hash)]
+#[derive(Eq, Hash)]
 pub struct PropHandle<H, T>(BasePropHandle, PhantomData<H>, PhantomData<T>);
 
 impl<H, T> Copy for PropHandle<H, T> {}
@@ -50,6 +50,7 @@ impl<H: traits::Handle, T: Any> Default for PropHandle<H, T> {
 
 impl<H: traits::Handle, T: Any> traits::PropHandle for PropHandle<H, T> {
     type Value = T;
+    type Handle = H;
 
     fn from_base(h: BasePropHandle) -> Self {
         PropHandle(h, ::std::marker::PhantomData::<H>, ::std::marker::PhantomData::<T>)

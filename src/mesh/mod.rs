@@ -7,6 +7,7 @@ pub mod status;
 
 pub mod items;
 pub mod prop;
+pub mod rc;
 
 mod mesh;
 pub use self::mesh::Mesh;

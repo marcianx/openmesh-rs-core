@@ -4,7 +4,7 @@ use property::size::{Index, INVALID_INDEX};
 
 /// Trait for handle types that wrap `HandleBase` which wraps an index.
 /// The `Default` implementation must initialize the handle to an invalid index.
-pub trait Handle: ::std::any::Any + Copy + Clone + Default + ::std::fmt::Debug + 'static
+pub trait Handle: ::std::any::Any + Copy + Clone + Default + ::std::fmt::Debug + Eq + 'static
 {
     /// Initialize a handle with an invalid index.
     fn new() -> Self { Default::default() }
@@ -99,9 +99,12 @@ def_handle!(
 
 /// Handle to a `Property` within a `PropertyContainer`. Each `Property` represents a list of items
 /// of type `Value`. The `Default` implementation must initialize the handle to an invalid index.
-pub trait PropHandle: Copy + Default {
+pub trait PropHandle: Copy + Default + Eq {
     /// The value type stored in the property list into which `self` is a handle.
     type Value;
+    /// Handle type corresponding to the mesh item type (vertex, halfedge, edge, face, mesh) for
+    /// which `Value` is being stored.
+    type Handle: Handle;
 
     /// Create an invalidated handle.
     fn new() -> Self { Default::default() }
