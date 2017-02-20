@@ -46,7 +46,8 @@ pub struct _Mesh {
 ////////////////////////////////////////////////////////////
 // General property accessors and methods
 
-/// For getting the right mesh properties based on the handle type.
+#[doc(hidden)]
+/// For getting the right mesh item properties based on the handle type.
 /// This is useful for implementing for helper structs parametrized by handle, like `RcPropHandle`.
 pub trait _ToProps where Self: traits::Handle {
     const PREFIX: &'static str;
@@ -114,11 +115,11 @@ macro_rules! prop_accessors {
 
 impl Mesh {
     // Property accessors
-    prop_accessors!(  VertexHandle,  vertices,  vertices_mut, VProps, VPropsMut,   "vertex");
-    prop_accessors!(HalfedgeHandle, halfedges, halfedges_mut, HProps, HPropsMut, "halfedge");
-    prop_accessors!(    EdgeHandle,     edges,     edges_mut, EProps, EPropsMut,     "edge");
-    prop_accessors!(    FaceHandle,     faces,     faces_mut, FProps, FPropsMut,     "face");
-    prop_accessors!(    MeshHandle,      mesh,      mesh_mut, MProps, MPropsMut,     "mesh");
+    prop_accessors!(  VertexHandle, v_props, v_props_mut, VProps, VPropsMut,   "vertex");
+    prop_accessors!(HalfedgeHandle, h_props, h_props_mut, HProps, HPropsMut, "halfedge");
+    prop_accessors!(    EdgeHandle, e_props, e_props_mut, EProps, EPropsMut,     "edge");
+    prop_accessors!(    FaceHandle, f_props, f_props_mut, FProps, FPropsMut,     "face");
+    prop_accessors!(    MeshHandle, m_props, m_props_mut, MProps, MPropsMut,     "mesh");
 
     /// Struct implementing `std::fmt::Debug`, which outputs property list stats.
     pub fn prop_stats(&self) -> FormattedPropStats { FormattedPropStats(self) }
@@ -130,15 +131,15 @@ pub struct FormattedPropStats<'a>(&'a Mesh);
 impl<'a> ::std::fmt::Debug for FormattedPropStats<'a> {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         "vertex props:\n".fmt(f)?;
-        self.0.vertices().fmt(f)?;
+        self.0.v_props().fmt(f)?;
         "halfedge props:\n".fmt(f)?;
-        self.0.halfedges().fmt(f)?;
+        self.0.h_props().fmt(f)?;
         "edge props:\n".fmt(f)?;
-        self.0.edges().fmt(f)?;
+        self.0.e_props().fmt(f)?;
         "face props:\n".fmt(f)?;
-        self.0.faces().fmt(f)?;
+        self.0.f_props().fmt(f)?;
         "mesh props:\n".fmt(f)?;
-        self.0.mesh().fmt(f)?;
+        self.0.m_props().fmt(f)?;
         Ok(())
     }
 }

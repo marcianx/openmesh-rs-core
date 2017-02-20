@@ -27,7 +27,7 @@ impl<H: traits::Handle + _ToProps, T: traits::Value> RcPropHandle<H, T> {
         if self.ref_count == 1 {
             debug_assert!(self.handle == Default::default());
             let name = H::with_prefix("status");
-            self.handle = m.props_mut::<H>().add_property::<T>(Some(name));;
+            self.handle = m.props_mut::<H>().add::<T>(Some(name));;
         }
     }
 
@@ -36,7 +36,7 @@ impl<H: traits::Handle + _ToProps, T: traits::Value> RcPropHandle<H, T> {
         if self.ref_count == 0 { return; }
         self.ref_count -= 1;
         if self.ref_count == 0 {
-            m.props_mut::<H>().remove_property::<T>(&mut self.handle);;
+            m.props_mut::<H>().remove::<T>(&mut self.handle);;
         }
     }
 }

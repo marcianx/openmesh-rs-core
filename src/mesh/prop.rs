@@ -73,7 +73,7 @@ impl<Handle, RefContainer> Props<RefContainer>
 
     /// Returns the `Property<T>` or `PropertyBits` (for `T = bool`), if any, corresponding to
     /// `prop_handle`.
-    pub fn property<T: traits::Value>(&self, prop_handle: PropHandle<Handle, T>)
+    pub fn get<T: traits::Value>(&self, prop_handle: PropHandle<Handle, T>)
         -> Option<&<T as PropertyFor<Handle>>::Property>
     {
         self.props.get::<T>(prop_handle.to_base())
@@ -93,21 +93,21 @@ impl<Handle, RefContainer> Props<RefContainer>
     /// 
     /// - Max length: 256 characters
     /// - Names matching `/^[vhefm]:/` or `/^<.*>$/` are reserved for internal use.
-    pub fn add_property<T: traits::Value>(&mut self, name: Option<String>) -> PropHandle<Handle, T> {
+    pub fn add<T: traits::Value>(&mut self, name: Option<String>) -> PropHandle<Handle, T> {
         let prop_handle = self.props.add::<T>(name);
         PropHandle::<Handle, T>::from_base(prop_handle)
     }
 
     /// Removes a `Property<T>` for associated item type if `prop_handle` is valid, and it
     /// invalidates `prop_handle`.
-    pub fn remove_property<T: traits::Value>(&mut self, prop_handle: &mut PropHandle<Handle, T>) {
+    pub fn remove<T: traits::Value>(&mut self, prop_handle: &mut PropHandle<Handle, T>) {
         self.props.remove(prop_handle.to_base());
         prop_handle.invalidate();
     }
 
     /// Returns the `Property<T>` or `PropertyBits` (for `T = bool`), if any, corresponding to
     /// `prop_handle`.
-    pub fn property_mut<T: traits::Value>(&mut self, prop_handle: PropHandle<Handle, T>)
+    pub fn get_mut<T: traits::Value>(&mut self, prop_handle: PropHandle<Handle, T>)
         -> Option<&mut <T as PropertyFor<Handle>>::Property>
     {
         self.props.get_mut::<T>(prop_handle.to_base())
@@ -115,16 +115,16 @@ impl<Handle, RefContainer> Props<RefContainer>
 
     /// Copies a single property from one item to another of the same type.
     /// It is a noop if any of the handles is invalid.
-    pub fn copy_property<T: traits::Value>(
-        &mut self, prop_handle: PropHandle<Handle, T>, h1: Handle, h2: Handle) {
-        if h1.is_valid() && h2.is_valid() {
-            self.property_mut(prop_handle).map(|p| p.copy(h1, h2));
+    pub fn copy<T: traits::Value>(
+        &mut self, prop_handle: PropHandle<Handle, T>, h_src: Handle, h_dst: Handle) {
+        if h_src.is_valid() && h_dst.is_valid() {
+            self.get_mut(prop_handle).map(|p| p.copy(h_src, h_dst));
         }
     }
 
     /// Copies all properties from one item to another of the same type.
     /// It is a noop if either handle is invalid.
-    pub fn copy_all_properties<T: traits::Value>(&mut self, h_src: Handle, h_dst: Handle) {
+    pub fn copy_all<T: traits::Value>(&mut self, h_src: Handle, h_dst: Handle) {
         if h_src.is_valid() && h_dst.is_valid() {
             self.props.copy_all(h_src, h_dst);
         }
