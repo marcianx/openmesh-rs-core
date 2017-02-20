@@ -17,7 +17,7 @@ def_handle!(MeshHandle, "Mesh handle (only needed for parametrizing PropertyCont
 ////////////////////////////////////////////////////////////////////////////////
 // Handle to a property lists for an item type.
 
-/// Mesh property handle, parametrized byto mesh item handle type (handles to vertex, halfedge,
+/// Mesh property handle, parametrized by mesh item handle type (handles to vertex, halfedge,
 /// edge, face, mesh), and the property item type `T`.
 #[derive(Eq, Hash)]
 pub struct PropHandle<H, T>(BasePropHandle, PhantomData<H>, PhantomData<T>);

@@ -1,3 +1,4 @@
+// TODO: This file is not currently being used.
 use property::traits::Handle;
 use geometry::vector::Vec3d;
 use mesh::attributes::Attributes;
