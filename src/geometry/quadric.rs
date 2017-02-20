@@ -231,9 +231,9 @@ impl<Scalar: Zero + Copy> Zero for Quadric<Scalar> {
 }
 
 /// Alias for Quadric<f32>.
-type Quadricf = Quadric<f32>;
+pub type Quadricf = Quadric<f32>;
 /// Alias for Quadric<f64>.
-type Quadricd = Quadric<f64>;
+pub type Quadricd = Quadric<f64>;
 
 
 #[cfg(test)]

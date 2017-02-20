@@ -37,9 +37,9 @@ impl<T: BaseFloat> Plane3<T> {
 }
 
 /// Alias for Plane3<f32>.
-type Plane3f = Plane3<f32>;
+pub type Plane3f = Plane3<f32>;
 /// Alias for Plane3<f64>.
-type Plane3d = Plane3<f64>;
+pub type Plane3d = Plane3<f64>;
 
 
 #[cfg(test)]

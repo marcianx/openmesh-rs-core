@@ -8,6 +8,6 @@ nalgebra = "0.6"
 bitflags = "0.4"
 bitvec-rs = "0.1"
 byteorder = "0.4"
-downcast-rs = "0.1"
+downcast-rs = "^1"
 num = "0.1"
 
