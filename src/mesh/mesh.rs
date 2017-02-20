@@ -20,6 +20,9 @@ use property::traits;
 // Module-private
 
 /// Mesh implementation detail.
+/// TODO: Make all fields `pub(crate)` and put them directly in `Mesh`, removing `_Mesh`. This
+/// requires `#![feature(pub_restricted)]`.
+#[derive(Clone)]
 pub struct _Mesh {
     // Item connectivity and properties.
     pub vertices: Vec<Vertex>,
@@ -93,6 +96,7 @@ impl _Mesh {
 // Public interface
 
 /// Halfedge data structure.
+#[derive(Clone)]
 pub struct Mesh(_Mesh);
 
 ////////////////////////////////////////////////////////////

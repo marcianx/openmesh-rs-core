@@ -11,7 +11,7 @@ use mesh::mesh::{_Mesh, _ToProps};
 ///
 /// This is used in `Mesh` to keep property lists around only while there are any outstanding uses
 /// of them. This type is internal to `Mesh`.
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct RcPropHandle<H: traits::Handle, T: traits::Value> {
     handle: PropHandle<H, T>,
     ref_count: usize,
