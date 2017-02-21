@@ -223,4 +223,25 @@ impl<'a> ::std::fmt::Debug for FormattedPropStats<'a> {
     }
 }
 
+////////////////////////////////////////////////////////////
+// Connectivity object constructors and accessors
+
+impl Mesh {
+    /// ArrayKernel uses the default copy constructor and assignment operator, which means
+    /// that the connectivity and all properties are copied, including reference
+    /// counters, allocated bit status masks, etc.. In contrast assign_connectivity
+    /// copies only the connectivity, i.e. vertices, edges, faces and their status fields.
+    /// NOTE: The geometry (the points property) is NOT copied. Poly/TriConnectivity
+    /// override(and hide) that function to provide connectivity consistence.
+    pub fn assign_connectivity<M>(&mut self, _mesh: &M) {
+        // TODO: Note that Poly/Tri connectivity cannot "override" this. So this has to be
+        // implemented with those taken into account.
+        unimplemented!()
+    }
+
+    // TODO
+    // - garbage_collection()
+    // - resize(_, _, _)
+    // - reserve(_, _, _)
+}
 

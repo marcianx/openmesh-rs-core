@@ -241,6 +241,9 @@ impl<Item, Handle, RefContainer, RefPropContainer>
     pub fn props(&self) -> ItemProps<Handle> {
         ItemProps::new(self.props.deref(), self.len())
     }
+
+    // TODO
+    // - empty() method
 }
 
 
@@ -278,5 +281,6 @@ impl<'a, Item, Handle> ItemsWithPropsMut<'a, Item, Handle>
         self.items.push(Default::default());
         let last_idx = self.items.deref().len() - 1;
         unsafe { self.items.deref_mut().get_unchecked_mut(last_idx) }
+        // TODO: Return index like new_* methods in OpenMesh?
     }
 }

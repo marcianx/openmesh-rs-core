@@ -75,6 +75,7 @@ BaseHandle
     - StatusSetT, AutoStatusSetT, ExtStatusSetT
     - BitMaskContainer
 - methods:
+  - Garbage collection
   - Constructors for Vertex, HalfEdge, and Face
   - Container (array) access and modification operations
     - accessors by type
