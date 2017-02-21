@@ -5,6 +5,8 @@ use std::ops::{Deref, DerefMut};
 use mesh::handles::{
     VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle,
 };
+use mesh::prop::{ItemProps, ItemPropsMut};
+use property::PropertyContainer;
 use property::traits::{self, Handle as HandleTrait};
 use property::size::Size;
 
@@ -62,7 +64,7 @@ pub struct Face {
 pub trait MeshItemFor {
     /// Mesh item type corresponding to `Self` which is one of `Vertex`, `Halfedge`, `Edge`, or
     /// `Face`.
-    type Item: Default + MeshHandleFor;
+    type Item: MeshItem + MeshHandleFor;
 }
 impl MeshItemFor for VertexHandle   { type Item = Vertex; }
 impl MeshItemFor for HalfedgeHandle { type Item = Halfedge; }
@@ -89,8 +91,8 @@ pub type HandleForItem<Item> = <Item as MeshHandleFor>::Handle;
 // For accessing each item type from the mesh connectivity.
 
 /// Captures the differences between how `Vertex`/`Edge`/`Face` are stored and how `Halfedge` is
-/// stored for the purpose of implementing `Items<RefContainer>` for each type.
-pub trait ItemMeta: Default + MeshHandleFor {
+/// stored for the purpose of implementing `Items` for each type.
+pub trait MeshItem: Default + MeshHandleFor {
     /// Storage item type containing `Self`. Specifically, `Vertex`/`Edge`/`Face` is stored
     /// as itself, but each `Halfedge` is stored in an `Edge`.
     type ContainerItem;
@@ -101,11 +103,13 @@ pub trait ItemMeta: Default + MeshHandleFor {
     /// Gets item of type `Self` mutably from the underlying storage vector.
     fn get_mut(vec: &mut Vec<Self::ContainerItem>, handle: HandleForItem<Self>) -> Option<&mut Self>;
 }
-type ContainerItem<Item> = <Item as ItemMeta>::ContainerItem;
+/// Maps a mesh item to the mesh item actually represented for storage. Specifically,
+/// `Vertex`/`Edge`/`Face` is stored as itself, but each `Halfedge` is stored in an `Edge`.
+pub type ContainerItem<Item> = <Item as MeshItem>::ContainerItem;
 
-macro_rules! impl_default_item_meta {
+macro_rules! impl_default_mesh_item {
     ($Item:ty) => {
-        impl ItemMeta for $Item {
+        impl MeshItem for $Item {
             type ContainerItem = Self;
             fn len(vec: &Vec<Self::ContainerItem>) -> usize { vec.len() }
             fn get(vec: &Vec<Self::ContainerItem>, handle: HandleForItem<Self>) -> Option<&Self> {
@@ -117,11 +121,11 @@ macro_rules! impl_default_item_meta {
         }
     }
 }
-impl_default_item_meta!(Vertex);
-impl_default_item_meta!(Edge);
-impl_default_item_meta!(Face);
+impl_default_mesh_item!(Vertex);
+impl_default_mesh_item!(Edge);
+impl_default_mesh_item!(Face);
 
-impl ItemMeta for Halfedge {
+impl MeshItem for Halfedge {
     type ContainerItem = Edge;
     fn len(vec: &Vec<Self::ContainerItem>) -> usize {
         debug_assert!(vec.len() <= usize::max_value() / 2);
@@ -137,39 +141,65 @@ impl ItemMeta for Halfedge {
     }
 }
 
+////////////////////////////////////////////////////////////
 
 /// Manages operations on the list of a particular mesh item type.
-pub struct Items<Item, RefContainer> {
+/// These are created by `Mesh`'s methods: `vertices()`, `halfedges()`, `edges()`, `faces()`.
+pub struct Items<Item, Handle, RefContainer, RefPropContainer> {
     // Item connectivity and properties.
     items: RefContainer,
-    _marker: ::std::marker::PhantomData<Item>,
+    props: RefPropContainer,
+    _marker: ::std::marker::PhantomData<(Item, Handle)>,
 }
 
+/// For immutable access to item lists and their properties.
+pub type ItemsWithProps<'a, Item, Handle> =
+    Items<
+        Item, Handle,
+        &'a Vec<ContainerItem<Item>>,
+        &'a PropertyContainer<Handle>>;
 /// Immutable access to vertex items encapulating mesh connectivity.
-pub type VertexItems<'a>      = Items<Vertex,   &'a Vec<Vertex>>;
+pub type VItems<'a> = ItemsWithProps<'a, Vertex, VertexHandle>;
 /// Immutable access to halfedge items encapulating mesh connectivity.
-pub type HalfedgeItems<'a>    = Items<Halfedge, &'a Vec<Edge>>;
+pub type HItems<'a> = ItemsWithProps<'a, Halfedge, HalfedgeHandle>;
 /// Immutable access to edge items encapulating mesh connectivity.
-pub type EdgeItems<'a>        = Items<Edge,     &'a Vec<Edge>>;
+pub type EItems<'a> = ItemsWithProps<'a, Edge, EdgeHandle>;
 /// Immutable access to face items encapulating mesh connectivity.
-pub type FaceItems<'a>        = Items<Face,     &'a Vec<Face>>;
+pub type FItems<'a> = ItemsWithProps<'a, Face, FaceHandle>;
+/// For mutable access to item lists and their properties.
+pub type ItemsWithPropsMut<'a, Item, Handle> =
+    Items<
+        Item, Handle,
+        &'a mut Vec<ContainerItem<Item>>,
+        &'a mut PropertyContainer<Handle>>;
 /// Mutable access to vertex items encapulating mesh connectivity.
-pub type VertexItemsMut<'a>   = Items<Vertex,   &'a mut Vec<Vertex>>;
+pub type VItemsMut<'a> = ItemsWithPropsMut<'a, Vertex, VertexHandle>;
 /// Mutable access to halfedge items encapulating mesh connectivity.
-pub type HalfedgeItemsMut<'a> = Items<Halfedge, &'a mut Vec<Edge>>;
+pub type HItemsMut<'a> = ItemsWithPropsMut<'a, Halfedge, HalfedgeHandle>;
 /// Mutable access to edge items encapulating mesh connectivity.
-pub type EdgeItemsMut<'a>     = Items<Edge,     &'a mut Vec<Edge>>;
+pub type EItemsMut<'a> = ItemsWithPropsMut<'a, Edge, EdgeHandle>;
 /// Mutable access to face items encapulating mesh connectivity.
-pub type FaceItemsMut<'a>     = Items<Face,     &'a mut Vec<Face>>;
+pub type FItemsMut<'a> = ItemsWithPropsMut<'a, Face, FaceHandle>;
 
-
-// Methods for immutable self.
-impl<Item, RefContainer> Items<Item, RefContainer>
-    where Item: ItemMeta,
+// Methods with immutable self for both `ItemsWithProps` and `ItemsWithPropsMut`.
+impl<Item, Handle, RefContainer, RefPropContainer>
+    Items<Item, Handle, RefContainer, RefPropContainer>
+    where Item: MeshItem + MeshHandleFor<Handle=Handle>,
+          Handle: traits::Handle + MeshItemFor<Item=Item>,
           RefContainer: Deref<Target=Vec<ContainerItem<Item>>>,
+          RefPropContainer: Deref<Target=PropertyContainer<Handle>>,
 {
+    /// Instantiates an item property interface struct.
+    pub(crate) fn new(items: RefContainer, props: RefPropContainer) -> Self {
+        Items {
+            items: items,
+            props: props,
+            _marker: ::std::marker::PhantomData,
+        }
+    }
+
     /// Number of items of the given item type.
-    fn len_us(&self) -> usize { <Item as ItemMeta>::len(&self.items) }
+    fn len_us(&self) -> usize { <Item as MeshItem>::len(&self.items) }
 
     /// Number of items of the given item type.
     pub fn len(&self) -> Size {
@@ -180,7 +210,7 @@ impl<Item, RefContainer> Items<Item, RefContainer>
     /// Whether the handle is within the range of the underlying container.
     /// Even if valid, the handle could pointed to a deleted item.
     /// This method is useful mostly for debugging.
-    pub fn is_valid(&self, handle: HandleForItem<Item>) -> bool {
+    pub fn is_valid(&self, handle: Handle) -> bool {
         let idx = handle.index();
 
         // In case index is ever changed to a signed type, also check against 0.
@@ -190,7 +220,7 @@ impl<Item, RefContainer> Items<Item, RefContainer>
 
     /// Computes the `HandleForItem` from the given `Item` reference. The `Item` must be from the mesh
     /// from which `self` was generated.
-    pub fn handle(&self, item: &Item) -> HandleForItem<Item> {
+    pub fn handle(&self, item: &Item) -> Handle {
         debug_assert!(0 < self.len());
         let diff =
             (item as *const Item as isize) -
@@ -199,40 +229,53 @@ impl<Item, RefContainer> Items<Item, RefContainer>
         debug_assert!(diff % size_of_item == 0);
         let index = diff / size_of_item;
         assert!(0 <= index && index < self.len_us() as isize);
-        HandleForItem::<Item>::from_index(index as Size)
+        Handle::from_index(index as Size)
     }
 
     /// Gets the item at the handle.
-    pub fn get(&self, handle: HandleForItem<Item>) -> Option<&Item> {
-        <Item as ItemMeta>::get(self.items.deref(), handle)
+    pub fn get(&self, handle: Handle) -> Option<&Item> {
+        <Item as MeshItem>::get(self.items.deref(), handle)
+    }
+
+    /// Returns the properties container associated with the mesh item type.
+    pub fn props(&self) -> ItemProps<Handle> {
+        ItemProps::new(self.props.deref(), self.len())
     }
 }
 
 
 // Methods for mutable self.
-impl<Item, RefContainer> Items<Item, RefContainer>
-    where Item: ItemMeta,
-          RefContainer: DerefMut<Target=Vec<ContainerItem<Item>>>
+impl<'a, Item, Handle> ItemsWithPropsMut<'a, Item, Handle>
+    where Item: MeshItem + MeshHandleFor<Handle=Handle>,
+          Handle: traits::Handle + MeshItemFor<Item=Item>,
 {
     /// Gets the mutable item at the handle.
-    pub fn get_mut(&mut self, handle: HandleForItem<Item>) -> Option<&mut Item> {
-        <Item as ItemMeta>::get_mut(self.items.deref_mut(), handle)
+    pub fn get_mut(&mut self, handle: Handle) -> Option<&mut Item> {
+        <Item as MeshItem>::get_mut(&mut self.items, handle)
+    }
+
+    /// Returns the mutable properties container associated with the mesh item type.
+    pub fn props_mut(&mut self) -> ItemPropsMut<Handle> {
+        let len = self.len();
+        ItemPropsMut::new(&mut self.props, len)
     }
 }
 
 
 // Only applies to mesh items used for storage. In particular, it doesn't apply to `Halfedge`.
-impl<Item, RefContainer> Items<Item, RefContainer>
-    where Item: ItemMeta<ContainerItem=Item>,
-          RefContainer: DerefMut<Target=Vec<ContainerItem<Item>>>
+impl<'a, Item, Handle> ItemsWithPropsMut<'a, Item, Handle>
+    where Item: MeshItem<ContainerItem=Item> + MeshHandleFor<Handle=Handle>,
+          Handle: traits::Handle + MeshItemFor<Item=Item>,
 {
     /// Adds a new item and returns it.
     /// NOTE
     /// - This cannot be exposed in the public API: the resizing must be done in concert with the
     ///   property lists.
     /// - This thus does not check for overflow of `Size`.
+    /// TODO: Could also generalize this method to also append to the property lists, but then, the
+    ///     `Edge` version has to update both the `Edge` and the `Halfedge` property lists.
     pub(crate) fn append(&mut self) -> &mut Item {
-        self.items.deref_mut().push(Default::default());
+        self.items.push(Default::default());
         let last_idx = self.items.deref().len() - 1;
         unsafe { self.items.deref_mut().get_unchecked_mut(last_idx) }
     }

@@ -61,7 +61,7 @@ impl<Handle, RefContainer> Props<RefContainer>
           RefContainer: Deref<Target=PropertyContainer<Handle>>
 {
     /// Instantiates an item property interface struct.
-    pub fn new(props: RefContainer, len: Size) -> Self {
+    pub(crate) fn new(props: RefContainer, len: Size) -> Self {
         Props {
             props: props,
             len: len,

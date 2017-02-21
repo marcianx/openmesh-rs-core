@@ -3,7 +3,12 @@
 use mesh::handles::{
     VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle, MeshHandle,
 };
-use mesh::items::{Vertex, Edge, Face};
+use mesh::items::{
+    Vertex, Halfedge, Edge, Face,
+    MeshItem, MeshItemFor, MeshHandleFor, ContainerItem,
+    ItemsWithProps, VItems, HItems, EItems, FItems,
+    ItemsWithPropsMut, VItemsMut, HItemsMut, EItemsMut, FItemsMut,
+};
 use mesh::prop::{
     ItemProps, VProps, HProps, EProps, FProps, MProps,
     ItemPropsMut, VPropsMut, HPropsMut, EPropsMut, FPropsMut, MPropsMut,
@@ -47,8 +52,40 @@ pub struct _Mesh {
 // General property accessors and methods
 
 #[doc(hidden)]
+/// For getting the right mesh item vectors and properties based on the handle type.
+/// This is useful for implementing helper structs parametrized by item.
+pub trait _ToItems
+    where Self: traits::Handle + MeshItemFor,
+{
+    fn items_props(m: &_Mesh) -> (&Vec<ContainerItem<Self::Item>>, &PropertyContainer<Self>);
+    fn items_props_mut(m: &mut _Mesh) -> (&mut Vec<ContainerItem<Self::Item>>, &mut PropertyContainer<Self>);
+}
+
+macro_rules! impl_to_items {
+    ($Item:ty, $Handle:ty, $item_field:ident, $prop_field:ident) => {
+        impl _ToItems for $Handle {
+            fn items_props(m: &_Mesh) ->
+                (&Vec<ContainerItem<$Item>>, &PropertyContainer<Self>)
+            {
+                (&m.$item_field, &m.$prop_field)
+            }
+            fn items_props_mut(m: &mut _Mesh) ->
+                (&mut Vec<ContainerItem<$Item>>, &mut PropertyContainer<Self>)
+            {
+                (&mut m.$item_field, &mut m.$prop_field)
+            }
+        }
+    }
+}
+
+impl_to_items!(  Vertex,   VertexHandle, vertices, v_props);
+impl_to_items!(Halfedge, HalfedgeHandle,    edges, h_props); // Halfedges are stored within edges.
+impl_to_items!(    Edge,     EdgeHandle,    edges, e_props);
+impl_to_items!(    Face,     FaceHandle,    faces, f_props);
+
+#[doc(hidden)]
 /// For getting the right mesh item properties based on the handle type.
-/// This is useful for implementing for helper structs parametrized by handle, like `RcPropHandle`.
+/// This is useful for implementing helper structs parametrized by handle, like `RcPropHandle`.
 pub trait _ToProps where Self: traits::Handle {
     const PREFIX: &'static str;
     fn with_prefix(name: &str) -> String {
@@ -61,7 +98,7 @@ pub trait _ToProps where Self: traits::Handle {
 
 macro_rules! impl_to_props {
     ($Handle:ty, $field:ident, $prefix:expr, $len_fn:expr) => {
-        impl<'a> _ToProps for $Handle {
+        impl _ToProps for $Handle {
             const PREFIX: &'static str = $prefix;
             fn len(m: &_Mesh) -> Size { $len_fn(m) }
             fn props(m: &_Mesh) -> &PropertyContainer<Self> { &m.$field }
@@ -81,6 +118,27 @@ impl_to_props!(    MeshHandle, m_props, &"m:", |_m: &_Mesh| { 1 });
 // item handle type.
 impl _Mesh {
     /// Returns the property container associated with the mesh item type identified by `Handle`.
+    pub fn items<Item, Handle>(&self) -> ItemsWithProps<Item, Handle>
+        where Item: MeshItem + MeshHandleFor<Handle=Handle>,
+              Handle: traits::Handle + MeshItemFor<Item=Item> + _ToItems,
+    {
+        let (items, props) = <Handle as _ToItems>::items_props(self);
+        ItemsWithProps::new(items, props)
+    }
+
+    /// Returns the property container associated with the mesh item type identified by `Handle`.
+    pub fn items_mut<Item, Handle>(&mut self) -> ItemsWithPropsMut<Item, Handle>
+        where Item: MeshItem + MeshHandleFor<Handle=Handle>,
+              Handle: traits::Handle + MeshItemFor<Item=Item> + _ToItems,
+    {
+        let (items, props) = <Handle as _ToItems>::items_props_mut(self);
+        ItemsWithPropsMut::new(items, props)
+    }
+
+    // TODO:
+    // - Remove after re-writing these in terms of the items_* methods above.
+    // - Then, make a special-case version for `Mesh` properties and remove `MeshHandle`.
+    /// Returns the property container associated with the mesh item type identified by `Handle`.
     pub fn props<Handle: _ToProps>(&self) -> ItemProps<Handle> {
         let len = <Handle as _ToProps>::len(self);
         ItemProps::new(<Handle as _ToProps>::props(self), len)
@@ -99,6 +157,27 @@ impl _Mesh {
 /// Halfedge data structure.
 #[derive(Clone)]
 pub struct Mesh(_Mesh);
+
+////////////////////////////////////////////////////////////
+// Connectivity ("Item") constructors and accessors
+
+// Public accessor methods
+macro_rules! item_accessors {
+    ($Handle:ty, $method:ident, $method_mut:ident, $Struct:ident, $StructMut:ident, $item:expr) => {
+        #[doc="Returns a struct to access "] #[doc=$item] #[doc=" mesh items and properties."]
+        pub fn $method(&self) -> $Struct { self.0.items() }
+        #[doc="Returns a struct to mutably access "] #[doc=$item] #[doc=" mesh items and properties."]
+        pub fn $method_mut(&mut self) -> $StructMut { self.0.items_mut() }
+    }
+}
+
+impl Mesh {
+    // Property accessors
+    item_accessors!(  VertexHandle,  vertices,  vertices_mut, VItems, VItemsMut,   "vertex");
+    item_accessors!(HalfedgeHandle, halfedges, halfedges_mut, HItems, HItemsMut, "halfedge");
+    item_accessors!(    EdgeHandle,     edges,     edges_mut, EItems, EItemsMut,     "edge");
+    item_accessors!(    FaceHandle,     faces,     faces_mut, FItems, FItemsMut,     "face");
+}
 
 ////////////////////////////////////////////////////////////
 // General property accessors and methods
