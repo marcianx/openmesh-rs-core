@@ -13,7 +13,7 @@ use geometry::vector::{Vec3, Vec4, Dot, Norm};
 ///
 /// The implementation uses the upper-triangular representation of the symmetric matrix `M`.
 /// The indexes and symbols corresponding to this part are as follows
-/// ```
+/// ```text
 /// [0 1 2 3]   [a b c d]   [xx xy xz xw]
 /// [  4 5 6] = [  e f g] = [   yy yz yw]
 /// [    7 8]   [    h i]   [      zz zw]
