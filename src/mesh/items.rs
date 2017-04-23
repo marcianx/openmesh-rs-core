@@ -4,7 +4,7 @@
 use mesh::handles::{
     VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle,
 };
-use mesh::prop::{ItemProps, ItemPropsMut};
+use mesh::prop::{Props, PropsMut};
 use property::PropertyContainer;
 use property::traits::{self, Handle as HandleTrait};
 use property::size::Size;
@@ -233,8 +233,8 @@ macro_rules! impl_items {
             }
 
             #[doc="Returns the properties container associated with the mesh item type."]
-            pub fn props(&self) -> ItemProps<Handle> {
-                ItemProps::new(self.props, self.len())
+            pub fn props(&self) -> Props<Handle> {
+                Props::new(self.props, self.len())
             }
 
             // TODO
@@ -257,9 +257,9 @@ impl<'a, Handle> ItemsMut<'a, Handle>
     }
 
     /// Returns the mutable properties container associated with the mesh item type.
-    pub fn props_mut(&mut self) -> ItemPropsMut<Handle> {
+    pub fn props_mut(&mut self) -> PropsMut<Handle> {
         let len = self.len();
-        ItemPropsMut::new(&mut self.props, len)
+        PropsMut::new(&mut self.props, len)
     }
 }
 

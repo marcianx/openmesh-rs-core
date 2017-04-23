@@ -1,7 +1,6 @@
 //! Defines a helper struct `Props` to add, remove, or access property lists (associated with
 //! vectices, halfedge, edge, and faces) within a mesh.
 
-use std::ops::{Deref, DerefMut};
 use mesh::handles::{
     VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle, MeshHandle,
     PropHandle,
@@ -16,74 +15,97 @@ use property::traits::Property as PropertyTrait;
 
 ////////////////////////////////////////////////////////////
 
-/// Provides access to item (vertex, halfedge, edge, face) properties.
+/// Provides immutable access to item (vertex, halfedge, edge, face) properties.
 ///
 /// It is returned by each of the following methods on `mesh::Mesh`:
-///
-/// - `mesh.vertices()`, `mesh.vertices_mut()`
-/// - `mesh.halfedges()`, `mesh.halfedges_mut()`
-/// - `mesh.edges()`, `mesh.edges_mut()`
-/// - `mesh.faces()`, `mesh.faces_mut()`
-/// - `mesh.mesh()`, `mesh.mesh_mut()`
-pub struct Props<RefContainer> {
-    props: RefContainer,
+/// `mesh.vprops()`, `mesh.hprops()`, `mesh.eprops()`, `mesh.fprops()`,
+/// `mesh.mprops()`.
+pub struct Props<'a, Handle: traits::Handle> {
+    props: &'a PropertyContainer<Handle>,
     len: Size,
 }
 
-/// For immutable access to property lists.
-pub type ItemProps<'a, Handle> = Props<&'a PropertyContainer<Handle>>;
-/// For immutable access to vertex properties.
-pub type VProps<'a> = ItemProps<'a, VertexHandle>;
-/// For immutable access to halfedge properties.
-pub type HProps<'a> = ItemProps<'a, HalfedgeHandle>;
-/// For immutable access to edge properties.
-pub type EProps<'a> = ItemProps<'a, EdgeHandle>;
-/// For immutable access to face properties.
-pub type FProps<'a> = ItemProps<'a, FaceHandle>;
-/// For immutable access to mesh properties.
-pub type MProps<'a> = ItemProps<'a, MeshHandle>;
-/// For mutable access to property lists.
-pub type ItemPropsMut<'a, Handle> = Props<&'a mut PropertyContainer<Handle>>;
-/// For mutable access to vertex properties.
-pub type VPropsMut<'a> = ItemPropsMut<'a, VertexHandle>;
-/// For mutable access to halfedge properties.
-pub type HPropsMut<'a> = ItemPropsMut<'a, HalfedgeHandle>;
-/// For mutable access to edge properties.
-pub type EPropsMut<'a> = ItemPropsMut<'a, EdgeHandle>;
-/// For mutable access to face properties.
-pub type FPropsMut<'a> = ItemPropsMut<'a, FaceHandle>;
-/// For mutable access to mesh properties.
-pub type MPropsMut<'a> = ItemPropsMut<'a, MeshHandle>;
-
-
-impl<Handle, RefContainer> Props<RefContainer>
+impl<'a, Handle> Props<'a, Handle>
     where Handle: traits::Handle,
-          RefContainer: Deref<Target=PropertyContainer<Handle>>
 {
     /// Instantiates an item property interface struct.
-    pub(crate) fn new(props: RefContainer, len: Size) -> Self {
+    pub(crate) fn new(props: &'a PropertyContainer<Handle>, len: Size) -> Self {
         Props {
             props: props,
             len: len,
         }
     }
+}
 
-    /// Number of elements of the given type.
-    pub fn len(&self) -> Size { self.len }
+/// Provides mutable access to item (vertex, halfedge, edge, face) properties.
+///
+/// It is returned by each of the following methods on `mesh::Mesh`:
+/// `mesh.vprops_mut()`, `mesh.hprops_mut()`, `mesh.eprops_mut()`,
+/// `mesh.fprops_mut()`, `mesh.mprops_mut()`.
+pub struct PropsMut<'a, Handle: traits::Handle> {
+    props: &'a mut PropertyContainer<Handle>,
+    len: Size,
+}
 
-    /// Returns the `Property<T>` or `PropertyBits` (for `T = bool`), if any, corresponding to
-    /// `prop_handle`.
-    pub fn get<T: traits::Value>(&self, prop_handle: PropHandle<Handle, T>)
-        -> Option<&<T as PropertyFor<Handle>>::Property>
-    {
-        self.props.get::<T>(prop_handle.to_base())
+impl<'a, Handle> PropsMut<'a, Handle>
+    where Handle: traits::Handle,
+{
+    /// Instantiates an item property interface struct.
+    pub(crate) fn new(props: &'a mut PropertyContainer<Handle>, len: Size) -> Self {
+        PropsMut {
+            props: props,
+            len: len,
+        }
     }
 }
 
+/// For immutable access to vertex properties.
+pub type VProps<'a> = Props<'a, VertexHandle>;
+/// For immutable access to halfedge properties.
+pub type HProps<'a> = Props<'a, HalfedgeHandle>;
+/// For immutable access to edge properties.
+pub type EProps<'a> = Props<'a, EdgeHandle>;
+/// For immutable access to face properties.
+pub type FProps<'a> = Props<'a, FaceHandle>;
+/// For immutable access to mesh properties.
+pub type MProps<'a> = Props<'a, MeshHandle>;
+/// For mutable access to vertex properties.
+pub type VPropsMut<'a> = PropsMut<'a, VertexHandle>;
+/// For mutable access to halfedge properties.
+pub type HPropsMut<'a> = PropsMut<'a, HalfedgeHandle>;
+/// For mutable access to edge properties.
+pub type EPropsMut<'a> = PropsMut<'a, EdgeHandle>;
+/// For mutable access to face properties.
+pub type FPropsMut<'a> = PropsMut<'a, FaceHandle>;
+/// For mutable access to mesh properties.
+pub type MPropsMut<'a> = PropsMut<'a, MeshHandle>;
 
-impl<Handle, RefContainer> Props<RefContainer>
+
+macro_rules! impl_props {
+    ($Props:ident) => {
+        impl<'a, Handle> $Props<'a, Handle>
+            where Handle: traits::Handle,
+        {
+            #[doc="Number of elements of the given type."]
+            pub fn len(&self) -> Size { self.len }
+
+            #[doc="Returns the `Property<T>` or `PropertyBits` (for `T = bool`), if any,"]
+            #[doc="corresponding to `prop_handle`."]
+            pub fn get<T: traits::Value>(&self, prop_handle: PropHandle<Handle, T>)
+                -> Option<&<T as PropertyFor<Handle>>::Property>
+            {
+                self.props.get::<T>(prop_handle.to_base())
+            }
+        }
+    }
+}
+
+impl_props!(Props);
+impl_props!(PropsMut);
+
+
+impl<'a, Handle> PropsMut<'a, Handle>
     where Handle: traits::Handle,
-          RefContainer: DerefMut<Target=PropertyContainer<Handle>>
 {
     /// Adds a `Property<T>` for the associated item type (vertex, halfedge, edge, face, mesh).
     /// 
@@ -132,9 +154,17 @@ impl<Handle, RefContainer> Props<RefContainer>
 }
 
 
-impl<Handle, RefContainer> ::std::fmt::Debug for Props<RefContainer>
+impl<'a, Handle> ::std::fmt::Debug for Props<'a, Handle>
     where Handle: traits::Handle,
-          RefContainer: Deref<Target=PropertyContainer<Handle>>
+{
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        self.props.fmt(f)
+    }
+}
+
+
+impl<'a, Handle> ::std::fmt::Debug for PropsMut<'a, Handle>
+    where Handle: traits::Handle,
 {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         self.props.fmt(f)

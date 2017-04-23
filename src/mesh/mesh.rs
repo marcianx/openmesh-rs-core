@@ -10,8 +10,8 @@ use mesh::items::{
     ItemsMut, VItemsMut, HItemsMut, EItemsMut, FItemsMut,
 };
 use mesh::prop::{
-    ItemProps, VProps, HProps, EProps, FProps, MProps,
-    ItemPropsMut, VPropsMut, HPropsMut, EPropsMut, FPropsMut, MPropsMut,
+    Props, VProps, HProps, EProps, FProps, MProps,
+    PropsMut, VPropsMut, HPropsMut, EPropsMut, FPropsMut, MPropsMut,
 };
 use mesh::rc::{
     RcVPropHandle, RcHPropHandle, RcEPropHandle, RcFPropHandle,
@@ -137,15 +137,15 @@ impl _Mesh {
     // - Remove after re-writing these in terms of the items_* methods above.
     // - Then, make a special-case version for `Mesh` properties and remove `MeshHandle`.
     /// Returns the property container associated with the mesh item type identified by `Handle`.
-    pub fn props<Handle: _ToProps>(&self) -> ItemProps<Handle> {
+    pub fn props<Handle: _ToProps>(&self) -> Props<Handle> {
         let len = <Handle as _ToProps>::len(self);
-        ItemProps::new(<Handle as _ToProps>::props(self), len)
+        Props::new(<Handle as _ToProps>::props(self), len)
     }
 
     /// Returns the property container associated with the mesh item type identified by `Handle`.
-    pub fn props_mut<Handle: _ToProps>(&mut self) -> ItemPropsMut<Handle> {
+    pub fn props_mut<Handle: _ToProps>(&mut self) -> PropsMut<Handle> {
         let len = <Handle as _ToProps>::len(self);
-        ItemPropsMut::new(<Handle as _ToProps>::props_mut(self), len)
+        PropsMut::new(<Handle as _ToProps>::props_mut(self), len)
     }
 }
 
