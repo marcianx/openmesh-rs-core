@@ -4,10 +4,10 @@ use mesh::handles::{
     VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle, MeshHandle,
 };
 use mesh::items::{
-    Vertex, Halfedge, Edge, Face,
-    MeshItem, MeshItemFor, MeshHandleFor, ContainerItem,
-    ItemsWithProps, VItems, HItems, EItems, FItems,
-    ItemsWithPropsMut, VItemsMut, HItemsMut, EItemsMut, FItemsMut,
+    Vertex, Edge, Face,
+    MeshItemFor,
+    Items, VItems, HItems, EItems, FItems,
+    ItemsMut, VItemsMut, HItemsMut, EItemsMut, FItemsMut,
 };
 use mesh::prop::{
     ItemProps, VProps, HProps, EProps, FProps, MProps,
@@ -57,20 +57,20 @@ pub struct _Mesh {
 pub trait _ToItems
     where Self: traits::Handle + MeshItemFor,
 {
-    fn items_props(m: &_Mesh) -> (&Vec<ContainerItem<Self::Item>>, &PropertyContainer<Self>);
-    fn items_props_mut(m: &mut _Mesh) -> (&mut Vec<ContainerItem<Self::Item>>, &mut PropertyContainer<Self>);
+    fn items_props(m: &_Mesh) -> (&Vec<Self::ContainerItem>, &PropertyContainer<Self>);
+    fn items_props_mut(m: &mut _Mesh) -> (&mut Vec<Self::ContainerItem>, &mut PropertyContainer<Self>);
 }
 
 macro_rules! impl_to_items {
     ($Item:ty, $Handle:ty, $item_field:ident, $prop_field:ident) => {
         impl _ToItems for $Handle {
             fn items_props(m: &_Mesh) ->
-                (&Vec<ContainerItem<$Item>>, &PropertyContainer<Self>)
+                (&Vec<Self::ContainerItem>, &PropertyContainer<Self>)
             {
                 (&m.$item_field, &m.$prop_field)
             }
             fn items_props_mut(m: &mut _Mesh) ->
-                (&mut Vec<ContainerItem<$Item>>, &mut PropertyContainer<Self>)
+                (&mut Vec<Self::ContainerItem>, &mut PropertyContainer<Self>)
             {
                 (&mut m.$item_field, &mut m.$prop_field)
             }
@@ -118,21 +118,19 @@ impl_to_props!(    MeshHandle, m_props, &"m:", |_m: &_Mesh| { 1 });
 // item handle type.
 impl _Mesh {
     /// Returns the property container associated with the mesh item type identified by `Handle`.
-    pub fn items<Item, Handle>(&self) -> ItemsWithProps<Item, Handle>
-        where Item: MeshItem + MeshHandleFor<Handle=Handle>,
-              Handle: traits::Handle + MeshItemFor<Item=Item> + _ToItems,
+    pub fn items<Handle>(&self) -> Items<Handle>
+        where Handle: traits::Handle + MeshItemFor + _ToItems,
     {
         let (items, props) = <Handle as _ToItems>::items_props(self);
-        ItemsWithProps::new(items, props)
+        Items::new(items, props)
     }
 
     /// Returns the property container associated with the mesh item type identified by `Handle`.
-    pub fn items_mut<Item, Handle>(&mut self) -> ItemsWithPropsMut<Item, Handle>
-        where Item: MeshItem + MeshHandleFor<Handle=Handle>,
-              Handle: traits::Handle + MeshItemFor<Item=Item> + _ToItems,
+    pub fn items_mut<Handle>(&mut self) -> ItemsMut<Handle>
+        where Handle: traits::Handle + MeshItemFor + _ToItems,
     {
         let (items, props) = <Handle as _ToItems>::items_props_mut(self);
-        ItemsWithPropsMut::new(items, props)
+        ItemsMut::new(items, props)
     }
 
     // TODO:

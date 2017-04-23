@@ -8,7 +8,6 @@
 
 #![feature(associated_consts)]
 #![feature(specialization)]
-#![feature(pub_restricted)]
 
 #![warn(missing_docs)]
 
