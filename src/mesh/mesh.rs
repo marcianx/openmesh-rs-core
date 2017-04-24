@@ -21,32 +21,30 @@ use property::PropertyContainer;
 use property::size::Size;
 use property::traits;
 
-////////////////////////////////////////////////////////////////////////////////
-// Module-private
-
-/// Mesh implementation detail.
-/// TODO: Make all fields `pub(crate)` and put them directly in `Mesh`, removing `_Mesh`. This
-/// requires `#![feature(pub_restricted)]`.
+/// Halfedge data structure.
 #[derive(Clone)]
-pub struct _Mesh {
+pub struct Mesh {
     // Item connectivity and properties.
-    pub vertices: Vec<Vertex>,
-    pub edges: Vec<Edge>,
-    pub faces: Vec<Face>,
+    pub(crate) vertices: Vec<Vertex>,
+    pub(crate) edges: Vec<Edge>,
+    pub(crate) faces: Vec<Face>,
 
     // Properties by item type.
-    pub v_props: PropertyContainer<VertexHandle>,
-    pub h_props: PropertyContainer<HalfedgeHandle>,
-    pub e_props: PropertyContainer<EdgeHandle>,
-    pub f_props: PropertyContainer<FaceHandle>,
-    pub m_props: PropertyContainer<MeshHandle>,
+    pub(crate) v_props: PropertyContainer<VertexHandle>,
+    pub(crate) h_props: PropertyContainer<HalfedgeHandle>,
+    pub(crate) e_props: PropertyContainer<EdgeHandle>,
+    pub(crate) f_props: PropertyContainer<FaceHandle>,
+    pub(crate) m_props: PropertyContainer<MeshHandle>,
 
     // Handles for mesh status. 
-    pub v_status: RcVPropHandle<Status>,
-    pub h_status: RcHPropHandle<Status>,
-    pub e_status: RcEPropHandle<Status>,
-    pub f_status: RcFPropHandle<Status>,
+    pub(crate) v_status: RcVPropHandle<Status>,
+    pub(crate) h_status: RcHPropHandle<Status>,
+    pub(crate) e_status: RcEPropHandle<Status>,
+    pub(crate) f_status: RcFPropHandle<Status>,
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Module-private
 
 ////////////////////////////////////////////////////////////
 // General property accessors and methods
@@ -54,22 +52,22 @@ pub struct _Mesh {
 #[doc(hidden)]
 /// For getting the right mesh item vectors and properties based on the handle type.
 /// This is useful for implementing helper structs parametrized by item.
-pub trait _ToItems
+pub(crate) trait _ToItems
     where Self: traits::Handle + MeshItemFor,
 {
-    fn items_props(m: &_Mesh) -> (&Vec<Self::ContainerItem>, &PropertyContainer<Self>);
-    fn items_props_mut(m: &mut _Mesh) -> (&mut Vec<Self::ContainerItem>, &mut PropertyContainer<Self>);
+    fn items_props(m: &Mesh) -> (&Vec<Self::ContainerItem>, &PropertyContainer<Self>);
+    fn items_props_mut(m: &mut Mesh) -> (&mut Vec<Self::ContainerItem>, &mut PropertyContainer<Self>);
 }
 
 macro_rules! impl_to_items {
     ($Item:ty, $Handle:ty, $item_field:ident, $prop_field:ident) => {
         impl _ToItems for $Handle {
-            fn items_props(m: &_Mesh) ->
+            fn items_props(m: &Mesh) ->
                 (&Vec<Self::ContainerItem>, &PropertyContainer<Self>)
             {
                 (&m.$item_field, &m.$prop_field)
             }
-            fn items_props_mut(m: &mut _Mesh) ->
+            fn items_props_mut(m: &mut Mesh) ->
                 (&mut Vec<Self::ContainerItem>, &mut PropertyContainer<Self>)
             {
                 (&mut m.$item_field, &mut m.$prop_field)
@@ -91,34 +89,34 @@ pub trait _ToProps where Self: traits::Handle {
     fn with_prefix(name: &str) -> String {
         format!("{}{}", Self::PREFIX, name)
     }
-    fn len(m: &_Mesh) -> Size;
-    fn props(m: &_Mesh) -> &PropertyContainer<Self>;
-    fn props_mut(m: &mut _Mesh) -> &mut PropertyContainer<Self>;
+    fn len(m: &Mesh) -> Size;
+    fn props(m: &Mesh) -> &PropertyContainer<Self>;
+    fn props_mut(m: &mut Mesh) -> &mut PropertyContainer<Self>;
 }
 
 macro_rules! impl_to_props {
     ($Handle:ty, $field:ident, $prefix:expr, $len_fn:expr) => {
         impl _ToProps for $Handle {
             const PREFIX: &'static str = $prefix;
-            fn len(m: &_Mesh) -> Size { $len_fn(m) }
-            fn props(m: &_Mesh) -> &PropertyContainer<Self> { &m.$field }
-            fn props_mut(m: &mut _Mesh) -> &mut PropertyContainer<Self> { &mut m.$field }
+            fn len(m: &Mesh) -> Size { $len_fn(m) }
+            fn props(m: &Mesh) -> &PropertyContainer<Self> { &m.$field }
+            fn props_mut(m: &mut Mesh) -> &mut PropertyContainer<Self> { &mut m.$field }
         }
     }
 }
 
-impl_to_props!(  VertexHandle, v_props, &"v:", | m: &_Mesh| { m.vertices.len() as Size });
-impl_to_props!(HalfedgeHandle, h_props, &"h:", | m: &_Mesh| { (m.edges.len() * 2) as Size });
-impl_to_props!(    EdgeHandle, e_props, &"e:", | m: &_Mesh| { m.edges.len() as Size });
-impl_to_props!(    FaceHandle, f_props, &"f:", | m: &_Mesh| { m.faces.len() as Size });
-impl_to_props!(    MeshHandle, m_props, &"m:", |_m: &_Mesh| { 1 });
+impl_to_props!(  VertexHandle, v_props, &"v:", | m: &Mesh| { m.vertices.len() as Size });
+impl_to_props!(HalfedgeHandle, h_props, &"h:", | m: &Mesh| { (m.edges.len() * 2) as Size });
+impl_to_props!(    EdgeHandle, e_props, &"e:", | m: &Mesh| { m.edges.len() as Size });
+impl_to_props!(    FaceHandle, f_props, &"f:", | m: &Mesh| { m.faces.len() as Size });
+impl_to_props!(    MeshHandle, m_props, &"m:", |_m: &Mesh| { 1 });
 
 // Private to `mesh` module.
 // These property accessor methods are generic and useful for all helper objects parametrized by
 // item handle type.
-impl _Mesh {
+impl Mesh {
     /// Returns the property container associated with the mesh item type identified by `Handle`.
-    pub fn items<Handle>(&self) -> Items<Handle>
+    pub(crate) fn items<Handle>(&self) -> Items<Handle>
         where Handle: traits::Handle + MeshItemFor + _ToItems,
     {
         let (items, props) = <Handle as _ToItems>::items_props(self);
@@ -126,7 +124,7 @@ impl _Mesh {
     }
 
     /// Returns the property container associated with the mesh item type identified by `Handle`.
-    pub fn items_mut<Handle>(&mut self) -> ItemsMut<Handle>
+    pub(crate) fn items_mut<Handle>(&mut self) -> ItemsMut<Handle>
         where Handle: traits::Handle + MeshItemFor + _ToItems,
     {
         let (items, props) = <Handle as _ToItems>::items_props_mut(self);
@@ -137,13 +135,13 @@ impl _Mesh {
     // - Remove after re-writing these in terms of the items_* methods above.
     // - Then, make a special-case version for `Mesh` properties and remove `MeshHandle`.
     /// Returns the property container associated with the mesh item type identified by `Handle`.
-    pub fn props<Handle: _ToProps>(&self) -> Props<Handle> {
+    pub(crate) fn props<Handle: _ToProps>(&self) -> Props<Handle> {
         let len = <Handle as _ToProps>::len(self);
         Props::new(<Handle as _ToProps>::props(self), len)
     }
 
     /// Returns the property container associated with the mesh item type identified by `Handle`.
-    pub fn props_mut<Handle: _ToProps>(&mut self) -> PropsMut<Handle> {
+    pub(crate) fn props_mut<Handle: _ToProps>(&mut self) -> PropsMut<Handle> {
         let len = <Handle as _ToProps>::len(self);
         PropsMut::new(<Handle as _ToProps>::props_mut(self), len)
     }
@@ -152,10 +150,6 @@ impl _Mesh {
 ////////////////////////////////////////////////////////////////////////////////
 // Public interface
 
-/// Halfedge data structure.
-#[derive(Clone)]
-pub struct Mesh(_Mesh);
-
 ////////////////////////////////////////////////////////////
 // Connectivity ("Item") constructors and accessors
 
@@ -163,9 +157,9 @@ pub struct Mesh(_Mesh);
 macro_rules! item_accessors {
     ($Handle:ty, $method:ident, $method_mut:ident, $Struct:ident, $StructMut:ident, $item:expr) => {
         #[doc="Returns a struct to access "] #[doc=$item] #[doc=" mesh items and properties."]
-        pub fn $method(&self) -> $Struct { self.0.items() }
+        pub fn $method(&self) -> $Struct { self.items() }
         #[doc="Returns a struct to mutably access "] #[doc=$item] #[doc=" mesh items and properties."]
-        pub fn $method_mut(&mut self) -> $StructMut { self.0.items_mut() }
+        pub fn $method_mut(&mut self) -> $StructMut { self.items_mut() }
     }
 }
 
@@ -184,9 +178,9 @@ impl Mesh {
 macro_rules! prop_accessors {
     ($Handle:ty, $method:ident, $method_mut:ident, $Struct:ident, $StructMut:ident, $item:expr) => {
         #[doc="Returns a struct to access "] #[doc=$item] #[doc=" properties."]
-        pub fn $method(&self) -> $Struct { self.0.props() }
+        pub fn $method(&self) -> $Struct { self.props() }
         #[doc="Returns a struct to mutably access "] #[doc=$item] #[doc=" properties."]
-        pub fn $method_mut(&mut self) -> $StructMut { self.0.props_mut() }
+        pub fn $method_mut(&mut self) -> $StructMut { self.props_mut() }
     }
 }
 

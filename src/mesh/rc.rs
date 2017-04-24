@@ -1,11 +1,10 @@
 //! See documentation for `RcPropHandle`.
-//use mesh::_Mesh;
 use property::traits;
 use mesh::handles::{
     VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle,
     PropHandle,
 };
-use mesh::mesh::{_Mesh, _ToProps};
+use mesh::mesh::{Mesh, _ToProps};
 
 /// Ref-counted property handle.
 ///
@@ -22,7 +21,7 @@ impl<H: traits::Handle + _ToProps, T: traits::Value> RcPropHandle<H, T> {
     pub fn new() -> RcPropHandle<H, T> { Default::default() }
 
     /// Request a property on the mesh if it doesn't already exist. It increases the ref count.
-    pub fn request(&mut self, m: &mut _Mesh) {
+    pub fn request(&mut self, m: &mut Mesh) {
         self.ref_count += 1;
         if self.ref_count == 1 {
             debug_assert!(self.handle == Default::default());
@@ -32,7 +31,7 @@ impl<H: traits::Handle + _ToProps, T: traits::Value> RcPropHandle<H, T> {
     }
 
     /// Request a property on the mesh if it doesn't already exist. It increases the ref count.
-    pub fn release(&mut self, m: &mut _Mesh) {
+    pub fn release(&mut self, m: &mut Mesh) {
         if self.ref_count == 0 { return; }
         self.ref_count -= 1;
         if self.ref_count == 0 {
