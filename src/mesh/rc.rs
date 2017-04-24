@@ -4,7 +4,7 @@ use mesh::handles::{
     VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle,
     PropHandle,
 };
-use mesh::mesh::{Mesh, _ToProps};
+use mesh::mesh::{Mesh, _ToItems};
 
 /// Ref-counted property handle.
 ///
@@ -16,7 +16,7 @@ pub struct RcPropHandle<H: traits::Handle, T: traits::Value> {
     ref_count: usize,
 }
 
-impl<H: traits::Handle + _ToProps, T: traits::Value> RcPropHandle<H, T> {
+impl<H: traits::Handle + _ToItems, T: traits::Value> RcPropHandle<H, T> {
     /// Returns a `RcPropHandle` with an invalid handle an 0 ref count.
     pub fn new() -> RcPropHandle<H, T> { Default::default() }
 

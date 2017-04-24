@@ -78,9 +78,9 @@ impl MeshItemFor for FaceHandle     { type Item = Face;     type ContainerItem =
 
 /// Captures the differences between how `Vertex`/`Edge`/`Face` are stored and how `Halfedge` is
 /// stored and retrieved.
-pub trait MeshMeta: MeshItemFor {
+pub trait MeshMeta: traits::Handle + MeshItemFor { // explicit `traits::Handle` for documentation
     /// Number of items of type `Self` in the underlying storage vector.
-    fn len(vec: &Vec<Self::ContainerItem>) -> usize;
+    fn num_items(vec: &Vec<Self::ContainerItem>) -> usize;
     /// Gets item of type `Self` from the underlying storage vector.
     fn get(vec: &Vec<Self::ContainerItem>, handle: Self) -> Option<&Self::Item>;
     /// Gets item of type `Self` mutably from the underlying storage vector.
@@ -90,7 +90,7 @@ pub trait MeshMeta: MeshItemFor {
 macro_rules! impl_default_mesh_item {
     ($Handle:ty) => {
         impl MeshMeta for $Handle {
-            fn len(vec: &Vec<Self::ContainerItem>) -> usize { vec.len() }
+            fn num_items(vec: &Vec<Self::ContainerItem>) -> usize { vec.len() }
             fn get(vec: &Vec<Self::ContainerItem>, handle: Self) -> Option<&Self::Item> {
                 vec.get(handle.index_us())
             }
@@ -105,7 +105,7 @@ impl_default_mesh_item!(EdgeHandle);
 impl_default_mesh_item!(FaceHandle);
 
 impl MeshMeta for HalfedgeHandle {
-    fn len(vec: &Vec<Self::ContainerItem>) -> usize {
+    fn num_items(vec: &Vec<Self::ContainerItem>) -> usize {
         debug_assert!(vec.len() <= usize::max_value() / 2);
         vec.len() * 2
     }
@@ -194,7 +194,7 @@ macro_rules! impl_items {
             where Handle: MeshMeta,
         {
             #[doc="Number of items of the given item type."]
-            fn len_us(&self) -> usize { <Handle as MeshMeta>::len(&self.items) }
+            fn len_us(&self) -> usize { <Handle as MeshMeta>::num_items(&self.items) }
 
             #[doc="Number of items of the given item type."]
             pub fn len(&self) -> Size {
@@ -237,6 +237,11 @@ macro_rules! impl_items {
                 Props::new(self.props, self.len())
             }
 
+            #[doc="Returns the properties container associated with the mesh item type."]
+            pub fn into_props(self) -> Props<'a, Handle> {
+                Props::new(self.props, self.len())
+            }
+
             // TODO
             // - empty() method
         }
@@ -260,6 +265,12 @@ impl<'a, Handle> ItemsMut<'a, Handle>
     pub fn props_mut(&mut self) -> PropsMut<Handle> {
         let len = self.len();
         PropsMut::new(&mut self.props, len)
+    }
+
+    /// Returns the mutable properties container associated with the mesh item type.
+    pub fn into_props_mut(self) -> PropsMut<'a, Handle> {
+        let len = self.len();
+        PropsMut::new(self.props, len)
     }
 }
 
