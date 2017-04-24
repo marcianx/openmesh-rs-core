@@ -12,7 +12,7 @@ use property::traits;
 /// definition and at runtime using the request property functions defined in one of the kernels.
 ///
 /// If the property should be stored along with the default properties in the OM-format one must
-/// name the property and enable the persistant flag with set_persistent().
+/// name the property and enable the persistant flag with `set_persistent()`.
 pub trait Property: Downcast + ::std::fmt::Debug
 {
     /// Handle for the item type (Vertex, Halfedge, Edge, Face) to which the property belongs.

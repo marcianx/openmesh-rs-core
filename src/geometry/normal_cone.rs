@@ -85,9 +85,9 @@ impl<T: BaseFloat + One + Zero> NormalCone<T> {
     }
 }
 
-/// Alias for NormalCone<f32>.
+/// Alias for `NormalCone<f32>`.
 pub type NormalConef = NormalCone<f32>;
-/// Alias for NormalCone<f64>.
+/// Alias for `NormalCone<f64>`.
 pub type NormalConed = NormalCone<f64>;
 
 
