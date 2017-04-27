@@ -110,6 +110,25 @@ impl<H: traits::Handle> PropertyContainer<H>
         }
     }
 
+    /// Returns the handle with the given name if any exists and corresponds to a property of type
+    /// `T`. Otherwise, it returns an invalid handle.
+    pub fn handle<T>(&self, name: &str) -> BasePropHandle
+        where T: traits::Value
+    {
+        type TargetProperty<T, H> = <T as PropertyFor<H>>::Property;
+        self.vec.iter()
+            .position(|opt_prop| opt_prop.as_ref().map(|prop| prop.name() == name).unwrap_or(false))
+            .and_then(|index| {
+                // Return the index only if the found property corresponds to that for type `T`.
+                // &Option<Box<traits::Property>> -> Option<&Box<traits::Property>>
+                // -> &Box<traits::Property> -> &traits::Property -?-> TargetProperty
+                self.vec[index].as_ref().and_then(|box_prop| {
+                    box_prop.as_property().downcast_ref::<TargetProperty<T, H>>()
+                }).map(|_| BasePropHandle::from_index(index as size::Index))
+            })
+            .unwrap_or(BasePropHandle::new())
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
     // Collectively managing active property lists.
 

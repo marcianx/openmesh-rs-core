@@ -96,6 +96,12 @@ macro_rules! impl_props {
             {
                 self.props.get::<T>(prop_handle.to_base())
             }
+
+            #[doc="Returns the handle with the given name if any exists and corresponds to a"]
+            #[doc="property of type `T`. Otherwise, it returns an invalid handle."]
+            pub fn handle<T: traits::Value>(&self, name: &str) -> PropHandle<Handle, T> {
+                PropHandle::<Handle, T>::from_base(self.props.handle::<T>(name))
+            }
         }
     }
 }
