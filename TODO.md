@@ -34,15 +34,15 @@ http://www.openmesh.org/media/Documentations/OpenMesh-5.0-Documentation/a00743.h
 ## Handle
 
 BaseHandle
-- VertexHandle
-- HalfedgeHandle
-- EdgeHandle
-- FaceHandle
-- BasePropHandle<T> - type of dereferenced data
-  - VPropHandle<T>
-  - HPropHandle<T>
-  - EPropHandle<T>
-  - FPropHandle<T>
+- [x] VertexHandle
+- [x] HalfedgeHandle
+- [x] EdgeHandle
+- [x] FaceHandle
+- [x] BasePropHandle<T> - type of dereferenced data
+  - [x] VPropHandle<T>
+  - [x] HPropHandle<T>
+  - [x] EPropHandle<T>
+  - [x] FPropHandle<T>
 
 
 ## Kernel
@@ -55,23 +55,24 @@ BaseHandle
   etc). Initially it extends a local empty struct.
 
 **ArrayItems**
-- class defs: Definitions for Vertex, Edge, etc, structs.
+- [x] class defs: Definitions for Vertex, Edge, etc, structs.
 
 **BaseKernel**
-- fields: property containers for Vertex, Edge, etc.
+- [x] fields: property containers for Vertex, Edge, etc.
 - methods
-  - property container (parallel lists): size/reserve/resize/clear/stats/iterator
-  - add/remove properties (templated)
-  - string -> property handles -> property (list) -> value
-  - copy properties between items of the same type
+  - [x] property container (parallel lists): size/stats
+  - [_] reserve/resize/clear/iterator
+  - [x] add/remove properties (templated)
+  - [x] string -> property handles -> property (list) -> value
+  - [x] copy properties between items of the same type
 - typedefs: prop_iterator
 
 **ArrayKernel** < *BaseKernel, ArrayItems*
 - fields:
-  - Containers for Vertex, Edge, etc (halfedge-edge) connectivity objects.
-  - Containers for Vertex, Edge, etc STATUS
-  - Ref counts for each STATUS container type
-  - StatusSet API
+  - [x] Containers for Vertex, Edge, etc (halfedge-edge) connectivity objects.
+  - [x] Containers for Vertex, Edge, etc STATUS
+  - [x] Ref counts for each STATUS container type
+  - [_] StatusSet API
     - StatusSetT, AutoStatusSetT, ExtStatusSetT
     - BitMaskContainer
 - methods:
