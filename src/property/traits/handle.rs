@@ -60,23 +60,29 @@ pub trait Handle: ::std::any::Any + Copy + Clone + Default + ::std::fmt::Debug +
 }
 
 #[macro_export]
+/// Usage examples (`S` and `T` below must be generic.
+/// - `def_handle!(MyHandle, "Documentation for `MyHandle`");`
+/// - `def_handle!(MyHandleT<S, T>, "Documentation for `MyHandleT<S, T>`");`
+/// Note: This adds the `::std::any::Any` trait constraint on all the type parameters for
+/// implementing `property::traits::Handle`.
 macro_rules! def_handle {
-    ($handle:ident, $doc:expr) => {
+    (@def $Handle:ident ( $($Types:ident),* ), $doc:expr) => {
         #[doc=$doc]
-        #[derive(Eq, PartialEq, Clone, Hash, Debug, Copy)]
-        pub struct $handle($crate::property::size::Index);
+        pub struct $Handle<$($Types),*>(
+            $crate::property::size::Index,
+            ::std::marker::PhantomData<($($Types),*)>);
 
-        impl ::std::default::Default for $handle {
+        impl<$($Types),*> ::std::default::Default for $Handle<$($Types),*> {
             fn default() -> Self {
-                $handle($crate::property::size::INVALID_INDEX)
+                $Handle($crate::property::size::INVALID_INDEX, ::std::marker::PhantomData::<_>)
             }
         }
 
-        impl $crate::property::traits::Handle for $handle {
+        impl<$($Types: ::std::any::Any),*> $crate::property::traits::Handle for $Handle<$($Types),*> {
             #[inline(always)]
             fn from_index(idx: $crate::property::size::Index) -> Self {
                 assert!(idx != $crate::property::size::INVALID_INDEX);
-                $handle(idx)
+                $Handle(idx, ::std::marker::PhantomData::<_>)
             }
             #[inline(always)]
             fn index(self) -> $crate::property::size::Index { self.0 }
@@ -84,12 +90,42 @@ macro_rules! def_handle {
             fn set_index(&mut self, idx: $crate::property::size::Index) { self.0 = idx; }
         }
 
-        impl ::std::fmt::Display for $handle {
+        // Because of the type parameters, these cannot be auto-derived.
+        impl<$($Types),*> Copy for $Handle<$($Types),*> {}
+
+        impl<$($Types),*> Clone for $Handle<$($Types),*> { fn clone(&self) -> Self { *self } }
+
+        impl<$($Types),*> PartialEq for $Handle<$($Types),*> {
+            fn eq(&self, other: &Self) -> bool { self.0 == other.0 }
+        }
+
+        impl<$($Types),*> Eq for $Handle<$($Types),*> {}
+
+        impl<$($Types),*> ::std::fmt::Debug for $Handle<$($Types),*> {
+            fn fmt(&self, fmt: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+                stringify!($Handle).fmt(fmt)?;
+                "(".fmt(fmt)?;
+                self.0.fmt(fmt)?;
+                ")".fmt(fmt)
+            }
+        }
+
+        impl<$($Types),*> ::std::hash::Hash for $Handle<$($Types),*> {
+            fn hash<H>(&self, state: &mut H) where H: ::std::hash::Hasher { self.0.hash(state) }
+        }
+
+        impl<$($Types),*> ::std::fmt::Display for $Handle<$($Types),*> {
             fn fmt(&self, formatter: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                 self.0.fmt(formatter)
             }
         }
-    }
+    };
+
+    ($Handle:ident < $($Types:ident),* >, $doc:expr) => {
+        def_handle!(@def $Handle ( $($Types),* ), $doc);
+    };
+
+    ($Handle:ident, $doc:expr) => { def_handle!(@def $Handle (), $doc); };
 }
 
 
@@ -131,4 +167,6 @@ pub trait PropHandle: Copy + Default + Eq {
 #[cfg(test)]
 mod test {
     def_handle!(MyHandle, "Test Handle Trait.");
+    def_handle!(MyHandleT<T>, "Test HandleT<T> Trait.");
+    def_handle!(MyHandleST<S, T>, "Test HandleST<S, T> Trait.");
 }
