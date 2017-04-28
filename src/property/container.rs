@@ -38,6 +38,10 @@ impl<H: traits::Handle> ::std::fmt::Debug for PropertyContainer<H> {
 }
 
 
+// Helper for brevity.
+type TargetProperty<T, H> = <T as PropertyFor<H>>::Property;
+
+
 impl<H: traits::Handle> PropertyContainer<H>
 {
     ////////////////////////////////////////////////////////////////////////////////
@@ -49,7 +53,7 @@ impl<H: traits::Handle> PropertyContainer<H>
 
     /// Adds a property whose elements are of type `T`.
     /// Panics in the unlikely case that the number of properties reaches `size::INVALID_INDEX`.
-    pub fn add<T>(&mut self, name: Option<String>) -> BasePropHandle
+    pub fn add<T>(&mut self, name: Option<String>) -> BasePropHandle<T>
         where T: traits::Value
     {
         let name = name.unwrap_or("<unknown>".to_owned());
@@ -69,7 +73,7 @@ impl<H: traits::Handle> PropertyContainer<H>
     }
 
     /// Returns the property at the given handle if any exists and if the return type matches.
-    pub fn get<T>(&self, prop_handle: BasePropHandle) -> Option<&<T as PropertyFor<H>>::Property>
+    pub fn get<T>(&self, prop_handle: BasePropHandle<T>) -> Option<&<T as PropertyFor<H>>::Property>
         where T: traits::Value
     {
         // NOTE: This handles prop_handle.index() == size::INVALID_INDEX just fine.
@@ -82,7 +86,8 @@ impl<H: traits::Handle> PropertyContainer<H>
     }
 
     /// Returns the property at the given handle if any exists and if the return type matches.
-    pub fn get_mut<T>(&mut self, prop_handle: BasePropHandle) -> Option<&mut <T as PropertyFor<H>>::Property>
+    pub fn get_mut<T>(&mut self, prop_handle: BasePropHandle<T>)
+        -> Option<&mut <T as PropertyFor<H>>::Property>
         where T: traits::Value
     {
         // NOTE: This handles prop_handle.index() == size::INVALID_INDEX just fine.
@@ -94,13 +99,28 @@ impl<H: traits::Handle> PropertyContainer<H>
             .and_then(|prop| prop.as_property_mut().downcast_mut::<_>())
     }
 
-    /// Returns the property at the given handle if any exists and if the return type matches.
-    pub fn remove(&mut self, prop_handle: BasePropHandle) {
+    /// Removes the property at the given handle if any exists and if the `BasePropHandle`'s
+    /// value type `T` matches that of the pointed-to property type. Returns true iff something
+    /// was removed.
+    pub fn remove<T>(&mut self, prop_handle: BasePropHandle<T>) -> bool
+        where T: traits::Value
+    {
         // NOTE: This handles prop_handle.index() == size::INVALID_INDEX just fine.
         self.vec
             .get_mut(prop_handle.index() as usize)
-            // &Option<Box<traits::Property>> -> &None
-            .map(|opt_prop| ::std::mem::swap(opt_prop, &mut None));
+            .and_then(|opt_prop| {
+                // Require that `T` match the underlying property's type.
+                opt_prop.as_ref().and_then(|box_prop| {
+                    // Map finally to `Option<()>` to avoid borrowing from `opt_prop` for next map.
+                    box_prop.as_property().downcast_ref::<TargetProperty<T, H>>().map(|_| ())
+                })
+                .map(|_| opt_prop) // Return `opt_prop` only if `T` matched.
+            })
+            // Explicitly typed to catch errors since any `&mut Option` would compile successfully.
+            .map(|opt_prop: &mut Option<Box<traits::ResizeableProperty<Handle=H>>>| {
+                ::std::mem::swap(opt_prop, &mut None);
+            })
+            .is_some()
     }
 
     /// Removes all properties.
@@ -112,10 +132,9 @@ impl<H: traits::Handle> PropertyContainer<H>
 
     /// Returns the handle with the given name if any exists and corresponds to a property of type
     /// `T`. Otherwise, it returns an invalid handle.
-    pub fn handle<T>(&self, name: &str) -> BasePropHandle
+    pub fn handle<T>(&self, name: &str) -> BasePropHandle<T>
         where T: traits::Value
     {
-        type TargetProperty<T, H> = <T as PropertyFor<H>>::Property;
         self.vec.iter()
             .position(|opt_prop| opt_prop.as_ref().map(|prop| prop.name() == name).unwrap_or(false))
             .and_then(|index| {

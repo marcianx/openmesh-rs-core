@@ -20,7 +20,7 @@ def_handle!(MeshHandle, "Mesh handle (only needed for parametrizing PropertyCont
 /// Mesh property handle, parametrized by mesh item handle type (handles to vertex, halfedge,
 /// edge, face, mesh), and the property item type `T`.
 #[derive(Eq, Hash)]
-pub struct PropHandle<H, T>(BasePropHandle, PhantomData<H>, PhantomData<T>);
+pub struct PropHandle<H, T>(BasePropHandle<T>, PhantomData<H>);
 
 impl<H, T> Copy for PropHandle<H, T> {}
 impl<H, T> Clone for PropHandle<H, T> { fn clone(&self) -> Self { *self } }
@@ -44,19 +44,19 @@ impl<H, T> ::std::fmt::Display for PropHandle<H, T> {
 
 impl<H: traits::Handle, T: Any> Default for PropHandle<H, T> {
     fn default() -> Self {
-        <Self as traits::PropHandle>::from_base(traits::Handle::new())
+        <Self as traits::PropHandle<T>>::from_base(traits::Handle::new())
     }
 }
 
-impl<H: traits::Handle, T: Any> traits::PropHandle for PropHandle<H, T> {
+impl<H: traits::Handle, T: Any> traits::PropHandle<T> for PropHandle<H, T> {
     type Value = T;
     type Handle = H;
 
-    fn from_base(h: BasePropHandle) -> Self {
-        PropHandle(h, ::std::marker::PhantomData::<H>, ::std::marker::PhantomData::<T>)
+    fn from_base(h: BasePropHandle<T>) -> Self {
+        PropHandle(h, ::std::marker::PhantomData::<H>)
     }
-    fn to_base(self) -> BasePropHandle { self.0 }
-    fn set_base(&mut self, h: BasePropHandle) { self.0 = h }
+    fn to_base(self) -> BasePropHandle<T> { self.0 }
+    fn set_base(&mut self, h: BasePropHandle<T>) { self.0 = h }
 }
 
 /// Handle for a specific vertex property.

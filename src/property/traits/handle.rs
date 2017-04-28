@@ -130,12 +130,12 @@ macro_rules! def_handle {
 
 
 def_handle!(
-    BasePropHandle,
+    BasePropHandle<T>,
     "`PropertyContainer` handle to a contained `Property` (which is a list of `Value`s).");
 
 /// Handle to a `Property` within a `PropertyContainer`. Each `Property` represents a list of items
 /// of type `Value`. The `Default` implementation must initialize the handle to an invalid index.
-pub trait PropHandle: Copy + Default + Eq {
+pub trait PropHandle<T: ::std::any::Any>: Copy + Default + Eq {
     /// The value type stored in the property list into which `self` is a handle.
     type Value;
     /// Handle type corresponding to the mesh item type (vertex, halfedge, edge, face, mesh) for
@@ -145,11 +145,11 @@ pub trait PropHandle: Copy + Default + Eq {
     /// Create an invalidated handle.
     fn new() -> Self { Default::default() }
     /// Create from `BasePropHandle`.
-    fn from_base(h: BasePropHandle) -> Self;
+    fn from_base(h: BasePropHandle<T>) -> Self;
     /// Get `BasePropHandle` form.
-    fn to_base(self) -> BasePropHandle;
+    fn to_base(self) -> BasePropHandle<T>;
     /// Set the handle from the given `BasePropHandle`.
-    fn set_base(&mut self, h: BasePropHandle);
+    fn set_base(&mut self, h: BasePropHandle<T>);
 
     /// Whether the handle is valid.
     #[inline(always)]
