@@ -193,10 +193,10 @@ macro_rules! impl_items {
         impl<'a, Handle> $Items<'a, Handle>
             where Handle: MeshMeta,
         {
-            #[doc="Number of items of the given item type."]
+            #[doc="Number of items of the item type."]
             fn len_us(&self) -> usize { <Handle as MeshMeta>::num_items(&self.items) }
 
-            #[doc="Number of items of the given item type."]
+            #[doc="Number of items of the item type."]
             pub fn len(&self) -> Size {
                 debug_assert!(self.len_us() <= Size::max_value() as usize);
                 self.len_us() as Size
@@ -242,8 +242,8 @@ macro_rules! impl_items {
                 Props::new(self.props, self.len())
             }
 
-            // TODO
-            // - empty() method
+            #[doc="Returns true when there are no items of the mesh item type."]
+            pub fn empty(&self) -> bool { self.len_us() == 0 }
         }
     }
 }
