@@ -64,7 +64,8 @@ pub trait Property: Downcast + ::std::fmt::Debug
     /// Store self as one binary block.
     fn store(&self, writer: &mut Write, endian: Endian) -> Result<usize>;
 
-    /// Restore self from a binary block. Uses reserve() to set the size of self before restoring.
+    /// Restore self from a binary block. Uses `resize()` to set the size of `self` before
+    /// restoring.
     fn restore(&mut self, reader: &mut Read, endian: Endian) -> Result<usize>;
 }
 
@@ -77,7 +78,6 @@ pub trait ResizeableProperty: Property {
     fn clone_as_trait(&self) -> Box<ResizeableProperty<Handle=Self::Handle>>;
 
     /// Reserve memory for `n` elements.
-    /// Panics if `n >= property::size::INVALID_INDEX`.
     ///
     /// NOTE that this is different from rust standard library (eg `Vec`) where reserve takes the
     /// additional number of items that can be added before reallocation is necessary.

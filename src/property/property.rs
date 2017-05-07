@@ -127,9 +127,6 @@ impl<T, H> ResizeableProperty for Property<T, H>
           H: traits::Handle
 {
     fn reserve(&mut self, n: Size) {
-        if n >= INVALID_INDEX {
-            panic!("Reserve dimensions {} exceeded bounds {}-1", n, INVALID_INDEX);
-        }
         let n = n as usize;
         let len = self.vec.len();
         if n > len {
@@ -137,12 +134,9 @@ impl<T, H> ResizeableProperty for Property<T, H>
         }
     }
     fn resize(&mut self, n: Size) {
-        if n >= INVALID_INDEX {
-            panic!("Resize dimensions {} exceeded bounds {}-1", n, INVALID_INDEX);
-        }
         self.vec.resize(n as usize, Default::default());
     }
-    fn clear(&mut self) { self.vec.clear(); }
+    fn clear(&mut self) { ::std::mem::swap(&mut self.vec, &mut Vec::new()); }
     fn push(&mut self) { self.vec.push(Default::default()); }
     fn clone_as_trait(&self) -> Box<ResizeableProperty<Handle=H>> { Box::new(self.clone()) }
     fn as_property(&self) -> &traits::Property<Handle=H> { self }
@@ -261,9 +255,6 @@ impl<H> ResizeableProperty for PropertyBits<H>
     where H: traits::Handle
 {
     fn reserve(&mut self, n: Size) {
-        if n >= INVALID_INDEX {
-            panic!("Reserve dimensions {} exceeded bounds {}-1", n, INVALID_INDEX);
-        }
         let n = n as usize;
         let len = self.vec.len();
         if n > len {
@@ -276,7 +267,7 @@ impl<H> ResizeableProperty for PropertyBits<H>
         }
         self.vec.resize(n as usize, Default::default());
     }
-    fn clear(&mut self) { self.vec.clear(); }
+    fn clear(&mut self) { ::std::mem::swap(&mut self.vec, &mut BitVec::new()); }
     fn push(&mut self) { self.vec.push(Default::default()); }
     fn clone_as_trait(&self) -> Box<ResizeableProperty<Handle=H>> { Box::new(self.clone()) }
     fn as_property(&self) -> &traits::Property<Handle=H> { self }

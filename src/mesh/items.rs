@@ -59,19 +59,32 @@ pub struct Face {
 ////////////////////////////////////////////////////////////////////////////////
 // For mapping between item type and its corresponding handle type.
 
-/// Trait to map a mesh item handle to its corresponding mesh item.
+/// Trait to map a mesh item handle of a container item type (`Vertex`, `Edge`, `Face`, but not
+/// `Halfedge`) to its corresponding mesh item.
+pub trait MeshContainerItem: traits::Handle {
+    /// Mesh item type corresponding to `Self` which is one of `Vertex`, `Edge`, or `Face`.
+    type StorageItem: Clone + Default;
+}
+impl MeshContainerItem for VertexHandle { type StorageItem = Vertex; }
+impl MeshContainerItem for EdgeHandle   { type StorageItem = Edge;   }
+impl MeshContainerItem for FaceHandle   { type StorageItem = Face;   }
+
+
+/// Trait to map a mesh item handle to its corresponding mesh item and storage/container item.
 pub trait MeshItemFor: traits::Handle {
     /// Mesh item type corresponding to `Self` which is one of `Vertex`, `Halfedge`, `Edge`, or
     /// `Face`.
-    type Item: Default;
+    type Item: Clone + Default;
     /// Storage item type containing `Self::Item`. Specifically, `Vertex`/`Edge`/`Face` is stored
     /// as itself, but each `Halfedge` is stored in an `Edge`.
-    type ContainerItem: Default;
+    type ContainerItem: Clone + Default;
 }
-impl MeshItemFor for VertexHandle   { type Item = Vertex;   type ContainerItem = Vertex; }
+
+impl<T: MeshContainerItem> MeshItemFor for T {
+    type Item = T::StorageItem;
+    type ContainerItem = T::StorageItem;
+}
 impl MeshItemFor for HalfedgeHandle { type Item = Halfedge; type ContainerItem = Edge; }
-impl MeshItemFor for EdgeHandle     { type Item = Edge;     type ContainerItem = Edge; }
-impl MeshItemFor for FaceHandle     { type Item = Face;     type ContainerItem = Face; }
 
 ////////////////////////////////////////////////////////////////////////////////
 // For accessing each item type from the mesh connectivity.
@@ -277,19 +290,49 @@ impl<'a, Handle> ItemsMut<'a, Handle>
 
 // Only applies to mesh items used for storage. In particular, it doesn't apply to `Halfedge`.
 impl<'a, Handle> ItemsMut<'a, Handle>
-    where Handle: MeshMeta,
+    where Handle: MeshContainerItem,
 {
-    /// Adds a new item and returns it.
-    /// NOTE
-    /// - This cannot be exposed in the public API: the resizing must be done in concert with the
-    ///   property lists.
-    /// - This thus does not check for overflow of `Size`.
-    /// TODO: Could also generalize this method to also append to the property lists, but then, the
-    ///     `Edge` version has to update both the `Edge` and the `Halfedge` property lists.
-    pub(crate) fn append(&mut self) -> &mut Handle::ContainerItem {
+    /// Adds/appends a new item and returns it.
+    /// 
+    /// TODO: Reconsider the privacy of this method.
+    /// - Should this just be a helper for higher-level append operations?
+    /// - Should it be exposed publicly to allow for more advanced mesh constructions?
+    pub fn append(&mut self) -> Handle {
+        let old_len = self.items.len();
+        assert!(old_len < Size::max_value() as usize,
+                "Cannot add more than {} items. Already have {}.", Size::max_value(), old_len);
+        let old_len = old_len as Size;
         self.items.push(Default::default());
-        let last_idx = self.items.len() - 1;
-        unsafe { self.items.get_unchecked_mut(last_idx) }
-        // TODO: Return index like new_* methods in OpenMesh?
+        self.props.push_all();
+        Handle::from_index(old_len)
+    }
+
+    /// Reserves space for `n` items.
+    ///
+    /// NOTE: This behaves differently than `Vec::reserve` which takes the additional amount to
+    /// reserve as opposed to the total amount to reserve.
+    /// `Mesh::reserve()` calls this.
+    pub(crate) fn reserve(&mut self, n: Size) {
+        self.props.reserve_all(n);
+        if (n as usize) < self.items.len() {
+            let additional = n as usize - self.items.len();
+            self.items.reserve(additional);
+        }
+    }
+
+    // NOTE: None of the methods below can be part of the public API since removing items of one
+    // item type without regard to the other item types could result in dangling handles which can
+    // be confusing.
+
+    /// Resizes to having exactly `n` items.
+    pub(crate) fn resize(&mut self, n: Size) {
+        self.props.resize_all(n);
+        self.items.resize(n as usize, Default::default());
+    }
+
+    /// Resizes to having exactly `n` items.
+    pub(crate) fn clear(&mut self) {
+        self.props.clear_all();
+        self.items.clear();
     }
 }

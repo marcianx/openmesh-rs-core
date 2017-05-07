@@ -18,6 +18,7 @@ use mesh::rc::{
 };
 use mesh::status::Status;
 use property::PropertyContainer;
+use property::size::Size;
 use property::traits;
 
 /// Halfedge data structure.
@@ -132,6 +133,47 @@ impl Mesh {
     item_accessors!(HalfedgeHandle, halfedges, halfedges_mut, HItems, HItemsMut, "halfedge");
     item_accessors!(    EdgeHandle,     edges,     edges_mut, EItems, EItemsMut,     "edge");
     item_accessors!(    FaceHandle,     faces,     faces_mut, FItems, FItemsMut,     "face");
+}
+
+////////////////////////////////////////////////////////////
+// Item constructors and list mutators.
+
+impl Mesh {
+    /// Reserves capacity to contain the given total number of vertices, edges, and faces.
+    pub fn reserve(&mut self, nv: Size, ne: Size, nf: Size) {
+        self.vertices_mut().reserve(nv);
+        self.edges_mut().reserve(ne);
+        self.faces_mut().reserve(nf);
+    }
+
+    /// Resizes the mesh to have the given number of vertices, edges, and faces.
+    /// 
+    /// NOTE: This can only be used to increase the number of items and not decrease it!
+    /// Otherwise, it panics. That's to avoid dangling handle that are referenced.
+    /// To remove items from the mesh, use the 
+    /// 
+    /// TODO: Reconsider the privacy of this method.
+    /// - Should this just be a helper for higher-level mesh generation?
+    /// - Should it be exposed publicly to allow for more advanced mesh constructions?
+    pub fn resize(&mut self, nv: Size, ne: Size, nf: Size) {
+        let (old_nv, old_ne, old_nf) = (self.vertices().len(), self.edges().len(), self.faces().len());
+        assert!
+            (nv < old_nv || ne < old_ne || nf < old_nf,
+            "Cannot resize (#v, #e, #f) = ({}, {}, {}) to something smaller: ({}, {}, {})",
+            old_nv, old_ne, old_nf, nv, ne, nf);
+        self.vertices_mut().resize(nv);
+        self.edges_mut().resize(ne);
+        self.faces_mut().resize(nf);
+    }
+
+    // TODO: Deallocate.
+    /// Removes all vertices, halfedges, edges, and faces in the mesh.
+    /// The corresponding property containers for each item type remain, though they are emptied.
+    pub fn clear(&mut self) {
+        self.vertices_mut().clear();
+        self.edges_mut().clear();
+        self.faces_mut().clear();
+    }
 }
 
 ////////////////////////////////////////////////////////////

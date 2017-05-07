@@ -61,7 +61,8 @@ BaseHandle
 - [x] fields: property containers for Vertex, Edge, etc.
 - methods
   - [x] property container (parallel lists): size/stats
-  - [_] reserve/resize/clear/iterator
+  - [x] append/reserve/resize/clear
+  - [_] iterator
   - [x] add/remove properties (templated)
   - [x] string -> property handles -> property (list) -> value
   - [x] copy properties between items of the same type

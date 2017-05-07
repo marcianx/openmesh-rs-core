@@ -182,6 +182,13 @@ impl<H: traits::Handle> PropertyContainer<H>
         }
     }
 
+    /// Pushes an item to the end of the property list.
+    pub fn push_all(&mut self) {
+        for opt_prop in self.vec.iter_mut() {
+            opt_prop.as_mut().map(|prop| prop.push());
+        }
+    }
+
     /// Swaps a pair of items in each active property list.
     /// TODO: Return an error if the indices were out of bounds.
     pub fn swap_all(&mut self, i0: H, i1: H) {
