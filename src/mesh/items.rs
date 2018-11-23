@@ -59,8 +59,9 @@ pub struct Face {
 ////////////////////////////////////////////////////////////////////////////////
 // For mapping between item type and its corresponding handle type.
 
-/// Trait to map a mesh item handle of a container item type (`Vertex`, `Edge`, `Face`, but not
-/// `Halfedge`) to its corresponding mesh item.
+/// This is an implementation detail implemented for `VertexHandle`, `EdgeHandle`, and `FaceHandle`
+/// (but not `HalfedgeHandle`) to map an item handle of a container item type (`Vertex`, `Edge`,
+/// `Face`, but not `Halfedge`) to its corresponding mesh item.
 pub trait MeshContainerItem: traits::ItemHandle {
     /// Mesh item type corresponding to `Self` which is one of `Vertex`, `Edge`, or `Face`.
     type StorageItem: Clone + Default;
@@ -70,7 +71,9 @@ impl MeshContainerItem for EdgeHandle   { type StorageItem = Edge;   }
 impl MeshContainerItem for FaceHandle   { type StorageItem = Face;   }
 
 
-/// Trait to map a mesh item handle to its corresponding mesh item and storage/container item.
+/// This is an implementation detail implemented for `VertexHandle`, `HalfedgeHandle`,
+/// `EdgeHandle`, and `FaceHandle` to map an item handle to its corresponding mesh item and
+/// storage/container item.
 pub trait MeshItemFor: traits::ItemHandle {
     /// Mesh item type corresponding to `Self` which is one of `Vertex`, `Halfedge`, `Edge`, or
     /// `Face`.
@@ -89,8 +92,9 @@ impl MeshItemFor for HalfedgeHandle { type Item = Halfedge; type ContainerItem =
 ////////////////////////////////////////////////////////////////////////////////
 // For accessing each item type from the mesh connectivity.
 
-/// Captures the differences between how `Vertex`/`Edge`/`Face` are stored and how `Halfedge` is
-/// stored and retrieved.
+/// This is an implementation detail and is implemented for `VertexHandle`, `HalfedgeHandle`,
+/// `EdgeHandle`, and `FaceHandle` to capture the differences between how the corresponding items
+/// are stored and retrieved.
 pub trait MeshMeta: traits::ItemHandle + MeshItemFor { // explicit `traits::ItemHandle` for documentation
     /// Number of items of type `Self` in the underlying storage vector.
     fn num_items(vec: &Vec<Self::ContainerItem>) -> usize;
