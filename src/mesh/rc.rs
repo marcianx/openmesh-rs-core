@@ -11,14 +11,16 @@ use mesh::mesh::{Mesh, _ToItems};
 /// This is used in `Mesh` to keep property lists around only while there are any outstanding uses
 /// of them. This type is internal to `Mesh`.
 #[derive(Clone, Default)]
-pub struct RcPropHandle<H: traits::Handle, T: traits::Value> {
+pub(crate) struct RcPropHandle<H: traits::Handle, T: traits::Value> {
     handle: PropHandle<H, T>,
-    ref_count: usize,
+    ref_count: u32,
 }
 
 impl<H: traits::Handle + _ToItems, T: traits::Value> RcPropHandle<H, T> {
     /// Returns a `RcPropHandle` with an invalid handle an 0 ref count.
     pub fn new() -> RcPropHandle<H, T> { Default::default() }
+
+    // TODO: Wrap request/release in an object like Rc.
 
     /// Request a property on the mesh if it doesn't already exist. It increases the ref count.
     pub fn request(&mut self, m: &mut Mesh) {
@@ -41,11 +43,11 @@ impl<H: traits::Handle + _ToItems, T: traits::Value> RcPropHandle<H, T> {
 }
 
 /// Reference-counted handle for a specific vertex property.
-pub type RcVPropHandle<T> = RcPropHandle<VertexHandle, T>;
+pub(crate) type RcVPropHandle<T> = RcPropHandle<VertexHandle, T>;
 /// Reference-counted handle for a specific halfedge property.
-pub type RcHPropHandle<T> = RcPropHandle<HalfedgeHandle, T>;
+pub(crate) type RcHPropHandle<T> = RcPropHandle<HalfedgeHandle, T>;
 /// Reference-counted handle for a specific edge property.
-pub type RcEPropHandle<T> = RcPropHandle<EdgeHandle, T>;
+pub(crate) type RcEPropHandle<T> = RcPropHandle<EdgeHandle, T>;
 /// Reference-counted handle for a specific face property.
-pub type RcFPropHandle<T> = RcPropHandle<FaceHandle, T>;
+pub(crate) type RcFPropHandle<T> = RcPropHandle<FaceHandle, T>;
 
