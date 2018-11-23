@@ -2,6 +2,7 @@
 
 // TODO: Determine carefully what ought to be reexported.
 pub mod handles;
+pub(crate) mod handle_meta;
 pub mod iter;
 pub mod status;
 
