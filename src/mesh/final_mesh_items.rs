@@ -1,5 +1,5 @@
 // TODO: This file is not currently being used.
-use property::traits::Handle;
+use property::traits::ItemHandle;
 use geometry::vector::Vec3d;
 use mesh::attributes::Attributes;
 use mesh::handles::{VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle};
@@ -34,10 +34,10 @@ pub trait MeshRefs {
     type TexCoord2D;        //typename Traits::TexCoord2D                           
     type TexCoord3D;        //typename Traits::TexCoord3D                           
     type TextureIndex;      //typename Traits::TextureIndex                           
-    type VertexHandle: Handle;
-    type FaceHandle: Handle;
-    type EdgeHandle: Handle;
-    type HalfedgeHandle: Handle;
+    type VertexHandle: ItemHandle;
+    type FaceHandle: ItemHandle;
+    type EdgeHandle: ItemHandle;
+    type HalfedgeHandle: ItemHandle;
 }
 
 

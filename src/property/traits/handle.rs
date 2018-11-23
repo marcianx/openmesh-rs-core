@@ -8,6 +8,7 @@ pub trait Handle: ::std::any::Any + Copy + Clone + Default + ::std::fmt::Debug +
 {
     /// Initialize a handle with an invalid index.
     fn new() -> Self { Default::default() }
+
     /// Construct from index.
     fn from_index(idx: Index) -> Self;
 
@@ -128,6 +129,8 @@ macro_rules! def_handle {
     ($Handle:ident, $doc:expr) => { def_handle!(@def $Handle (), $doc); };
 }
 
+/// Marker trait for handles to mesh items (vertex, halfedge, edge, face).
+pub trait ItemHandle: Handle {}
 
 def_handle!(
     BasePropHandle<T>,

@@ -12,12 +12,12 @@ use mesh::mesh::Mesh;
 /// This is used in `Mesh` to keep property lists around only while there are any outstanding uses
 /// of them. This type is internal to `Mesh`.
 #[derive(Clone, Default)]
-pub(crate) struct RcPropHandle<H: traits::Handle, T: traits::Value> {
+pub(crate) struct RcPropHandle<H: traits::ItemHandle, T: traits::Value> {
     handle: PropHandle<H, T>,
     ref_count: u32,
 }
 
-impl<H: traits::Handle + ItemHandleMeta, T: traits::Value> RcPropHandle<H, T> {
+impl<H: traits::ItemHandle + ItemHandleMeta, T: traits::Value> RcPropHandle<H, T> {
     /// Returns a `RcPropHandle` with an invalid handle an 0 ref count.
     pub fn new() -> RcPropHandle<H, T> { Default::default() }
 

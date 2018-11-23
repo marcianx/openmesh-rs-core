@@ -14,6 +14,12 @@ def_handle!(EdgeHandle, "Edge handle.");
 def_handle!(FaceHandle, "Face handle.");
 def_handle!(MeshHandle, "Mesh handle (only needed for parametrizing PropertyContainer).");
 
+impl traits::ItemHandle for VertexHandle {}
+impl traits::ItemHandle for HalfedgeHandle {}
+impl traits::ItemHandle for EdgeHandle {}
+impl traits::ItemHandle for FaceHandle {}
+impl traits::ItemHandle for MeshHandle {}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Handle to a property lists for an item type.
 
@@ -42,13 +48,13 @@ impl<H, T> ::std::fmt::Display for PropHandle<H, T> {
     }
 }
 
-impl<H: traits::Handle, T: Any> Default for PropHandle<H, T> {
+impl<H: traits::ItemHandle, T: Any> Default for PropHandle<H, T> {
     fn default() -> Self {
         <Self as traits::PropHandle<T>>::from_base(traits::Handle::new())
     }
 }
 
-impl<H: traits::Handle, T: Any> traits::PropHandle<T> for PropHandle<H, T> {
+impl<H: traits::ItemHandle, T: Any> traits::PropHandle<T> for PropHandle<H, T> {
     type Value = T;
     type Handle = H;
 

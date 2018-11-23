@@ -16,7 +16,7 @@ use property::traits;
 pub trait Property: Downcast + ::std::fmt::Debug
 {
     /// Handle for the item type (Vertex, Halfedge, Edge, Face) to which the property belongs.
-    type Handle: traits::Handle;
+    type Handle: traits::ItemHandle;
 
     ////////////////////////////////////////////////////////////////////////////////
     // synchronized array interface
@@ -108,14 +108,14 @@ pub trait ConstructableProperty: ResizeableProperty {
 
 
 /// Allows picking the optimal property container for implemented type.
-pub trait PropertyFor<H: traits::Handle> {
+pub trait PropertyFor<H: traits::ItemHandle> {
     /// Property container type to be used to store objects of type `Self`.
     type Property: ConstructableProperty<Handle=H>;
 }
 
 
 // Support down-casting from `Property` to a struct implementing it.
-impl_downcast!(Property assoc Handle where Handle: traits::Handle);
+impl_downcast!(Property assoc Handle where Handle: traits::ItemHandle);
 
 
 impl<H> Clone for Box<ResizeableProperty<Handle=H>>

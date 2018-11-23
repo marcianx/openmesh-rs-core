@@ -8,7 +8,7 @@ use property::traits;
 
 /// For getting the right mesh item vectors and properties based on the handle type.
 /// This is useful for implementing helper structs parametrized by item.
-pub(crate) trait ItemHandleMeta: traits::Handle + MeshMeta { // explicit `traits::Handle` for documentation
+pub(crate) trait ItemHandleMeta: traits::ItemHandle + MeshMeta { // explicit `traits::ItemHandle` for documentation
     // Default property name prefix.
     const PREFIX: &'static str;
     fn with_prefix(name: &str) -> String { format!("{}{}", Self::PREFIX, name) }

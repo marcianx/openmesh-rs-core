@@ -2,7 +2,7 @@ use property::BasePropHandle;
 use property::size;
 use property::traits::{self, PropertyFor};
 use property::traits::ConstructableProperty; // for ::new() on property
-use property::traits::Handle as HandleTrait; // for `BasePropHandle` methods
+use property::traits::Handle as _HandleTrait; // for `BasePropHandle` methods
 
 /// Contains a parallel collection of `Property` trait objects.
 pub struct PropertyContainer<H> {
@@ -14,7 +14,7 @@ pub struct PropertyContainer<H> {
 }
 
 
-impl<H: traits::Handle> Clone for PropertyContainer<H>
+impl<H: traits::ItemHandle> Clone for PropertyContainer<H>
 {
     fn clone(&self) -> Self {
         PropertyContainer {
@@ -25,7 +25,7 @@ impl<H: traits::Handle> Clone for PropertyContainer<H>
 }
 
 
-impl<H: traits::Handle> ::std::fmt::Debug for PropertyContainer<H> {
+impl<H: traits::ItemHandle> ::std::fmt::Debug for PropertyContainer<H> {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         for opt_prop in self.vec.iter() {
             try!(opt_prop.as_ref()
@@ -42,7 +42,7 @@ impl<H: traits::Handle> ::std::fmt::Debug for PropertyContainer<H> {
 type TargetProperty<T, H> = <T as PropertyFor<H>>::Property;
 
 
-impl<H: traits::Handle> PropertyContainer<H>
+impl<H: traits::ItemHandle> PropertyContainer<H>
 {
     ////////////////////////////////////////////////////////////////////////////////
     // Addition/getting/removal of properties.

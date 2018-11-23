@@ -5,7 +5,7 @@ use io::result::Result;
 use util::bitvec::BitVec;
 use util::index::{IndexUnchecked, IndexSetUnchecked, IndexSet};
 use property::size::{Size, INVALID_INDEX};
-use property::traits::{self, PropertyFor};
+use property::traits::{self, ItemHandle, PropertyFor};
 use property::traits::{ConstructableProperty, ResizeableProperty};
 
 /// Implements getter/setters for the `name` and `persistent` properties.
@@ -47,32 +47,32 @@ pub struct Property<T, H> {
 ////////////////////////////////////////////////////////////////////////////////
 // Index impls (pass through to vec).
 
-impl<T, H: traits::Handle> ::std::ops::Index<H> for Property<T, H> {
+impl<T, H: ItemHandle> ::std::ops::Index<H> for Property<T, H> {
     type Output = T;
     fn index(&self, index: H) -> &Self::Output {
         self.vec.index(index.index_us())
     }
 }
 
-impl<T, H: traits::Handle> ::std::ops::IndexMut<H> for Property<T, H> {
+impl<T, H: ItemHandle> ::std::ops::IndexMut<H> for Property<T, H> {
     fn index_mut(&mut self, index: H) -> &mut Self::Output {
         self.vec.index_mut(index.index_us())
     }
 }
 
-impl<T, H: traits::Handle> IndexUnchecked<H> for Property<T, H> {
+impl<T, H: ItemHandle> IndexUnchecked<H> for Property<T, H> {
     unsafe fn index_unchecked(&self, index: H) -> &Self::Output {
         self.vec.index_unchecked(index.index_us())
     }
 }
 
-impl<T, H: traits::Handle> IndexSetUnchecked<H> for Property<T, H> {
+impl<T, H: ItemHandle> IndexSetUnchecked<H> for Property<T, H> {
     unsafe fn index_set_unchecked(&mut self, index: H, value: T) {
         self.vec.index_set_unchecked(index.index_us(), value);
     }
 }
 
-impl<T, H: traits::Handle> IndexSet<H> for Property<T, H> {
+impl<T, H: ItemHandle> IndexSet<H> for Property<T, H> {
     fn index_set(&mut self, index: H, value: T) {
         self.vec.index_set(index.index_us(), value);
     }
@@ -92,7 +92,7 @@ impl<T, H> ::std::fmt::Debug for Property<T, H> {
 
 impl<T, H> traits::Property for Property<T, H>
     where T: traits::Value,
-          H: traits::Handle
+          H: ItemHandle
 {
     type Handle = H;
 
@@ -124,7 +124,7 @@ impl<T, H> traits::Property for Property<T, H>
 
 impl<T, H> ResizeableProperty for Property<T, H>
     where T: traits::Value,
-          H: traits::Handle
+          H: ItemHandle
 {
     fn reserve(&mut self, n: Size) {
         let n = n as usize;
@@ -145,7 +145,7 @@ impl<T, H> ResizeableProperty for Property<T, H>
 
 impl<T, H> ConstructableProperty for Property<T, H>
     where T: traits::Value,
-          H: traits::Handle
+          H: ItemHandle
 {
     fn new(name: String, size: Size) -> Self {
         let mut prop = Property {
@@ -161,7 +161,7 @@ impl<T, H> ConstructableProperty for Property<T, H>
 
 impl<T, H> PropertyFor<H> for T
     where T: traits::Value,
-          H: traits::Handle
+          H: ItemHandle
 {
     default type Property = Property<T, H>;
 }
@@ -182,26 +182,26 @@ pub struct PropertyBits<H> {
 ////////////////////////////////////////////////////////////////////////////////
 // Index impls (pass through to vec).
 
-impl<H: traits::Handle> ::std::ops::Index<H> for PropertyBits<H> {
+impl<H: ItemHandle> ::std::ops::Index<H> for PropertyBits<H> {
     type Output = bool;
     fn index(&self, index: H) -> &Self::Output {
         self.vec.index(index.index_us())
     }
 }
 
-impl<H: traits::Handle> IndexUnchecked<H> for PropertyBits<H> {
+impl<H: ItemHandle> IndexUnchecked<H> for PropertyBits<H> {
     unsafe fn index_unchecked(&self, index: H) -> &Self::Output {
         self.vec.index_unchecked(index.index_us())
     }
 }
 
-impl<H: traits::Handle> IndexSetUnchecked<H> for PropertyBits<H> {
+impl<H: ItemHandle> IndexSetUnchecked<H> for PropertyBits<H> {
     unsafe fn index_set_unchecked(&mut self, index: H, value: bool) {
         self.vec.index_set_unchecked(index.index_us(), value);
     }
 }
 
-impl<H: traits::Handle> IndexSet<H> for PropertyBits<H> {
+impl<H: ItemHandle> IndexSet<H> for PropertyBits<H> {
     fn index_set(&mut self, index: H, value: bool) {
         self.vec.index_set(index.index_us(), value);
     }
@@ -220,7 +220,7 @@ impl<H> ::std::fmt::Debug for PropertyBits<H> {
 // impl `traits::Property`
 
 impl<H> traits::Property for PropertyBits<H>
-    where H: traits::Handle
+    where H: ItemHandle
 {
     type Handle = H;
 
@@ -252,7 +252,7 @@ impl<H> traits::Property for PropertyBits<H>
 }
 
 impl<H> ResizeableProperty for PropertyBits<H>
-    where H: traits::Handle
+    where H: ItemHandle
 {
     fn reserve(&mut self, n: Size) {
         let n = n as usize;
@@ -275,7 +275,7 @@ impl<H> ResizeableProperty for PropertyBits<H>
 }
 
 impl<H> ConstructableProperty for PropertyBits<H>
-    where H: traits::Handle
+    where H: ItemHandle
 {
     fn new(name: String, size: Size) -> PropertyBits<H> {
         let mut prop = PropertyBits {
@@ -290,7 +290,7 @@ impl<H> ConstructableProperty for PropertyBits<H>
 }
 
 impl<H> PropertyFor<H> for bool
-    where H: traits::Handle
+    where H: ItemHandle
 {
     type Property = PropertyBits<H>;
 }
@@ -299,15 +299,15 @@ impl<H> PropertyFor<H> for bool
 
 #[cfg(test)]
 mod test {
-    use property::{Property, traits};
-    use property::traits::ConstructableProperty;
+    use property::Property;
+    use property::traits::{self, ConstructableProperty, ItemHandle};
 
     fn _assert_any<P: ::std::any::Any>(_p: P) {}
 
     // This method isn't used anywhere. Instead, it serves as a compile-time assertion that the
-    // constraints `T: traits::Value` and `H: traits::Handle` imply `Property: ::std::any::Any`.
+    // constraints `T: traits::Value` and `H: ItemHandle` imply `Property: ::std::any::Any`.
     // Test compilation will fail here if this fact is violated.
-    fn _assert_property_any<T: traits::Value, H: traits::Handle>() {
+    fn _assert_property_any<T: traits::Value, H: ItemHandle>() {
         _assert_any(Property::<T, H>::new("test".into(), 10));
     }
 }

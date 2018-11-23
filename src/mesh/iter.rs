@@ -5,7 +5,7 @@ use mesh::mesh::Mesh;
 use mesh::status::Status;
 use property::Property;
 use property::size::Size;
-use property::traits::Handle;
+use property::traits::ItemHandle;
 
 
 /// Supports bidirectional iteration through all elements of a mesh.
@@ -19,15 +19,15 @@ trait MeshIterMeta {
 
 // Default implementation -- should always be specialized.
 // This is here to avoid adding MeshIterMeta as an explicit constraint in the signatures below.
-// With this, `H: Handle` automatically assumes that a implementation of `MeshIterMeta` exists.
-impl<H: Handle> MeshIterMeta for H {
+// With this, `H: ItemHandle` automatically assumes that a implementation of `MeshIterMeta` exists.
+impl<H: ItemHandle> MeshIterMeta for H {
     default fn status_prop(_mesh: &Mesh) -> Option<&Property<Status, Self>>
         where Self: Sized
         { None }
     default fn size(_mesh: &Mesh) -> Size { unimplemented!() }
 }
 
-struct IterBase<'a, H: Handle> {
+struct IterBase<'a, H: ItemHandle> {
     mesh: &'a Mesh,
     h: H,
     status_prop: Option<&'a Property<Status, H>>,
@@ -38,16 +38,16 @@ struct IterBase<'a, H: Handle> {
 // Also, the derive version constrains all type parameters to be `Copy` (shouldn't hurt here,
 // though).
 
-impl<'a, H: Handle> ::std::fmt::Debug for IterBase<'a, H> {
+impl<'a, H: ItemHandle> ::std::fmt::Debug for IterBase<'a, H> {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         write!(f, "IterBase(h={:?}, skip_bits={:?})", self.h, self.skip_bits)
     }
 }
-impl<'a, H: Handle> Copy for IterBase<'a, H> {}
-impl<'a, H: Handle> Clone for IterBase<'a, H> { fn clone(&self) -> Self { *self } }
+impl<'a, H: ItemHandle> Copy for IterBase<'a, H> {}
+impl<'a, H: ItemHandle> Clone for IterBase<'a, H> { fn clone(&self) -> Self { *self } }
 
 
-impl<'a, H: Handle> IterBase<'a, H> {
+impl<'a, H: ItemHandle> IterBase<'a, H> {
     fn new(mesh: &'a Mesh, handle: H, skip: bool, is_fwd: bool) -> IterBase<'a, H> {
         // This should be a const, but user-defined operators cannot be used to initialize them.
         let skippable: Status = status::DELETED | status::HIDDEN;
@@ -137,13 +137,13 @@ impl<'a, H: Handle> IterBase<'a, H> {
 
 /// Forward iterator through the mesh.
 #[derive(Debug)]
-pub struct FwdIter<'a, H: Handle>(IterBase<'a, H>);
+pub struct FwdIter<'a, H: ItemHandle>(IterBase<'a, H>);
 
 // Manually implement `Copy`, `Clone` due to https://github.com/rust-lang/rust/issues/32872.
-impl<'a, H: Handle> Copy for FwdIter<'a, H> {}
-impl<'a, H: Handle> Clone for FwdIter<'a, H> { fn clone(&self) -> Self { *self } }
+impl<'a, H: ItemHandle> Copy for FwdIter<'a, H> {}
+impl<'a, H: ItemHandle> Clone for FwdIter<'a, H> { fn clone(&self) -> Self { *self } }
 
-impl<'a, H: Handle> FwdIter<'a, H> {
+impl<'a, H: ItemHandle> FwdIter<'a, H> {
     /// Initialize a forward iterator through the mesh starting at the given handle.
     /// If `skip` is true and the mesh stores a status field, then the iterator skips
     /// all elements with DELETED or HIDDEN status.
@@ -152,7 +152,7 @@ impl<'a, H: Handle> FwdIter<'a, H> {
     }
 }
 
-impl<'a, H: Handle> Iterator for FwdIter<'a, H> {
+impl<'a, H: ItemHandle> Iterator for FwdIter<'a, H> {
     type Item = H;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -163,13 +163,13 @@ impl<'a, H: Handle> Iterator for FwdIter<'a, H> {
 
 /// Backward iterator through the mesh.
 #[derive(Debug)]
-pub struct BwdIter<'a, H: Handle>(IterBase<'a, H>);
+pub struct BwdIter<'a, H: ItemHandle>(IterBase<'a, H>);
 
 // Manually implement `Copy`, `Clone` due to https://github.com/rust-lang/rust/issues/32872.
-impl<'a, H: Handle> Copy for BwdIter<'a, H> {}
-impl<'a, H: Handle> Clone for BwdIter<'a, H> { fn clone(&self) -> Self { *self } }
+impl<'a, H: ItemHandle> Copy for BwdIter<'a, H> {}
+impl<'a, H: ItemHandle> Clone for BwdIter<'a, H> { fn clone(&self) -> Self { *self } }
 
-impl<'a, H: Handle> BwdIter<'a, H> {
+impl<'a, H: ItemHandle> BwdIter<'a, H> {
     /// Initialize a backward iterator through the mesh starting at the given handle.
     /// If `skip` is true and the mesh stores a status field, then the iterator skips
     /// all elements with DELETED or HIDDEN status.
@@ -178,7 +178,7 @@ impl<'a, H: Handle> BwdIter<'a, H> {
     }
 }
 
-impl<'a, H: Handle> Iterator for BwdIter<'a, H> {
+impl<'a, H: ItemHandle> Iterator for BwdIter<'a, H> {
     type Item = H;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -194,7 +194,7 @@ mod test {
     use mesh::handles::VertexHandle;
     use mesh::status::{Status, DELETED, HIDDEN, SELECTED};
     use property::size::{Index, Size};
-    use property::traits::Handle;
+    use property::traits::ItemHandle;
 
     struct Mesh {
         skip: Box<Fn(Index) -> bool>

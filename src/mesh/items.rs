@@ -61,7 +61,7 @@ pub struct Face {
 
 /// Trait to map a mesh item handle of a container item type (`Vertex`, `Edge`, `Face`, but not
 /// `Halfedge`) to its corresponding mesh item.
-pub trait MeshContainerItem: traits::Handle {
+pub trait MeshContainerItem: traits::ItemHandle {
     /// Mesh item type corresponding to `Self` which is one of `Vertex`, `Edge`, or `Face`.
     type StorageItem: Clone + Default;
 }
@@ -71,7 +71,7 @@ impl MeshContainerItem for FaceHandle   { type StorageItem = Face;   }
 
 
 /// Trait to map a mesh item handle to its corresponding mesh item and storage/container item.
-pub trait MeshItemFor: traits::Handle {
+pub trait MeshItemFor: traits::ItemHandle {
     /// Mesh item type corresponding to `Self` which is one of `Vertex`, `Halfedge`, `Edge`, or
     /// `Face`.
     type Item: Clone + Default;
@@ -91,7 +91,7 @@ impl MeshItemFor for HalfedgeHandle { type Item = Halfedge; type ContainerItem =
 
 /// Captures the differences between how `Vertex`/`Edge`/`Face` are stored and how `Halfedge` is
 /// stored and retrieved.
-pub trait MeshMeta: traits::Handle + MeshItemFor { // explicit `traits::Handle` for documentation
+pub trait MeshMeta: traits::ItemHandle + MeshItemFor { // explicit `traits::ItemHandle` for documentation
     /// Number of items of type `Self` in the underlying storage vector.
     fn num_items(vec: &Vec<Self::ContainerItem>) -> usize;
     /// Gets item of type `Self` from the underlying storage vector.

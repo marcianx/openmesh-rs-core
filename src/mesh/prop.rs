@@ -20,13 +20,13 @@ use property::traits::Property as PropertyTrait;
 /// It is returned by each of the following methods on `mesh::Mesh`:
 /// `mesh.vprops()`, `mesh.hprops()`, `mesh.eprops()`, `mesh.fprops()`,
 /// `mesh.mprops()`.
-pub struct Props<'a, Handle: traits::Handle> {
+pub struct Props<'a, Handle: traits::ItemHandle> {
     props: &'a PropertyContainer<Handle>,
     len: Size,
 }
 
 impl<'a, Handle> Props<'a, Handle>
-    where Handle: traits::Handle,
+    where Handle: traits::ItemHandle,
 {
     /// Instantiates an item property interface struct.
     pub(crate) fn new(props: &'a PropertyContainer<Handle>, len: Size) -> Self {
@@ -42,13 +42,13 @@ impl<'a, Handle> Props<'a, Handle>
 /// It is returned by each of the following methods on `mesh::Mesh`:
 /// `mesh.vprops_mut()`, `mesh.hprops_mut()`, `mesh.eprops_mut()`,
 /// `mesh.fprops_mut()`, `mesh.mprops_mut()`.
-pub struct PropsMut<'a, Handle: traits::Handle> {
+pub struct PropsMut<'a, Handle: traits::ItemHandle> {
     props: &'a mut PropertyContainer<Handle>,
     len: Size,
 }
 
 impl<'a, Handle> PropsMut<'a, Handle>
-    where Handle: traits::Handle,
+    where Handle: traits::ItemHandle,
 {
     /// Instantiates an item property interface struct.
     pub(crate) fn new(props: &'a mut PropertyContainer<Handle>, len: Size) -> Self {
@@ -84,7 +84,7 @@ pub type MPropsMut<'a> = PropsMut<'a, MeshHandle>;
 macro_rules! impl_props {
     ($Props:ident) => {
         impl<'a, Handle> $Props<'a, Handle>
-            where Handle: traits::Handle,
+            where Handle: traits::ItemHandle,
         {
             #[doc="Number of elements of the given type."]
             pub fn len(&self) -> Size { self.len }
@@ -111,7 +111,7 @@ impl_props!(PropsMut);
 
 
 impl<'a, Handle> PropsMut<'a, Handle>
-    where Handle: traits::Handle,
+    where Handle: traits::ItemHandle,
 {
     /// Adds a `Property<T>` for the associated item type (vertex, halfedge, edge, face, mesh).
     /// 
@@ -161,7 +161,7 @@ impl<'a, Handle> PropsMut<'a, Handle>
 
 
 impl<'a, Handle> ::std::fmt::Debug for Props<'a, Handle>
-    where Handle: traits::Handle,
+    where Handle: traits::ItemHandle,
 {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         self.props.fmt(f)
@@ -170,7 +170,7 @@ impl<'a, Handle> ::std::fmt::Debug for Props<'a, Handle>
 
 
 impl<'a, Handle> ::std::fmt::Debug for PropsMut<'a, Handle>
-    where Handle: traits::Handle,
+    where Handle: traits::ItemHandle,
 {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         self.props.fmt(f)
