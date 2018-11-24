@@ -2,7 +2,7 @@
 
 use std::any::Any;
 use std::marker::PhantomData;
-use mesh::handles::{VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle, MeshHandle};
+use mesh::item_handle::{VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle, MeshHandle};
 use property::BasePropHandle;
 use property::traits;
 

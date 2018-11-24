@@ -1,14 +1,27 @@
-//! Crate-local helpers to relate handles to mesh items (Vertex, Halfedge, Edge, Face).
+//! Mesh item handle types.
 
-use mesh::handles::{VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle};
 use mesh::items::MeshMeta;
 use mesh::mesh::Mesh;
 use property::PropertyContainer;
 use property::traits;
 
-/// For getting the right mesh item vectors and properties based on the handle type.
-/// This is useful for implementing helper structs parametrized by item.
-pub(crate) trait ItemHandleMeta: traits::ItemHandle + MeshMeta { // explicit `traits::ItemHandle` for documentation
+def_handle!(VertexHandle, "Vertex handle.");
+def_handle!(HalfedgeHandle, "Halfedge handle.");
+def_handle!(EdgeHandle, "Edge handle.");
+def_handle!(FaceHandle, "Face handle.");
+def_handle!(MeshHandle, "Mesh handle (only needed for parametrizing PropertyContainer).");
+
+impl traits::ItemHandle for VertexHandle {}
+impl traits::ItemHandle for HalfedgeHandle {}
+impl traits::ItemHandle for EdgeHandle {}
+impl traits::ItemHandle for FaceHandle {}
+impl traits::ItemHandle for MeshHandle {}
+
+
+/// Relates each `ItemHandle` type to corresponding structures within the Mesh itself.
+/// The methods and types within this trait **are implementation details** and should not be used
+/// outside of this framework.
+pub(crate) trait MeshItemHandle: traits::ItemHandle + MeshMeta {
     // Default property name prefix.
     const PREFIX: &'static str;
     fn with_prefix(name: &str) -> String { format!("{}{}", Self::PREFIX, name) }
@@ -19,7 +32,7 @@ pub(crate) trait ItemHandleMeta: traits::ItemHandle + MeshMeta { // explicit `tr
 
 macro_rules! impl_to_items {
     ($Item:ty, $Handle:ty, $item_field:ident, $prop_field:ident, $prefix:expr) => {
-        impl ItemHandleMeta for $Handle {
+        impl MeshItemHandle for $Handle {
             const PREFIX: &'static str = $prefix;
             fn items_props(m: &Mesh) ->
                 (&Vec<Self::ContainerItem>, &PropertyContainer<Self>)

@@ -1,9 +1,8 @@
 //! 2-manifold surface mesh represented as a halfedge data structure.
 
 // TODO: Determine carefully what ought to be reexported.
-pub mod handles;
+pub mod item_handle;
 pub mod prop_handle;
-pub(crate) mod handle_meta;
 pub mod iter;
 pub mod status;
 

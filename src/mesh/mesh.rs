@@ -1,9 +1,9 @@
 //! 2-manifold surface mesh represented as a halfedge data structure.
 
-use mesh::handles::{
+use mesh::item_handle::{
     VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle, MeshHandle,
+    MeshItemHandle,
 };
-use mesh::handle_meta::ItemHandleMeta;
 use mesh::items::{
     Vertex, Edge, Face,
     Items, VItems, HItems, EItems, FItems,
@@ -53,24 +53,24 @@ pub struct Mesh {
 // item handle type.
 impl Mesh {
     /// Returns the property container associated with the mesh item type identified by `Handle`.
-    pub(crate) fn items<H: ItemHandleMeta>(&self) -> Items<H> {
-        let (items, props) = <H as ItemHandleMeta>::items_props(self);
+    pub(crate) fn items<H: MeshItemHandle>(&self) -> Items<H> {
+        let (items, props) = <H as MeshItemHandle>::items_props(self);
         Items::new(items, props)
     }
 
     /// Returns the property container associated with the mesh item type identified by `H`.
-    pub(crate) fn items_mut<H: ItemHandleMeta>(&mut self) -> ItemsMut<H> {
-        let (items, props) = <H as ItemHandleMeta>::items_props_mut(self);
+    pub(crate) fn items_mut<H: MeshItemHandle>(&mut self) -> ItemsMut<H> {
+        let (items, props) = <H as MeshItemHandle>::items_props_mut(self);
         ItemsMut::new(items, props)
     }
 
     /// Returns the property container associated with the mesh item type identified by `H`.
-    pub(crate) fn props<H: ItemHandleMeta>(&self) -> Props<H> {
+    pub(crate) fn props<H: MeshItemHandle>(&self) -> Props<H> {
         Self::items(self).into_props()
     }
 
     /// Returns the property container associated with the mesh item type identified by `H`.
-    pub(crate) fn props_mut<H: ItemHandleMeta>(&mut self) -> PropsMut<H> {
+    pub(crate) fn props_mut<H: MeshItemHandle>(&mut self) -> PropsMut<H> {
         Self::items_mut(self).into_props_mut()
     }
 }

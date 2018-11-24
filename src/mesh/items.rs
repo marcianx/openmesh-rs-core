@@ -1,9 +1,7 @@
 //! Defines the core primitives (`Vertex`, `Halfedge`, `Edge`, `Face`) encoding mesh connectivity,
 //! and operations on collections of these items.
 
-use mesh::handles::{
-    VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle,
-};
+use mesh::item_handle::{VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle};
 use mesh::prop::{Props, PropsMut};
 use property::PropertyContainer;
 use property::traits::{self, Handle}; // import methods of Handle

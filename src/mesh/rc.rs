@@ -1,7 +1,9 @@
 //! See documentation for `RcPropHandle`.
 use property::traits;
-use mesh::handles::{VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle};
-use mesh::handle_meta::ItemHandleMeta;
+use mesh::item_handle::{
+    VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle,
+    MeshItemHandle,
+};
 use mesh::prop_handle::PropHandle;
 use mesh::mesh::Mesh;
 
@@ -15,7 +17,7 @@ pub(crate) struct RcPropHandle<H: traits::ItemHandle, T: traits::Value> {
     ref_count: u32,
 }
 
-impl<H: traits::ItemHandle + ItemHandleMeta, T: traits::Value> RcPropHandle<H, T> {
+impl<H: traits::ItemHandle + MeshItemHandle, T: traits::Value> RcPropHandle<H, T> {
     /// Returns a `RcPropHandle` with an invalid handle an 0 ref count.
     pub fn new() -> RcPropHandle<H, T> { Default::default() }
 
