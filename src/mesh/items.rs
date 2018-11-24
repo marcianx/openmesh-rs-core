@@ -1,10 +1,12 @@
 //! Defines the core primitives (`Vertex`, `Halfedge`, `Edge`, `Face`) encoding mesh connectivity,
 //! and operations on collections of these items.
 
-use mesh::item_handle::{VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle};
+use mesh::item_handle::{
+    VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle,
+    MeshItemHandle,
+};
 use mesh::prop::{Props, PropsMut};
 use property::PropertyContainer;
-use property::traits::{self, Handle}; // import methods of Handle
 use property::size::Size;
 
 ////////////////////////////////////////////////////////////
@@ -54,81 +56,14 @@ pub struct Face {
     pub hh: HalfedgeHandle,
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// For mapping between item type and its corresponding handle type.
-
-/// This is an implementation detail implemented for `VertexHandle`, `HalfedgeHandle`,
-/// `EdgeHandle`, and `FaceHandle` to map an item handle to its corresponding mesh item and
-/// storage/container item.
-pub trait MeshItemFor: traits::ItemHandle {
-    /// Mesh item type corresponding to `Self` which is one of `Vertex`, `Halfedge`, `Edge`, or
-    /// `Face`.
-    type Item: Clone + Default;
-    /// Storage item type containing `Self::Item`. Specifically, `Vertex`/`Edge`/`Face` is stored
-    /// as itself, but each `Halfedge` is stored in an `Edge`.
-    type ContainerItem: Clone + Default;
-}
-
-impl MeshItemFor for VertexHandle   { type Item = Vertex;   type ContainerItem = Vertex; }
-impl MeshItemFor for HalfedgeHandle { type Item = Halfedge; type ContainerItem = Edge; }
-impl MeshItemFor for EdgeHandle     { type Item = Edge;     type ContainerItem = Edge; }
-impl MeshItemFor for FaceHandle     { type Item = Face;     type ContainerItem = Face; }
-
-////////////////////////////////////////////////////////////////////////////////
-// For accessing each item type from the mesh connectivity.
-
-/// This is an implementation detail and is implemented for `VertexHandle`, `HalfedgeHandle`,
-/// `EdgeHandle`, and `FaceHandle` to capture the differences between how the corresponding items
-/// are stored and retrieved.
-pub trait MeshMeta: traits::ItemHandle + MeshItemFor { // explicit `traits::ItemHandle` for documentation
-    /// Number of items of type `Self` in the underlying storage vector.
-    fn num_items(vec: &Vec<Self::ContainerItem>) -> usize;
-    /// Gets item of type `Self` from the underlying storage vector.
-    fn get(vec: &Vec<Self::ContainerItem>, handle: Self) -> Option<&Self::Item>;
-    /// Gets item of type `Self` mutably from the underlying storage vector.
-    fn get_mut(vec: &mut Vec<Self::ContainerItem>, handle: Self) -> Option<&mut Self::Item>;
-}
-
-macro_rules! impl_default_mesh_item {
-    ($Handle:ty) => {
-        impl MeshMeta for $Handle {
-            fn num_items(vec: &Vec<Self::ContainerItem>) -> usize { vec.len() }
-            fn get(vec: &Vec<Self::ContainerItem>, handle: Self) -> Option<&Self::Item> {
-                vec.get(handle.index_us())
-            }
-            fn get_mut(vec: &mut Vec<Self::ContainerItem>, handle: Self) -> Option<&mut Self::Item> {
-                vec.get_mut(handle.index_us())
-            }
-        }
-    }
-}
-impl_default_mesh_item!(VertexHandle);
-impl_default_mesh_item!(EdgeHandle);
-impl_default_mesh_item!(FaceHandle);
-
-impl MeshMeta for HalfedgeHandle {
-    fn num_items(vec: &Vec<Self::ContainerItem>) -> usize {
-        debug_assert!(vec.len() <= usize::max_value() / 2);
-        vec.len() * 2
-    }
-    fn get(vec: &Vec<Self::ContainerItem>, handle: Self) -> Option<&Self::Item> {
-        let index = handle.index_us();
-        vec.get(index / 2).map(|edge| &edge.halfedges[index % 2])
-    }
-    fn get_mut(vec: &mut Vec<Self::ContainerItem>, handle: Self) -> Option<&mut Self::Item> {
-        let index = handle.index_us();
-        vec.get_mut(index / 2).map(|edge| &mut edge.halfedges[index % 2])
-    }
-}
-
 ////////////////////////////////////////////////////////////
 
-pub(crate) type ContainerVec<H> = Vec<<H as MeshItemFor>::ContainerItem>;
+type ContainerVec<H> = Vec<<H as MeshItemHandle>::ContainerItem>;
 
 /// Manages immutable operations on the list of a particular mesh item type.
 /// These are created by `Mesh`'s methods:
 /// `vertices()`, `halfedges()`, `edges()`, `faces()`.
-pub struct Items<'a, H: MeshItemFor> {
+pub struct Items<'a, H: MeshItemHandle> {
     /// Item connectivity.
     items: &'a ContainerVec<H>,
     /// Item properties.
@@ -136,7 +71,7 @@ pub struct Items<'a, H: MeshItemFor> {
     _marker: ::std::marker::PhantomData<H>,
 }
 
-impl<'a, H: MeshItemFor> Items<'a, H> {
+impl<'a, H: MeshItemHandle> Items<'a, H> {
     /// Instantiates an item + property interface struct.
     pub(crate) fn new(items: &'a ContainerVec<H>, props: &'a PropertyContainer<H>) -> Self
     {
@@ -152,7 +87,9 @@ impl<'a, H: MeshItemFor> Items<'a, H> {
 /// Manages immutable and mutable operations on the list of a particular mesh item type.
 /// These are created by `Mesh`'s methods:
 /// `vertices_mut()`, `halfedges_mut()`, `edges_mut()`, `faces_mut()`.
-pub struct ItemsMut<'a, H: MeshItemFor> {
+/// Addition and removal methods are not implemented on `ItemsMut<'a, HalfedgeHandle>` since
+/// halfedges belong to edges which must be added/removed instead.
+pub struct ItemsMut<'a, H: MeshItemHandle> {
     /// Item connectivity.
     items: &'a mut ContainerVec<H>,
     /// Item properties.
@@ -160,7 +97,7 @@ pub struct ItemsMut<'a, H: MeshItemFor> {
     _marker: ::std::marker::PhantomData<H>,
 }
 
-impl<'a, H: MeshItemFor> ItemsMut<'a, H> {
+impl<'a, H: MeshItemHandle> ItemsMut<'a, H> {
     /// Instantiates an item + property mutable interface struct.
     pub(crate) fn new(items: &'a mut ContainerVec<H>, props: &'a mut PropertyContainer<H>) -> Self
     {
@@ -193,10 +130,10 @@ macro_rules! impl_items {
     ($Items:ident) => {
         // Methods with immutable self for both `Items` and `ItemsMut`.
         impl<'a, H> $Items<'a, H>
-            where H: MeshMeta,
+            where H: MeshItemHandle,
         {
             #[doc="Number of items of the item type."]
-            fn len_us(&self) -> usize { <H as MeshMeta>::num_items(&self.items) }
+            fn len_us(&self) -> usize { <H as MeshItemHandle>::num_items(&self.items) }
 
             #[doc="Number of items of the item type."]
             pub fn len(&self) -> Size {
@@ -231,7 +168,7 @@ macro_rules! impl_items {
 
             #[doc="Gets the item at the handle."]
             pub fn get(&self, handle: H) -> Option<&H::Item> {
-                <H as MeshMeta>::get(self.items, handle)
+                <H as MeshItemHandle>::get(self.items, handle)
             }
 
             #[doc="Returns the properties container associated with the mesh item type."]
@@ -256,11 +193,11 @@ impl_items!(ItemsMut);
 
 // Methods for mutable self.
 impl<'a, H> ItemsMut<'a, H>
-    where H: MeshMeta,
+    where H: MeshItemHandle,
 {
     /// Gets the mutable item at the handle.
     pub fn get_mut(&mut self, handle: H) -> Option<&mut H::Item> {
-        <H as MeshMeta>::get_mut(&mut self.items, handle)
+        <H as MeshItemHandle>::get_mut(&mut self.items, handle)
     }
 
     /// Returns the mutable properties container associated with the mesh item type.
@@ -279,8 +216,7 @@ impl<'a, H> ItemsMut<'a, H>
 
 // Only applies to mesh items used for storage. In particular, it doesn't apply to `Halfedge`.
 impl<'a, H> ItemsMut<'a, H>
-    where H: MeshMeta,
-          H: MeshItemFor<Item = <H as MeshItemFor>::ContainerItem>,
+    where H: MeshItemHandle<Item = <H as MeshItemHandle>::ContainerItem>,
 {
     /// Adds/appends a new item and returns it.
     /// 
