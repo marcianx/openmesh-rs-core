@@ -59,18 +59,6 @@ pub struct Face {
 ////////////////////////////////////////////////////////////////////////////////
 // For mapping between item type and its corresponding handle type.
 
-/// This is an implementation detail implemented for `VertexHandle`, `EdgeHandle`, and `FaceHandle`
-/// (but not `HalfedgeHandle`) to map an item handle of a container item type (`Vertex`, `Edge`,
-/// `Face`, but not `Halfedge`) to its corresponding mesh item.
-pub trait MeshContainerItem: traits::ItemHandle {
-    /// Mesh item type corresponding to `Self` which is one of `Vertex`, `Edge`, or `Face`.
-    type StorageItem: Clone + Default;
-}
-impl MeshContainerItem for VertexHandle { type StorageItem = Vertex; }
-impl MeshContainerItem for EdgeHandle   { type StorageItem = Edge;   }
-impl MeshContainerItem for FaceHandle   { type StorageItem = Face;   }
-
-
 /// This is an implementation detail implemented for `VertexHandle`, `HalfedgeHandle`,
 /// `EdgeHandle`, and `FaceHandle` to map an item handle to its corresponding mesh item and
 /// storage/container item.
@@ -83,11 +71,10 @@ pub trait MeshItemFor: traits::ItemHandle {
     type ContainerItem: Clone + Default;
 }
 
-impl<T: MeshContainerItem> MeshItemFor for T {
-    type Item = T::StorageItem;
-    type ContainerItem = T::StorageItem;
-}
+impl MeshItemFor for VertexHandle   { type Item = Vertex;   type ContainerItem = Vertex; }
 impl MeshItemFor for HalfedgeHandle { type Item = Halfedge; type ContainerItem = Edge; }
+impl MeshItemFor for EdgeHandle     { type Item = Edge;     type ContainerItem = Edge; }
+impl MeshItemFor for FaceHandle     { type Item = Face;     type ContainerItem = Face; }
 
 ////////////////////////////////////////////////////////////////////////////////
 // For accessing each item type from the mesh connectivity.
@@ -294,7 +281,8 @@ impl<'a, Handle> ItemsMut<'a, Handle>
 
 // Only applies to mesh items used for storage. In particular, it doesn't apply to `Halfedge`.
 impl<'a, Handle> ItemsMut<'a, Handle>
-    where Handle: MeshContainerItem,
+    where Handle: MeshMeta,
+          Handle: MeshItemFor<Item = <Handle as MeshItemFor>::ContainerItem>,
 {
     /// Adds/appends a new item and returns it.
     /// 
