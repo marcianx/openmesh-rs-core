@@ -6,7 +6,7 @@ use mesh::handles::{
 };
 use mesh::prop::{Props, PropsMut};
 use property::PropertyContainer;
-use property::traits::{self, Handle as HandleTrait};
+use property::traits::{self, Handle}; // import methods of Handle
 use property::size::Size;
 
 ////////////////////////////////////////////////////////////
@@ -125,22 +125,22 @@ impl MeshMeta for HalfedgeHandle {
 
 ////////////////////////////////////////////////////////////
 
-pub(crate) type ContainerVec<Handle> = Vec<<Handle as MeshItemFor>::ContainerItem>;
+pub(crate) type ContainerVec<H> = Vec<<H as MeshItemFor>::ContainerItem>;
 
 /// Manages immutable operations on the list of a particular mesh item type.
 /// These are created by `Mesh`'s methods:
 /// `vertices()`, `halfedges()`, `edges()`, `faces()`.
-pub struct Items<'a, Handle: MeshItemFor> {
+pub struct Items<'a, H: MeshItemFor> {
     /// Item connectivity.
-    items: &'a ContainerVec<Handle>,
+    items: &'a ContainerVec<H>,
     /// Item properties.
-    props: &'a PropertyContainer<Handle>,
-    _marker: ::std::marker::PhantomData<Handle>,
+    props: &'a PropertyContainer<H>,
+    _marker: ::std::marker::PhantomData<H>,
 }
 
-impl<'a, Handle: MeshItemFor> Items<'a, Handle> {
+impl<'a, H: MeshItemFor> Items<'a, H> {
     /// Instantiates an item + property interface struct.
-    pub(crate) fn new(items: &'a ContainerVec<Handle>, props: &'a PropertyContainer<Handle>) -> Self
+    pub(crate) fn new(items: &'a ContainerVec<H>, props: &'a PropertyContainer<H>) -> Self
     {
         Items {
             items: items,
@@ -154,17 +154,17 @@ impl<'a, Handle: MeshItemFor> Items<'a, Handle> {
 /// Manages immutable and mutable operations on the list of a particular mesh item type.
 /// These are created by `Mesh`'s methods:
 /// `vertices_mut()`, `halfedges_mut()`, `edges_mut()`, `faces_mut()`.
-pub struct ItemsMut<'a, Handle: MeshItemFor> {
+pub struct ItemsMut<'a, H: MeshItemFor> {
     /// Item connectivity.
-    items: &'a mut ContainerVec<Handle>,
+    items: &'a mut ContainerVec<H>,
     /// Item properties.
-    props: &'a mut PropertyContainer<Handle>,
-    _marker: ::std::marker::PhantomData<Handle>,
+    props: &'a mut PropertyContainer<H>,
+    _marker: ::std::marker::PhantomData<H>,
 }
 
-impl<'a, Handle: MeshItemFor> ItemsMut<'a, Handle> {
+impl<'a, H: MeshItemFor> ItemsMut<'a, H> {
     /// Instantiates an item + property mutable interface struct.
-    pub(crate) fn new(items: &'a mut ContainerVec<Handle>, props: &'a mut PropertyContainer<Handle>) -> Self
+    pub(crate) fn new(items: &'a mut ContainerVec<H>, props: &'a mut PropertyContainer<H>) -> Self
     {
         ItemsMut {
             items: items,
@@ -194,11 +194,11 @@ pub type FItemsMut<'a> = ItemsMut<'a, FaceHandle>;
 macro_rules! impl_items {
     ($Items:ident) => {
         // Methods with immutable self for both `Items` and `ItemsMut`.
-        impl<'a, Handle> $Items<'a, Handle>
-            where Handle: MeshMeta,
+        impl<'a, H> $Items<'a, H>
+            where H: MeshMeta,
         {
             #[doc="Number of items of the item type."]
-            fn len_us(&self) -> usize { <Handle as MeshMeta>::num_items(&self.items) }
+            fn len_us(&self) -> usize { <H as MeshMeta>::num_items(&self.items) }
 
             #[doc="Number of items of the item type."]
             pub fn len(&self) -> Size {
@@ -209,7 +209,7 @@ macro_rules! impl_items {
             #[doc="Whether the handle is within the range of the underlying container."]
             #[doc="Even if valid, the handle could pointed to a deleted item."]
             #[doc="This method is useful mostly for debugging."]
-            pub fn is_valid(&self, handle: Handle) -> bool {
+            pub fn is_valid(&self, handle: H) -> bool {
                 let idx = handle.index();
 
                 // In case index is ever changed to a signed type, also check against 0.
@@ -217,32 +217,32 @@ macro_rules! impl_items {
                 return 0 <= idx && idx < self.len();
             }
 
-            #[doc="Computes the `Handle` from the given `Item` reference. The `Item`"]
+            #[doc="Computes the handle from the given `Item` reference. The `Item`"]
             #[doc="must be from the mesh from which `self` was generated."]
-            pub fn handle(&self, item: &Handle::Item) -> Handle {
+            pub fn handle(&self, item: &H::Item) -> H {
                 debug_assert!(0 < self.len());
                 let diff =
-                    (item as *const Handle::Item as isize) -
-                    (&self.items[0] as *const Handle::ContainerItem as isize);
-                let size_of_item = ::std::mem::size_of::<Handle::Item>() as isize;
+                    (item as *const H::Item as isize) -
+                    (&self.items[0] as *const H::ContainerItem as isize);
+                let size_of_item = ::std::mem::size_of::<H::Item>() as isize;
                 debug_assert!(diff % size_of_item == 0);
                 let index = diff / size_of_item;
                 assert!(0 <= index && index < self.len_us() as isize);
-                Handle::from_index(index as Size)
+                H::from_index(index as Size)
             }
 
             #[doc="Gets the item at the handle."]
-            pub fn get(&self, handle: Handle) -> Option<&Handle::Item> {
-                <Handle as MeshMeta>::get(self.items, handle)
+            pub fn get(&self, handle: H) -> Option<&H::Item> {
+                <H as MeshMeta>::get(self.items, handle)
             }
 
             #[doc="Returns the properties container associated with the mesh item type."]
-            pub fn props(&self) -> Props<Handle> {
+            pub fn props(&self) -> Props<H> {
                 Props::new(self.props, self.len())
             }
 
             #[doc="Returns the properties container associated with the mesh item type."]
-            pub fn into_props(self) -> Props<'a, Handle> {
+            pub fn into_props(self) -> Props<'a, H> {
                 Props::new(self.props, self.len())
             }
 
@@ -257,22 +257,22 @@ impl_items!(ItemsMut);
 
 
 // Methods for mutable self.
-impl<'a, Handle> ItemsMut<'a, Handle>
-    where Handle: MeshMeta,
+impl<'a, H> ItemsMut<'a, H>
+    where H: MeshMeta,
 {
     /// Gets the mutable item at the handle.
-    pub fn get_mut(&mut self, handle: Handle) -> Option<&mut Handle::Item> {
-        <Handle as MeshMeta>::get_mut(&mut self.items, handle)
+    pub fn get_mut(&mut self, handle: H) -> Option<&mut H::Item> {
+        <H as MeshMeta>::get_mut(&mut self.items, handle)
     }
 
     /// Returns the mutable properties container associated with the mesh item type.
-    pub fn props_mut(&mut self) -> PropsMut<Handle> {
+    pub fn props_mut(&mut self) -> PropsMut<H> {
         let len = self.len();
         PropsMut::new(&mut self.props, len)
     }
 
     /// Returns the mutable properties container associated with the mesh item type.
-    pub fn into_props_mut(self) -> PropsMut<'a, Handle> {
+    pub fn into_props_mut(self) -> PropsMut<'a, H> {
         let len = self.len();
         PropsMut::new(self.props, len)
     }
@@ -280,23 +280,23 @@ impl<'a, Handle> ItemsMut<'a, Handle>
 
 
 // Only applies to mesh items used for storage. In particular, it doesn't apply to `Halfedge`.
-impl<'a, Handle> ItemsMut<'a, Handle>
-    where Handle: MeshMeta,
-          Handle: MeshItemFor<Item = <Handle as MeshItemFor>::ContainerItem>,
+impl<'a, H> ItemsMut<'a, H>
+    where H: MeshMeta,
+          H: MeshItemFor<Item = <H as MeshItemFor>::ContainerItem>,
 {
     /// Adds/appends a new item and returns it.
     /// 
     /// TODO: Reconsider the privacy of this method.
     /// - Should this just be a helper for higher-level append operations?
     /// - Should it be exposed publicly to allow for more advanced mesh constructions?
-    pub fn append(&mut self) -> Handle {
+    pub fn append(&mut self) -> H {
         let old_len = self.items.len();
         assert!(old_len < Size::max_value() as usize,
                 "Cannot add more than {} items. Already have {}.", Size::max_value(), old_len);
         let old_len = old_len as Size;
         self.items.push(Default::default());
         self.props.push_all();
-        Handle::from_index(old_len)
+        H::from_index(old_len)
     }
 
     /// Reserves space for `n` items.
