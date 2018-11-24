@@ -1,10 +1,8 @@
 //! See documentation for `RcPropHandle`.
 use property::traits;
-use mesh::handles::{
-    VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle,
-    PropHandle,
-};
+use mesh::handles::{VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle};
 use mesh::handle_meta::ItemHandleMeta;
+use mesh::prop_handle::PropHandle;
 use mesh::mesh::Mesh;
 
 /// Ref-counted property handle.

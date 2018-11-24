@@ -1,10 +1,8 @@
 //! Defines a helper struct `Props` to add, remove, or access property lists (associated with
 //! vectices, halfedge, edge, and faces) within a mesh.
 
-use mesh::handles::{
-    VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle, MeshHandle,
-    PropHandle,
-};
+use mesh::handles::{VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle, MeshHandle};
+use mesh::prop_handle::PropHandle;
 use property::PropertyContainer;
 use property::size::Size;
 use property::traits::{self, PropertyFor};
