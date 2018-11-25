@@ -1,33 +1,12 @@
 //! Iterators to enumerate all items in the mesh, skipping DELETED and HIDDEN items.
 
-use mesh::status;
+use mesh::item_handle::MeshItemHandle;
 use mesh::mesh::Mesh;
-use mesh::status::Status;
+use mesh::status::{self, Status};
 use property::Property;
-use property::size::Size;
-use property::traits::ItemHandle;
 
 
-/// Supports bidirectional iteration through all elements of a mesh.
-trait MeshIterMeta {
-    /// The status bits for the handle. If no status bits are stored, Status::empty() is returned.
-    fn status_prop(mesh: &Mesh) -> Option<&Property<Status, Self>>
-        where Self: Sized;
-    /// Count of the number of Handle type elements in the mesh (including ones to be skipped).
-    fn size(mesh: &Mesh) -> Size;
-}
-
-// Default implementation -- should always be specialized.
-// This is here to avoid adding MeshIterMeta as an explicit constraint in the signatures below.
-// With this, `H: ItemHandle` automatically assumes that a implementation of `MeshIterMeta` exists.
-impl<H: ItemHandle> MeshIterMeta for H {
-    default fn status_prop(_mesh: &Mesh) -> Option<&Property<Status, Self>>
-        where Self: Sized
-        { None }
-    default fn size(_mesh: &Mesh) -> Size { unimplemented!() }
-}
-
-struct IterBase<'a, H: ItemHandle> {
+struct IterBase<'a, H: MeshItemHandle> {
     mesh: &'a Mesh,
     h: H,
     status_prop: Option<&'a Property<Status, H>>,
@@ -38,16 +17,16 @@ struct IterBase<'a, H: ItemHandle> {
 // Also, the derive version constrains all type parameters to be `Copy` (shouldn't hurt here,
 // though).
 
-impl<'a, H: ItemHandle> ::std::fmt::Debug for IterBase<'a, H> {
+impl<'a, H: MeshItemHandle> ::std::fmt::Debug for IterBase<'a, H> {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         write!(f, "IterBase(h={:?}, skip_bits={:?})", self.h, self.skip_bits)
     }
 }
-impl<'a, H: ItemHandle> Copy for IterBase<'a, H> {}
-impl<'a, H: ItemHandle> Clone for IterBase<'a, H> { fn clone(&self) -> Self { *self } }
+impl<'a, H: MeshItemHandle> Copy for IterBase<'a, H> {}
+impl<'a, H: MeshItemHandle> Clone for IterBase<'a, H> { fn clone(&self) -> Self { *self } }
 
 
-impl<'a, H: ItemHandle> IterBase<'a, H> {
+impl<'a, H: MeshItemHandle> IterBase<'a, H> {
     fn new(mesh: &'a Mesh, handle: H, skip: bool, is_fwd: bool) -> IterBase<'a, H> {
         // This should be a const, but user-defined operators cannot be used to initialize them.
         let skippable: Status = status::DELETED | status::HIDDEN;
@@ -55,7 +34,7 @@ impl<'a, H: ItemHandle> IterBase<'a, H> {
         let mut iter = IterBase {
             mesh,
             h: handle,
-            status_prop: <H as MeshIterMeta>::status_prop(mesh),
+            status_prop: <H as MeshItemHandle>::status_prop(mesh),
             skip_bits: if skip { skippable } else { Status::empty() }
         };
         if skip {
@@ -80,7 +59,7 @@ impl<'a, H: ItemHandle> IterBase<'a, H> {
         if !self.h.is_valid() { return; }
         let mut within_bounds;
         while {
-                  within_bounds = self.h.index() < <H as MeshIterMeta>::size(self.mesh);
+                  within_bounds = self.h.index() < H::len(self.mesh);
                   within_bounds
               } && self.should_skip()
         {
@@ -106,7 +85,7 @@ impl<'a, H: ItemHandle> IterBase<'a, H> {
     /// non-skipped item is encounted or the list is exhausted.
     fn skip_bwd(&mut self) {
         if !self.h.is_valid() { return; }
-        assert!(self.h.index() < <H as MeshIterMeta>::size(self.mesh),
+        assert!(self.h.index() < H::len(self.mesh),
                 "Handle, if valid, must be within mesh bounds.");
         let mut skip;
         // Important to compute skip before checking index due to end condition.
@@ -137,13 +116,13 @@ impl<'a, H: ItemHandle> IterBase<'a, H> {
 
 /// Forward iterator through the mesh.
 #[derive(Debug)]
-pub struct FwdIter<'a, H: ItemHandle>(IterBase<'a, H>);
+pub struct FwdIter<'a, H: MeshItemHandle>(IterBase<'a, H>);
 
 // Manually implement `Copy`, `Clone` due to https://github.com/rust-lang/rust/issues/32872.
-impl<'a, H: ItemHandle> Copy for FwdIter<'a, H> {}
-impl<'a, H: ItemHandle> Clone for FwdIter<'a, H> { fn clone(&self) -> Self { *self } }
+impl<'a, H: MeshItemHandle> Copy for FwdIter<'a, H> {}
+impl<'a, H: MeshItemHandle> Clone for FwdIter<'a, H> { fn clone(&self) -> Self { *self } }
 
-impl<'a, H: ItemHandle> FwdIter<'a, H> {
+impl<'a, H: MeshItemHandle> FwdIter<'a, H> {
     /// Initialize a forward iterator through the mesh starting at the given handle.
     /// If `skip` is true and the mesh stores a status field, then the iterator skips
     /// all elements with DELETED or HIDDEN status.
@@ -152,7 +131,7 @@ impl<'a, H: ItemHandle> FwdIter<'a, H> {
     }
 }
 
-impl<'a, H: ItemHandle> Iterator for FwdIter<'a, H> {
+impl<'a, H: MeshItemHandle> Iterator for FwdIter<'a, H> {
     type Item = H;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -163,13 +142,13 @@ impl<'a, H: ItemHandle> Iterator for FwdIter<'a, H> {
 
 /// Backward iterator through the mesh.
 #[derive(Debug)]
-pub struct BwdIter<'a, H: ItemHandle>(IterBase<'a, H>);
+pub struct BwdIter<'a, H: MeshItemHandle>(IterBase<'a, H>);
 
 // Manually implement `Copy`, `Clone` due to https://github.com/rust-lang/rust/issues/32872.
-impl<'a, H: ItemHandle> Copy for BwdIter<'a, H> {}
-impl<'a, H: ItemHandle> Clone for BwdIter<'a, H> { fn clone(&self) -> Self { *self } }
+impl<'a, H: MeshItemHandle> Copy for BwdIter<'a, H> {}
+impl<'a, H: MeshItemHandle> Clone for BwdIter<'a, H> { fn clone(&self) -> Self { *self } }
 
-impl<'a, H: ItemHandle> BwdIter<'a, H> {
+impl<'a, H: MeshItemHandle> BwdIter<'a, H> {
     /// Initialize a backward iterator through the mesh starting at the given handle.
     /// If `skip` is true and the mesh stores a status field, then the iterator skips
     /// all elements with DELETED or HIDDEN status.
@@ -178,7 +157,7 @@ impl<'a, H: ItemHandle> BwdIter<'a, H> {
     }
 }
 
-impl<'a, H: ItemHandle> Iterator for BwdIter<'a, H> {
+impl<'a, H: MeshItemHandle> Iterator for BwdIter<'a, H> {
     type Item = H;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -190,11 +169,10 @@ impl<'a, H: ItemHandle> Iterator for BwdIter<'a, H> {
 /*
 #[cfg(test)]
 mod test {
-    use super::{MeshIterMeta, FwdIter, BwdIter};
-    use mesh::handles::VertexHandle;
+    use super::{MeshItemHandle, FwdIter, BwdIter};
+    use mesh::item_handle::{VertexHandle, MeshItemHandle};
     use mesh::status::{Status, DELETED, HIDDEN, SELECTED};
     use property::size::{Index, Size};
-    use property::traits::ItemHandle;
 
     struct Mesh {
         skip: Box<Fn(Index) -> bool>
@@ -209,7 +187,7 @@ mod test {
 
     // TODO: This should be replaced with the actual implementation on VertexHandle and tested
     // there.
-    impl MeshIterMeta for VertexHandle {
+    impl MeshItemHandle for VertexHandle {
         fn status(mesh: &Mesh, h: VertexHandle) -> Status {
             if (*mesh.skip)(h.index()) {
                 unsafe { SKIP_INDEX += 1; }

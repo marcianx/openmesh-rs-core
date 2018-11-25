@@ -2,8 +2,10 @@
 
 use mesh::mesh::Mesh;
 use mesh::items::{Vertex, Halfedge, Edge, Face};
-use property::PropertyContainer;
-use property::traits::{self, Handle}; // import methods of Handle
+use mesh::status::Status;
+use property::{Property, PropertyContainer};
+use property::size::Size;
+use property::traits::{self, Handle, PropertyFor}; // import methods of Handle
 
 def_handle!(VertexHandle, "Vertex handle.");
 def_handle!(HalfedgeHandle, "Halfedge handle.");
@@ -31,6 +33,8 @@ pub trait MeshItemHandle: traits::ItemHandle {
     /// as itself, but each `Halfedge` is stored in an `Edge`.
     type ContainerItem: Clone + Default;
 
+    // Mesh property lists.
+
     /// Default property name prefix.
     const PREFIX: &'static str;
 
@@ -43,18 +47,31 @@ pub trait MeshItemHandle: traits::ItemHandle {
     /// Gets container underlying the mesh item type out of the mesh mutably.
     fn items_props_mut(m: &mut Mesh) -> (&mut Vec<Self::ContainerItem>, &mut PropertyContainer<Self>);
 
+    // Mesh items.
+
     /// Number of items of type `Self` in the underlying storage vector.
     fn num_items(vec: &Vec<Self::ContainerItem>) -> usize;
+
+    /// Gets the number of items of the given type.
+    fn len(mesh: &Mesh) -> Size {
+        Self::num_items(Self::items_props(mesh).0) as Size
+    }
 
     /// Gets item of type `Self` from the underlying storage vector.
     fn get(vec: &Vec<Self::ContainerItem>, handle: Self) -> Option<&Self::Item>;
 
     /// Gets item of type `Self` mutably from the underlying storage vector.
     fn get_mut(vec: &mut Vec<Self::ContainerItem>, handle: Self) -> Option<&mut Self::Item>;
+
+    // Mesh iteration.
+
+    /// Gets the status property.
+    fn status_prop(mesh: &Mesh) -> Option<&Property<Status, Self>>;
 }
 
 macro_rules! impl_to_items {
-    ($Item:ty, $ContainerItem:ty, $Handle:ty, $item_field:ident, $prop_field:ident, $prefix:expr,
+    ($Item:ty, $ContainerItem:ty, $Handle:ty, $prefix:expr, $item_field:ident, $prop_field:ident,
+     $status_field:ident,
      ($vec:ident, $handle:ident) -> {
          fn num_items: $num_items:expr,
          fn get: $get:expr,
@@ -88,12 +105,17 @@ macro_rules! impl_to_items {
             fn get_mut($vec: &mut Vec<Self::ContainerItem>, $handle: Self) -> Option<&mut Self::Item> {
                 $get_mut
             }
+
+            fn status_prop(mesh: &Mesh) -> Option<&Property<Status, Self>> {
+                mesh.$status_field.get_prop(&mesh.$prop_field)
+            }
         }
     };
 
-    ($Item:ty, $ContainerItem:ty, $Handle:ty, $item_field:ident, $prop_field:ident, $prefix:expr) => {
+    ($Item:ty, $ContainerItem:ty, $Handle:ty, $prefix:expr, $item_field:ident, $prop_field:ident,
+     $status_field:ident) => {
         impl_to_items!(
-            $Item, $ContainerItem, $Handle, $item_field, $prop_field, $prefix,
+            $Item, $ContainerItem, $Handle, $prefix, $item_field, $prop_field, $status_field,
             (vec, handle) -> {
                 fn num_items: vec.len(),
                 fn get:       vec.get(handle.index_us()),
@@ -103,10 +125,20 @@ macro_rules! impl_to_items {
     };
 }
 
-impl_to_items!(  Vertex, Vertex,   VertexHandle, vertices, v_props, &"v:");
-impl_to_items!(    Edge,   Edge,     EdgeHandle,    edges, e_props, &"e:");
-impl_to_items!(    Face,   Face,     FaceHandle,    faces, f_props, &"f:");
-impl_to_items!(Halfedge,   Edge, HalfedgeHandle,    edges, h_props, &"h:",
+
+// TODO: This is required for some incomprehensible reason for `status_prop()` above to work.
+// Figure out why and whether there's a bug in the compiler's (unstable) associated type support.
+impl<H> PropertyFor<H> for Status
+    where H: traits::ItemHandle
+{
+    type Property = Property<Status, H>;
+}
+
+
+impl_to_items!(  Vertex, Vertex,   VertexHandle, "v:", vertices, v_props, v_status);
+impl_to_items!(    Edge,   Edge,     EdgeHandle, "e:",    edges, e_props, e_status);
+impl_to_items!(    Face,   Face,     FaceHandle, "f:",    faces, f_props, f_status);
+impl_to_items!(Halfedge,   Edge, HalfedgeHandle, "h:",    edges, h_props, h_status,
                // Halfedges are stored within edges.
                (vec, handle) -> {
                    fn num_items: {
