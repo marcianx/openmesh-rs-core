@@ -112,7 +112,7 @@ macro_rules! def_handle {
         }
 
         impl<$($Types),*> ::std::hash::Hash for $Handle<$($Types),*> {
-            fn hash<H>(&self, state: &mut H) where H: ::std::hash::Hasher { self.0.hash(state) }
+            fn hash<HH>(&self, state: &mut HH) where HH: ::std::hash::Hasher { self.0.hash(state) }
         }
 
         impl<$($Types),*> ::std::fmt::Display for $Handle<$($Types),*> {
@@ -131,10 +131,6 @@ macro_rules! def_handle {
 
 /// Marker trait for handles to mesh items (vertex, halfedge, edge, face).
 pub trait ItemHandle: Handle {}
-
-def_handle!(
-    BasePropHandle<T>,
-    "`PropertyContainer` handle to a contained `Property` (which is a list of `Value`s).");
 
 #[cfg(test)]
 mod test {

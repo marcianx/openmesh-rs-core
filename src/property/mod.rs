@@ -2,7 +2,7 @@
 
 #[macro_use]
 pub mod traits;
-pub use self::traits::BasePropHandle;
+pub mod handle;
 
 #[macro_use]
 mod property;

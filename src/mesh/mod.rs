@@ -2,7 +2,6 @@
 
 // TODO: Determine carefully what ought to be reexported.
 pub mod item_handle;
-pub mod prop_handle;
 pub mod iter;
 pub mod status;
 

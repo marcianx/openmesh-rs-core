@@ -1,12 +1,12 @@
 //! See documentation for `RcPropHandle`.
-use property::traits::{self, PropertyFor};
-use property::PropertyContainer;
 use mesh::item_handle::{
     VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle,
     MeshItemHandle,
 };
-use mesh::prop_handle::PropHandle;
 use mesh::mesh::Mesh;
+use property::traits::{self, PropertyFor};
+use property::PropertyContainer;
+use property::handle::PropHandle;
 
 /// Ref-counted property handle.
 ///
@@ -47,7 +47,7 @@ impl<H: MeshItemHandle, T: traits::Value> RcPropHandle<H, T> {
     /// Get the status `Property` if it exists.
     pub(crate) fn get_prop<'a>(&self, props: &'a PropertyContainer<H>)
         -> Option<&'a <T as PropertyFor<H>>::Property> {
-        props.get(self.handle.to_base())
+        props.get(self.handle)
     }
 }
 

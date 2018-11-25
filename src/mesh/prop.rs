@@ -2,10 +2,11 @@
 //! vectices, halfedge, edge, and faces) within a mesh.
 
 use mesh::item_handle::{VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle, MeshHandle};
-use mesh::prop_handle::PropHandle;
 use property::PropertyContainer;
+use property::handle::PropHandle;
 use property::size::Size;
 use property::traits::{self, PropertyFor};
+use property::traits::Handle;   // For methods.
 
 // Solely for trait methods.
 use property::traits::Property as PropertyTrait;
@@ -91,13 +92,13 @@ macro_rules! impl_props {
             pub fn get<T: traits::Value>(&self, prop_handle: PropHandle<Handle, T>)
                 -> Option<&<T as PropertyFor<Handle>>::Property>
             {
-                self.props.get::<T>(prop_handle.to_base())
+                self.props.get::<T>(prop_handle)
             }
 
             #[doc="Returns the handle with the given name if any exists and corresponds to a"]
             #[doc="property of type `T`. Otherwise, it returns an invalid handle."]
             pub fn handle<T: traits::Value>(&self, name: &str) -> PropHandle<Handle, T> {
-                PropHandle::<Handle, T>::from_base(self.props.handle::<T>(name))
+                self.props.handle::<T>(name)
             }
         }
     }
@@ -119,14 +120,13 @@ impl<'a, Handle> PropsMut<'a, Handle>
     /// - Max length: 256 characters
     /// - Names matching `/^[vhefm]:/` or `/^<.*>$/` are reserved for internal use.
     pub fn add<T: traits::Value>(&mut self, name: Option<String>) -> PropHandle<Handle, T> {
-        let prop_handle = self.props.add::<T>(name);
-        PropHandle::<Handle, T>::from_base(prop_handle)
+        self.props.add::<T>(name)
     }
 
     /// Removes a `Property<T>` for associated item type if `prop_handle` is valid, and it
     /// invalidates `prop_handle`.
     pub fn remove<T: traits::Value>(&mut self, prop_handle: &mut PropHandle<Handle, T>) {
-        self.props.remove(prop_handle.to_base());
+        self.props.remove(*prop_handle);
         prop_handle.invalidate();
     }
 
@@ -135,7 +135,7 @@ impl<'a, Handle> PropsMut<'a, Handle>
     pub fn get_mut<T: traits::Value>(&mut self, prop_handle: PropHandle<Handle, T>)
         -> Option<&mut <T as PropertyFor<Handle>>::Property>
     {
-        self.props.get_mut::<T>(prop_handle.to_base())
+        self.props.get_mut::<T>(prop_handle)
     }
 
     /// Copies a single property from one item to another of the same type.

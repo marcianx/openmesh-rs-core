@@ -1,8 +1,8 @@
-use property::BasePropHandle;
+use property::handle::PropHandle;
 use property::size;
 use property::traits::{self, PropertyFor};
 use property::traits::ConstructableProperty; // for ::new() on property
-use property::traits::Handle as _HandleTrait; // for `BasePropHandle` methods
+use property::traits::Handle; // for `PropHandle` methods
 
 /// Contains a parallel collection of `Property` trait objects.
 pub struct PropertyContainer<H> {
@@ -53,7 +53,7 @@ impl<H: traits::ItemHandle> PropertyContainer<H>
 
     /// Adds a property whose elements are of type `T`.
     /// Panics in the unlikely case that the number of properties reaches `size::INVALID_INDEX`.
-    pub fn add<T>(&mut self, name: Option<String>) -> BasePropHandle<T>
+    pub fn add<T>(&mut self, name: Option<String>) -> PropHandle<H, T>
         where T: traits::Value
     {
         let name = name.unwrap_or("<unknown>".to_owned());
@@ -69,11 +69,11 @@ impl<H: traits::ItemHandle> PropertyContainer<H>
         if pos >= size::INVALID_INDEX as usize {
             panic!("Number of properties {} exceeds bounds {}-1", pos, size::INVALID_INDEX);
         }
-        BasePropHandle::from_index(pos as size::Size)
+        PropHandle::from_index(pos as size::Size)
     }
 
     /// Returns the property at the given handle if any exists and if the return type matches.
-    pub fn get<T>(&self, prop_handle: BasePropHandle<T>) -> Option<&<T as PropertyFor<H>>::Property>
+    pub fn get<T>(&self, prop_handle: PropHandle<H, T>) -> Option<&<T as PropertyFor<H>>::Property>
         where T: traits::Value
     {
         // NOTE: This handles prop_handle.index() == size::INVALID_INDEX just fine.
@@ -86,7 +86,7 @@ impl<H: traits::ItemHandle> PropertyContainer<H>
     }
 
     /// Returns the property at the given handle if any exists and if the return type matches.
-    pub fn get_mut<T>(&mut self, prop_handle: BasePropHandle<T>)
+    pub fn get_mut<T>(&mut self, prop_handle: PropHandle<H, T>)
         -> Option<&mut <T as PropertyFor<H>>::Property>
         where T: traits::Value
     {
@@ -102,7 +102,7 @@ impl<H: traits::ItemHandle> PropertyContainer<H>
     /// Removes the property at the given handle if any exists and if the `BasePropHandle`'s
     /// value type `T` matches that of the pointed-to property type. Returns true iff something
     /// was removed.
-    pub fn remove<T>(&mut self, prop_handle: BasePropHandle<T>) -> bool
+    pub fn remove<T>(&mut self, prop_handle: PropHandle<H, T>) -> bool
         where T: traits::Value
     {
         // NOTE: This handles prop_handle.index() == size::INVALID_INDEX just fine.
@@ -132,7 +132,7 @@ impl<H: traits::ItemHandle> PropertyContainer<H>
 
     /// Returns the handle with the given name if any exists and corresponds to a property of type
     /// `T`. Otherwise, it returns an invalid handle.
-    pub fn handle<T>(&self, name: &str) -> BasePropHandle<T>
+    pub fn handle<T>(&self, name: &str) -> PropHandle<H, T>
         where T: traits::Value
     {
         self.vec.iter()
@@ -143,9 +143,9 @@ impl<H: traits::ItemHandle> PropertyContainer<H>
                 // -> &Box<traits::Property> -> &traits::Property -?-> TargetProperty
                 self.vec[index].as_ref().and_then(|box_prop| {
                     box_prop.as_property().downcast_ref::<TargetProperty<T, H>>()
-                }).map(|_| BasePropHandle::from_index(index as size::Index))
+                }).map(|_| PropHandle::from_index(index as size::Index))
             })
-            .unwrap_or(BasePropHandle::new())
+            .unwrap_or(PropHandle::new())
     }
 
     ////////////////////////////////////////////////////////////////////////////////
