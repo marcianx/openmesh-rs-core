@@ -71,7 +71,7 @@ pub trait MeshItemHandle: traits::ItemHandle {
 
 macro_rules! impl_to_items {
     ($Item:ty, $ContainerItem:ty, $Handle:ty, $prefix:expr, $item_field:ident, $prop_field:ident,
-     $status_field:ident,
+     $get_status:ident,
      ($vec:ident, $handle:ident) -> {
          fn num_items: $num_items:expr,
          fn get: $get:expr,
@@ -107,15 +107,15 @@ macro_rules! impl_to_items {
             }
 
             fn status_prop(mesh: &Mesh) -> Option<&Property<Status, Self>> {
-                mesh.$status_field.get_prop(&mesh.$prop_field)
+                mesh.$get_status()
             }
         }
     };
 
     ($Item:ty, $ContainerItem:ty, $Handle:ty, $prefix:expr, $item_field:ident, $prop_field:ident,
-     $status_field:ident) => {
+     $get_status:ident) => {
         impl_to_items!(
-            $Item, $ContainerItem, $Handle, $prefix, $item_field, $prop_field, $status_field,
+            $Item, $ContainerItem, $Handle, $prefix, $item_field, $prop_field, $get_status,
             (vec, handle) -> {
                 fn num_items: vec.len(),
                 fn get:       vec.get(handle.index_us()),
@@ -135,10 +135,10 @@ impl<H> PropertyFor<H> for Status
 }
 
 
-impl_to_items!(  Vertex, Vertex,   VertexHandle, "v:", vertices, v_props, v_status);
-impl_to_items!(    Edge,   Edge,     EdgeHandle, "e:",    edges, e_props, e_status);
-impl_to_items!(    Face,   Face,     FaceHandle, "f:",    faces, f_props, f_status);
-impl_to_items!(Halfedge,   Edge, HalfedgeHandle, "h:",    edges, h_props, h_status,
+impl_to_items!(  Vertex, Vertex,   VertexHandle, "v:", vertices, v_props, get_vertex_status);
+impl_to_items!(    Edge,   Edge,     EdgeHandle, "e:",    edges, e_props, get_edge_status);
+impl_to_items!(    Face,   Face,     FaceHandle, "f:",    faces, f_props, get_face_status);
+impl_to_items!(Halfedge,   Edge, HalfedgeHandle, "h:",    edges, h_props, get_halfedge_status,
                // Halfedges are stored within edges.
                (vec, handle) -> {
                    fn num_items: {

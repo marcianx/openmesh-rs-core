@@ -130,6 +130,9 @@ impl<'a, Handle> PropsMut<'a, Handle>
         prop_handle.invalidate();
     }
 
+    // TODO: Here and in `get` above, figure out why can't return value with lifetime &'a instead
+    // of self's lifetime. (test with rc's `get_fn` defined as:
+    //     self.props::<$Handle>().get(self.$rc_field.handle)
     /// Returns the `Property<T>` or `PropertyBits` (for `T = bool`), if any, corresponding to
     /// `prop_handle`.
     pub fn get_mut<T: traits::Value>(&mut self, prop_handle: PropHandle<Handle, T>)

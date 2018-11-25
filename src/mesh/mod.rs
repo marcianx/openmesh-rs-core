@@ -7,8 +7,9 @@ pub mod status;
 
 pub mod items;
 pub mod prop;
-pub mod rc;
 
+// Mesh and its distributed impl's.
 mod mesh;
 mod constructor;
+mod rc;
 pub use self::mesh::Mesh;

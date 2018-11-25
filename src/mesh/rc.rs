@@ -4,9 +4,11 @@ use mesh::item_handle::{
     MeshItemHandle,
 };
 use mesh::mesh::Mesh;
+use mesh::status::Status;
 use property::traits::{self, PropertyFor};
 use property::PropertyContainer;
 use property::handle::PropHandle;
+use property::traits::Handle;   // For methods.
 
 /// Ref-counted property handle.
 ///
@@ -19,36 +21,64 @@ pub(crate) struct RcPropHandle<H: MeshItemHandle, T: traits::Value> {
     ref_count: u32,
 }
 
-impl<H: MeshItemHandle, T: traits::Value> RcPropHandle<H, T> {
-    /// Returns a `RcPropHandle` with an invalid handle an 0 ref count.
-    pub(crate) fn new() -> RcPropHandle<H, T> { Default::default() }
+/// Request a property on the mesh if it doesn't already exist. It increases the ref count.
+fn request_prop<H, T>(name: &'static str, props: &mut PropertyContainer<H>,
+                      rc_handle: &mut RcPropHandle<H, T>)
+    where H: MeshItemHandle,
+          T: traits::Value,
+{
+    rc_handle.ref_count += 1;
+    if rc_handle.ref_count == 1 {
+        debug_assert!(rc_handle.handle == Default::default());
+        let name = H::with_prefix(name);
+        rc_handle.handle = props.add::<T>(Some(name));
+    }
+}
 
-    // TODO: Figure out how this is used and wrap request/release in an object like Rc.
+/// Request a property on the mesh if it doesn't already exist. It increases the ref count.
+fn release_prop<H, T>(props: &mut PropertyContainer<H>, rc_handle: &mut RcPropHandle<H, T>)
+    where H: MeshItemHandle,
+          T: traits::Value,
+{
+    if rc_handle.ref_count == 0 { return; }
+    rc_handle.ref_count -= 1;
+    if rc_handle.ref_count == 0 {
+        props.remove::<T>(rc_handle.handle);
+        rc_handle.handle.invalidate();
+    }
+}
 
-    /// Request a property on the mesh if it doesn't already exist. It increases the ref count.
-    pub(crate) fn request(&mut self, m: &mut Mesh) {
-        self.ref_count += 1;
-        if self.ref_count == 1 {
-            debug_assert!(self.handle == Default::default());
-            let name = H::with_prefix("status");
-            self.handle = m.props_mut::<H>().add::<T>(Some(name));
+macro_rules! def_prop_rc {
+    ($Handle:ty, $props_field: ident, $rc_field:ident, $name:expr, $request_fn:ident,
+     $release_fn:ident, $get_fn:ident) => {
+        #[doc="Requests the corresponding property on the mesh if it doesn't already exist. It"]
+        #[doc=" increases the ref count."]
+        pub fn $request_fn(&mut self) {
+            request_prop($name, &mut self.$props_field, &mut self.$rc_field);
         }
-    }
 
-    /// Request a property on the mesh if it doesn't already exist. It increases the ref count.
-    pub(crate) fn release(&mut self, m: &mut Mesh) {
-        if self.ref_count == 0 { return; }
-        self.ref_count -= 1;
-        if self.ref_count == 0 {
-            m.props_mut::<H>().remove::<T>(&mut self.handle);;
+        #[doc="Releases the corresponding property on the mesh if it exists. If the ref count"]
+        #[doc=" becomes 0, then it deallocates the property."]
+        pub fn $release_fn(&mut self) {
+            release_prop(&mut self.$props_field, &mut self.$rc_field);
         }
-    }
 
-    /// Get the status `Property` if it exists.
-    pub(crate) fn get_prop<'a>(&self, props: &'a PropertyContainer<H>)
-        -> Option<&'a <T as PropertyFor<H>>::Property> {
-        props.get(self.handle)
-    }
+        #[doc="Gets the corresponding `Property` list if it exists."]
+        pub fn $get_fn(&self) -> Option<&<Status as PropertyFor<$Handle>>::Property> {
+            self.$props_field.get(self.$rc_field.handle)
+        }
+    };
+}
+
+impl Mesh {
+    def_prop_rc!(VertexHandle, v_props, v_status, "status",
+                 request_vertex_status, release_vertex_status, get_vertex_status);
+    def_prop_rc!(HalfedgeHandle, h_props, h_status, "status",
+                 request_halfedge_status, release_halfedge_status, get_halfedge_status);
+    def_prop_rc!(EdgeHandle, e_props, e_status, "status",
+                 request_edge_status, release_edge_status, get_edge_status);
+    def_prop_rc!(FaceHandle, f_props, f_status, "status",
+                 request_face_status, release_face_status, get_face_status);
 }
 
 

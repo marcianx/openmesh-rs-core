@@ -35,6 +35,7 @@ pub struct Mesh {
     pub(crate) f_props: PropertyContainer<FaceHandle>,
     pub(crate) m_props: PropertyContainer<MeshHandle>,
 
+    // See `impl` in `rc.rs`.
     // Handles for mesh status. 
     pub(crate) v_status: RcVPropHandle<Status>,
     pub(crate) h_status: RcHPropHandle<Status>,
