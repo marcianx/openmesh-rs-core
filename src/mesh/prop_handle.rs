@@ -5,6 +5,7 @@ use std::marker::PhantomData;
 use mesh::item_handle::{VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle, MeshHandle};
 use property::BasePropHandle;
 use property::traits;
+use property::traits::Handle; // Bring trait methods into scope.
 
 /// Mesh property handle, parametrized by mesh item handle type (handles to vertex, halfedge,
 /// edge, face, mesh), and the property item type `T`.
@@ -33,19 +34,43 @@ impl<H, T> ::std::fmt::Display for PropHandle<H, T> {
 
 impl<H: traits::ItemHandle, T: Any> Default for PropHandle<H, T> {
     fn default() -> Self {
-        <Self as traits::PropHandle<T>>::from_base(traits::Handle::new())
+        Self::from_base(traits::Handle::new())
     }
 }
 
-impl<H: traits::ItemHandle, T: Any> traits::PropHandle<T> for PropHandle<H, T> {
-    type Value = T;
-    type Handle = H;
+impl<H: traits::ItemHandle, T: Any> PropHandle<H, T> {
+    /// Create an invalidated handle.
+    pub(crate) fn new() -> Self { Default::default() }
 
-    fn from_base(h: BasePropHandle<T>) -> Self {
+    /// Create from `BasePropHandle`.
+    pub(crate) fn from_base(h: BasePropHandle<T>) -> Self {
         PropHandle(h, ::std::marker::PhantomData::<H>)
     }
-    fn to_base(self) -> BasePropHandle<T> { self.0 }
-    fn set_base(&mut self, h: BasePropHandle<T>) { self.0 = h }
+
+    /// Get underlying `BasePropHandle`.
+    pub(crate) fn to_base(self) -> BasePropHandle<T> {
+        self.0
+    }
+
+    /// Set the handle from the given `BasePropHandle`.
+    pub(crate) fn set_base(&mut self, h: BasePropHandle<T>) {
+        self.0 = h
+    }
+
+    /// Whether the handle is valid.
+    pub(crate) fn is_valid(self) -> bool {
+        self.to_base().is_valid()
+    }
+
+    /// Invalidates the handle.
+    pub(crate) fn invalidate(&mut self) {
+        self.set_base(BasePropHandle::new());
+    }
+
+    /// Converts the handle to `Some(self)` if valid, else `None`.
+    pub fn to_option(self) -> Option<Self> {
+        if self.is_valid() { Some(self) } else { None }
+    }
 }
 
 /// Handle for a specific vertex property.

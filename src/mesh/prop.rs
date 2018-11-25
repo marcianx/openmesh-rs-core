@@ -8,7 +8,6 @@ use property::size::Size;
 use property::traits::{self, PropertyFor};
 
 // Solely for trait methods.
-use property::traits::PropHandle as PropHandleTrait;
 use property::traits::Property as PropertyTrait;
 
 ////////////////////////////////////////////////////////////

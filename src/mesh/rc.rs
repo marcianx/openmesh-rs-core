@@ -1,6 +1,5 @@
 //! See documentation for `RcPropHandle`.
 use property::traits::{self, PropertyFor};
-use property::traits::PropHandle as PropHandleTrait; // To access methods.
 use property::PropertyContainer;
 use mesh::item_handle::{
     VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle,
