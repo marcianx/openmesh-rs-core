@@ -16,38 +16,28 @@ use property::size::Size;
 #[derive(Clone, Default)]
 pub struct Vertex {
     /// An outgoing halfedge, if any, from this vertex.
-    pub hh: HalfedgeHandle,
+    pub(crate) hh: HalfedgeHandle,
 }
 
 /// Halfedge fields for HDS topology.
 #[derive(Clone, Default)]
 pub struct Halfedge {
     /// The face, if any, to which this halfedge belongs.
-    pub fh: FaceHandle,
+    pub(crate) fh: FaceHandle,
     /// The vertex this halfedge points to.
-    pub vh: VertexHandle,
+    pub(crate) vh: VertexHandle,
     /// The next halfedge going counter-clockwise around the face.
-    pub hnext: HalfedgeHandle,
+    pub(crate) hnext: HalfedgeHandle,
     /// The previous halfedge - i.e. the next one going clockwise around the face.
-    pub hprev: HalfedgeHandle,
+    pub(crate) hprev: HalfedgeHandle,
 }
 
 /// Edge fields for HDS topology.
-#[derive(Default)]
-pub struct Edge {
-    /// The pair of halfedges constituting the edge.
-    /// IMPORTANT: For the purpose of computing handles from a provided halfedge reference,
-    /// it is assumed, that &self == &self.halfedge[0] (in terms of pointer comparison).
-    pub halfedges: [Halfedge; 2],
-}
-// Explicitly implement `Clone` to avoid requiring `Copy` on `Halfedge`.
-impl Clone for Edge {
-    fn clone(&self) -> Self {
-        Edge {
-            halfedges: [self.halfedges[0].clone(), self.halfedges[1].clone()]
-        }
-    }
-}
+#[derive(Clone, Default)]
+/// The pair of halfedges constituting the edge.
+/// IMPORTANT: For the purpose of computing handles from a provided halfedge reference,
+/// it is assumed, that &self == &self.halfedge[0] (in terms of pointer comparison).
+pub struct Edge(pub(crate) [Halfedge; 2]);
 
 /// Face fields for HDS topology.
 #[derive(Clone, Default)]

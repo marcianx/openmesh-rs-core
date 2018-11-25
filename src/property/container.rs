@@ -5,23 +5,13 @@ use property::traits::ConstructableProperty; // for ::new() on property
 use property::traits::Handle; // for `PropHandle` methods
 
 /// Contains a parallel collection of `Property` trait objects.
+#[derive(Clone, Default)]
 pub struct PropertyContainer<H> {
     // TODO: Should there be a `RefCell` here to allow getting multiple properties mutably?
     /// List of all the properties, whose lengths are kept in sync.
     vec: Vec<Option<Box<traits::ResizeableProperty<Handle=H>>>>,
     /// Length of each property.
     prop_len: size::Size,
-}
-
-
-impl<H: traits::ItemHandle> Clone for PropertyContainer<H>
-{
-    fn clone(&self) -> Self {
-        PropertyContainer {
-            vec: self.vec.clone(),
-            prop_len: self.prop_len,
-        }
-    }
 }
 
 

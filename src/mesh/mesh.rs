@@ -21,7 +21,7 @@ use property::PropertyContainer;
 use property::size::Size;
 
 /// Halfedge data structure.
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct Mesh {
     // Item connectivity and properties.
     pub(crate) vertices: Vec<Vertex>,

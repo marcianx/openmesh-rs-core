@@ -147,10 +147,10 @@ impl_to_items!(Halfedge,   Edge, HalfedgeHandle, "h:",    edges, h_props, h_stat
                    },
                    fn get: {
                        let index = handle.index_us();
-                       vec.get(index / 2).map(|edge| &edge.halfedges[index % 2])
+                       vec.get(index / 2).map(|edge| &edge.0[index % 2])
                    },
                    fn get_mut: {
                        let index = handle.index_us();
-                       vec.get_mut(index / 2).map(|edge| &mut edge.halfedges[index % 2])
+                       vec.get_mut(index / 2).map(|edge| &mut edge.0[index % 2])
                    },
                });

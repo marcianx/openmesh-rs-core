@@ -10,4 +10,5 @@ pub mod prop;
 pub mod rc;
 
 mod mesh;
+mod constructor;
 pub use self::mesh::Mesh;
