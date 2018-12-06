@@ -87,14 +87,6 @@ macro_rules! impl_props {
             #[doc="Number of elements of the given type."]
             pub fn len(&self) -> Size { self.len }
 
-            #[doc="Returns the `Property<T>` or `PropertyBits` (for `T = bool`), if any,"]
-            #[doc="corresponding to `prop_handle`."]
-            pub fn get<T: traits::Value>(&self, prop_handle: PropHandle<Handle, T>)
-                -> Option<&<T as PropertyFor<Handle>>::Property>
-            {
-                self.props.get::<T>(prop_handle)
-            }
-
             #[doc="Returns the handle with the given name if any exists and corresponds to a"]
             #[doc="property of type `T`. Otherwise, it returns an invalid handle."]
             pub fn handle<T: traits::Value>(&self, name: &str) -> PropHandle<Handle, T> {
@@ -106,6 +98,18 @@ macro_rules! impl_props {
 
 impl_props!(Props);
 impl_props!(PropsMut);
+
+impl<'a, Handle> Props<'a, Handle>
+    where Handle: traits::ItemHandle
+{
+    /// Returns the `Property<T>` or `PropertyBits` (for `T = bool`), if any,"]
+    ///  corresponding to `prop_handle`.
+    pub fn get<T: traits::Value>(&self, prop_handle: PropHandle<Handle, T>)
+        -> Option<&'a <T as PropertyFor<Handle>>::Property>
+    {
+        self.props.get::<T>(prop_handle)
+    }
+}
 
 
 impl<'a, Handle> PropsMut<'a, Handle>
@@ -130,13 +134,20 @@ impl<'a, Handle> PropsMut<'a, Handle>
         prop_handle.invalidate();
     }
 
-    // TODO: Here and in `get` above, figure out why can't return value with lifetime &'a instead
-    // of self's lifetime. (test with rc's `get_fn` defined as:
-    //     self.props::<$Handle>().get(self.$rc_field.handle)
     /// Returns the `Property<T>` or `PropertyBits` (for `T = bool`), if any, corresponding to
-    /// `prop_handle`.
-    pub fn get_mut<T: traits::Value>(&mut self, prop_handle: PropHandle<Handle, T>)
-        -> Option<&mut <T as PropertyFor<Handle>>::Property>
+    /// `prop_handle`. This consumes `Self` since rust can't yet express re-borrows from existing
+    /// mutable borrows within `Self`. https://users.rust-lang.org/t/22836
+    pub fn get<T: traits::Value>(self, prop_handle: PropHandle<Handle, T>)
+        -> Option<&'a <T as PropertyFor<Handle>>::Property>
+    {
+        self.props.get::<T>(prop_handle)
+    }
+
+    /// Returns the `Property<T>` or `PropertyBits` (for `T = bool`), if any, corresponding to
+    /// `prop_handle`. This consumes `Self` since rust can't yet express re-borrows from existing
+    /// mutable borrows within `Self`. https://users.rust-lang.org/t/22836
+    pub fn get_mut<T: traits::Value>(self, prop_handle: PropHandle<Handle, T>)
+        -> Option<&'a mut <T as PropertyFor<Handle>>::Property>
     {
         self.props.get_mut::<T>(prop_handle)
     }
@@ -146,7 +157,7 @@ impl<'a, Handle> PropsMut<'a, Handle>
     pub fn copy<T: traits::Value>(
         &mut self, prop_handle: PropHandle<Handle, T>, h_src: Handle, h_dst: Handle) {
         if h_src.is_valid() && h_dst.is_valid() {
-            self.get_mut(prop_handle).map(|p| p.copy(h_src, h_dst));
+            self.props.get_mut(prop_handle).map(|p| p.copy(h_src, h_dst));
         }
     }
 
