@@ -19,14 +19,14 @@ macro_rules! binary_impl_vec {
 
             fn store_endian<B: ByteOrder>(&self, writer: &mut Write) -> Result<usize> {
                 for val in self.as_ref().iter() {
-                    try!((*val).store_endian::<B>(writer));
+                    (*val).store_endian::<B>(writer)?;
                 }
                 Ok(self.size_of_value())
             }
 
             fn restore_endian<B: ByteOrder>(&mut self, reader: &mut Read) -> Result<usize> {
                 for val in self.as_mut().iter_mut() {
-                    try!((*val).restore_endian::<B>(reader));
+                    (*val).restore_endian::<B>(reader)?;
                 }
                 Ok(self.size_of_value())
             }

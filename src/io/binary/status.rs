@@ -21,7 +21,7 @@ impl Binary for Status {
 
     fn restore_endian<B: ByteOrder>(&mut self, reader: &mut Read) -> Result<usize> {
         let mut bits: FlagBits = Zero::zero();
-        let len = try!(bits.restore_endian::<B>(reader));
+        let len = bits.restore_endian::<B>(reader)?;
         *self = Status::from_bits_truncate(bits);
         Ok(len)
     }

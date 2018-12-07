@@ -17,8 +17,8 @@ impl Binary for String {
         }
         // TODO: OpenMesh has a bug where len is double-swapped.
         // Reproduce the bug for backward-compatibility with OpenMesh files?
-        let len_size = try!((len as u16).store_endian::<B>(writer));
-        try!(writer.write_all(self.as_bytes()));
+        let len_size = (len as u16).store_endian::<B>(writer)?;
+        writer.write_all(self.as_bytes())?;
         Ok(len + len_size)
     }
 
@@ -26,12 +26,12 @@ impl Binary for String {
         let mut len = 0u16;
         // TODO: OpenMesh has a bug where len is double-swapped.
         // Reproduce the bug for backward-compatibility with OpenMesh files?
-        let len_size = try!(len.restore_endian::<B>(reader));
+        let len_size = len.restore_endian::<B>(reader)?;
         let len = len as usize;
 
         self.clear();
         self.reserve_exact(len);
-        try!(reader.take(len as u64).read_to_string(self));
+        reader.take(len as u64).read_to_string(self)?;
         Ok(len + len_size)
     }
 }

@@ -12,12 +12,12 @@ impl Binary for BitVec {
     fn size_of_value(&self) -> usize { self.as_bytes().len() }
 
     fn store_endian<B: ByteOrder>(&self, writer: &mut Write) -> Result<usize> {
-        try!(writer.write_all(self.as_bytes()));
+        writer.write_all(self.as_bytes())?;
         Ok(self.size_of_value())
     }
 
     fn restore_endian<B: ByteOrder>(&mut self, reader: &mut Read) -> Result<usize> {
-        try!(self.with_bytes_mut(|vec| reader.read_exact(vec)));
+        self.with_bytes_mut(|vec| reader.read_exact(vec))?;
         Ok(self.size_of_value())
     }
 }

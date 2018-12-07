@@ -86,7 +86,7 @@ impl<T: Binary> Binary for Vec<T> {
     fn store_endian<B: ByteOrder>(&self, writer: &mut Write) -> Result<usize> {
         let mut size = 0;
         for s in self.iter() {
-            size += try!(s.store_endian::<B>(writer));
+            size += s.store_endian::<B>(writer)?;
         }
         Ok(size)
     }
@@ -95,7 +95,7 @@ impl<T: Binary> Binary for Vec<T> {
     fn restore_endian<B: ByteOrder>(&mut self, reader: &mut Read) -> Result<usize> {
         let mut size = 0;
         for s in self.iter_mut() {
-            size += try!(s.restore_endian::<B>(reader));
+            size += s.restore_endian::<B>(reader)?;
         }
         Ok(size)
     }

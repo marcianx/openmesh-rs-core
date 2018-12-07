@@ -18,12 +18,12 @@ macro_rules! binary_impl_int8 {
             fn size_of_type() -> usize { mem::size_of::<Self>() }
 
             fn store_endian<B: ByteOrder>(&self, writer: &mut Write) -> Result<usize> {
-                try!(writer.$write_fn(*self));
+                writer.$write_fn(*self)?;
                 Ok(mem::size_of::<Self>())
             }
 
             fn restore_endian<B: ByteOrder>(&mut self, reader: &mut Read) -> Result<usize> {
-                let value = try!(reader.$read_fn());
+                let value = reader.$read_fn()?;
                 *self = value;
                 Ok(mem::size_of::<Self>())
             }
@@ -43,12 +43,12 @@ macro_rules! binary_impl_primitive {
             fn size_of_type() -> usize { mem::size_of::<Self>() }
 
             fn store_endian<B: ByteOrder>(&self, writer: &mut Write) -> Result<usize> {
-                try!(writer.$write_fn::<B>(*self));
+                writer.$write_fn::<B>(*self)?;
                 Ok(mem::size_of::<Self>())
             }
 
             fn restore_endian<B: ByteOrder>(&mut self, reader: &mut Read) -> Result<usize> {
-                *self = try!(reader.$read_fn::<B>());
+                *self = reader.$read_fn::<B>()?;
                 Ok(mem::size_of::<Self>())
             }
         }

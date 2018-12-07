@@ -25,12 +25,11 @@ pub enum Error {
 
 impl fmt::Display for self::Error {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
-        try!(match self {
+        match self {
             &Error::Io(ref err) => { err.fmt(formatter) }
             &Error::FromUtf8(ref err) => { err.fmt(formatter) }
             _ => { error::Error::description(self).fmt(formatter) }
-        });
-        result::Result::Ok(())
+        }
     }
 }
 

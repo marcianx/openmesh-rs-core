@@ -18,9 +18,9 @@ pub struct PropertyContainer<H> {
 impl<H: traits::ItemHandle> ::std::fmt::Debug for PropertyContainer<H> {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         for opt_prop in self.vec.iter() {
-            try!(opt_prop.as_ref()
+            opt_prop.as_ref()
                  .map(|prop| prop.fmt(f))
-                 .unwrap_or("[deleted]".fmt(f)));
+                 .unwrap_or("[deleted]".fmt(f))?;
             '\n'.fmt(f)?;
         }
         Ok(())
