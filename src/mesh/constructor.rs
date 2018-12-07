@@ -1,10 +1,10 @@
 //! Mesh constructors
 
-use geometry::vector::Vec3d;
-use mesh::mesh::Mesh;
-use mesh::item_handle::{VertexHandle, HalfedgeHandle, FaceHandle};
-use mesh::items::{Vertex, Halfedge, Edge, Face};
-use property::traits::Handle; // For handle construction methods.
+use crate::geometry::vector::Vec3d;
+use crate::mesh::mesh::Mesh;
+use crate::mesh::item_handle::{VertexHandle, HalfedgeHandle, FaceHandle};
+use crate::mesh::items::{Vertex, Halfedge, Edge, Face};
+use crate::property::traits::Handle; // For handle construction methods.
 
 impl Mesh {
     /// Creates a new empty mesh. Same as Default:;default().
@@ -61,8 +61,8 @@ impl Mesh {
 
 #[cfg(test)]
 mod test {
-    use mesh::mesh::Mesh;
-    use geometry::vector::Vec3d;
+    use crate::mesh::mesh::Mesh;
+    use crate::geometry::vector::Vec3d;
 
     #[test]
     fn empty_mesh() {

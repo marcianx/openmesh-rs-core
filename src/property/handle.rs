@@ -1,6 +1,6 @@
 //! Handles to a property lists for an item type.
 
-use mesh::item_handle::{VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle, MeshHandle};
+use crate::mesh::item_handle::{VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle, MeshHandle};
 
 def_handle!(
     PropHandle<H, T>,

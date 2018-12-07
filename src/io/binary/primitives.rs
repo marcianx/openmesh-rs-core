@@ -4,8 +4,8 @@ use self::byteorder::{ReadBytesExt, WriteBytesExt};
 use std::io::{Read, Write};
 use std::mem;
 
-use io::binary::traits::{Binary, ByteOrder};
-use io::result::Result;
+use crate::io::binary::traits::{Binary, ByteOrder};
+use crate::io::result::Result;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Implementations for the primitive types.
@@ -67,8 +67,8 @@ binary_impl_primitive!(f64, read_f64, write_f64);
 
 #[cfg(test)]
 mod test {
-    use io::binary::test;
-    use io::binary::traits::Endian::{Big, Little};
+    use crate::io::binary::test;
+    use crate::io::binary::traits::Endian::{Big, Little};
     use std::mem::transmute;
     
     #[test]
@@ -129,8 +129,8 @@ mod test {
 
 #[cfg(test)]
 mod test_vec {
-    use io::binary::test;
-    use io::binary::traits::Endian::{Big, Little};
+    use crate::io::binary::test;
+    use crate::io::binary::traits::Endian::{Big, Little};
     use std::mem::transmute;
 
     #[test]

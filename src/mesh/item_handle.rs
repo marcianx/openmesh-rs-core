@@ -1,11 +1,11 @@
 //! Mesh item handle types.
 
-use mesh::mesh::Mesh;
-use mesh::items::{Vertex, Halfedge, Edge, Face};
-use mesh::status::Status;
-use property::{Property, PropertyContainer};
-use property::size::Size;
-use property::traits::{self, Handle, PropertyFor}; // import methods of Handle
+use crate::mesh::mesh::Mesh;
+use crate::mesh::items::{Vertex, Halfedge, Edge, Face};
+use crate::mesh::status::Status;
+use crate::property::{Property, PropertyContainer};
+use crate::property::size::Size;
+use crate::property::traits::{self, Handle, PropertyFor}; // import methods of Handle
 
 def_handle!(VertexHandle, "Vertex handle.");
 def_handle!(HalfedgeHandle, "Halfedge handle.");

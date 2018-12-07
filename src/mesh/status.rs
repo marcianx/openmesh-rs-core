@@ -107,7 +107,7 @@ impl Iterator for Iter {
 
 #[cfg(test)]
 mod test {
-    use mesh::status::Status;
+    use crate::mesh::status::Status;
 
     #[test]
     fn test_empty() {

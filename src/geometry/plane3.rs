@@ -2,8 +2,8 @@
 
 extern crate num;
 use self::num::traits::Zero;
-use geometry::math::BaseFloat;
-use geometry::vector::{Vec3, Dot, Norm};
+use crate::geometry::math::BaseFloat;
+use crate::geometry::vector::{Vec3, Dot, Norm};
 
 #[repr(C)]
 #[derive(Eq, PartialEq, Clone, Hash, Debug, Copy)]
@@ -44,8 +44,8 @@ pub type Plane3d = Plane3<f64>;
 
 #[cfg(test)]
 mod test {
-    use geometry::vector::Vec3;
-    use geometry::plane3::Plane3d;
+    use crate::geometry::vector::Vec3;
+    use crate::geometry::plane3::Plane3d;
 
     #[test]
     fn test_init() {

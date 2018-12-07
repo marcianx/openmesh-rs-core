@@ -1,24 +1,24 @@
 //! 2-manifold surface mesh represented as a halfedge data structure.
 
-use mesh::item_handle::{
+use crate::mesh::item_handle::{
     VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle, MeshHandle,
     MeshItemHandle,
 };
-use mesh::items::{
+use crate::mesh::items::{
     Vertex, Edge, Face,
     Items, VItems, HItems, EItems, FItems,
     ItemsMut, VItemsMut, HItemsMut, EItemsMut, FItemsMut,
 };
-use mesh::prop::{
+use crate::mesh::prop::{
     Props, VProps, HProps, EProps, FProps, MProps,
     PropsMut, VPropsMut, HPropsMut, EPropsMut, FPropsMut, MPropsMut,
 };
-use mesh::rc::{
+use crate::mesh::rc::{
     RcVPropHandle, RcHPropHandle, RcEPropHandle, RcFPropHandle,
 };
-use mesh::status::Status;
-use property::PropertyContainer;
-use property::size::Size;
+use crate::mesh::status::Status;
+use crate::property::PropertyContainer;
+use crate::property::size::Size;
 
 /// Halfedge data structure.
 #[derive(Clone, Default)]

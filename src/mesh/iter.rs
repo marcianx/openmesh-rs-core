@@ -1,9 +1,9 @@
 //! Iterators to enumerate all items in the mesh, skipping DELETED and HIDDEN items.
 
-use mesh::item_handle::MeshItemHandle;
-use mesh::mesh::Mesh;
-use mesh::status::{self, Status};
-use property::Property;
+use crate::mesh::item_handle::MeshItemHandle;
+use crate::mesh::mesh::Mesh;
+use crate::mesh::status::{self, Status};
+use crate::property::Property;
 
 
 struct IterBase<'a, H: MeshItemHandle> {

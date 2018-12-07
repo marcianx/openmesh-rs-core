@@ -1,15 +1,15 @@
 //! Defines a helper struct `Props` to add, remove, or access property lists (associated with
 //! vectices, halfedge, edge, and faces) within a mesh.
 
-use mesh::item_handle::{VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle, MeshHandle};
-use property::PropertyContainer;
-use property::handle::PropHandle;
-use property::size::Size;
-use property::traits::{self, PropertyFor};
-use property::traits::Handle;   // For methods.
+use crate::mesh::item_handle::{VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle, MeshHandle};
+use crate::property::PropertyContainer;
+use crate::property::handle::PropHandle;
+use crate::property::size::Size;
+use crate::property::traits::{self, PropertyFor};
+use crate::property::traits::Handle;   // For methods.
 
 // Solely for trait methods.
-use property::traits::Property as PropertyTrait;
+use crate::property::traits::Property as PropertyTrait;
 
 ////////////////////////////////////////////////////////////
 

@@ -73,7 +73,7 @@ impl Options {
 
 #[cfg(test)]
 mod test {
-    use io::options::Options;
+    use crate::io::options::Options;
 
     #[test]
     fn test_empty() {

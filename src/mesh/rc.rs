@@ -1,14 +1,14 @@
 //! See documentation for `RcPropHandle`.
-use mesh::item_handle::{
+use crate::mesh::item_handle::{
     VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle,
     MeshItemHandle,
 };
-use mesh::mesh::Mesh;
-use mesh::status::Status;
-use property::traits::{self, PropertyFor};
-use property::PropertyContainer;
-use property::handle::PropHandle;
-use property::traits::Handle;   // For methods.
+use crate::mesh::mesh::Mesh;
+use crate::mesh::status::Status;
+use crate::property::traits::{self, PropertyFor};
+use crate::property::PropertyContainer;
+use crate::property::handle::PropHandle;
+use crate::property::traits::Handle;   // For methods.
 
 /// Ref-counted property handle.
 ///

@@ -1,5 +1,5 @@
 use std::io::{Read, Write};
-use io::result::{Error, Result};
+use crate::io::result::{Error, Result};
 
 extern crate byteorder;
 // TODO: Reexporting byteorder's traits and types. Consider not leaking this implementation detail
@@ -106,8 +106,8 @@ impl<T: Binary> Binary for Vec<T> {
 pub mod test {
     use std::fmt::Debug;
     use std::io::Cursor;
-    use io::binary::{Binary, UNKNOWN_SIZE};
-    use io::binary::traits::Endian;
+    use crate::io::binary::{Binary, UNKNOWN_SIZE};
+    use crate::io::binary::traits::Endian;
 
     pub fn test_store<T: Binary>(endian: Endian, value: &T, expected_bytes: &[u8]) {
         let mut buf = Vec::<u8>::new();

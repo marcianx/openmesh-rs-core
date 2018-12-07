@@ -4,9 +4,9 @@ use self::num::Zero;
 use std::io::{Read, Write};
 use std::mem;
 
-use io::binary::traits::{Binary, ByteOrder};
-use io::result::Result;
-use mesh::status::{FlagBits, Status};
+use crate::io::binary::traits::{Binary, ByteOrder};
+use crate::io::result::Result;
+use crate::mesh::status::{FlagBits, Status};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Implementations for mesh status.
@@ -30,9 +30,9 @@ impl Binary for Status {
 
 #[cfg(test)]
 mod test {
-    use io::binary::test;
-    use io::binary::traits::Endian::{Big, Little};
-    use mesh::status;
+    use crate::io::binary::test;
+    use crate::io::binary::traits::Endian::{Big, Little};
+    use crate::mesh::status;
     
     #[test]
     fn test_store() {

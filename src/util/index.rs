@@ -46,7 +46,7 @@ impl<T> IndexSet<usize> for Vec<T> {
 ////////////////////////////////////////////////////////////////////////////////
 // Impls for `BitVec`
 
-use util::bitvec::BitVec;
+use crate::util::bitvec::BitVec;
 
 static TRUE: bool = true;
 static FALSE: bool = false;
@@ -77,7 +77,7 @@ impl IndexSet<usize> for BitVec {
 #[cfg(test)]
 mod test {
     use super::{IndexUnchecked, IndexSetUnchecked, IndexSet};
-    use util::bitvec::BitVec;
+    use crate::util::bitvec::BitVec;
 
     #[test]
     fn test_index_vec() {

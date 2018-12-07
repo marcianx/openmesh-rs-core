@@ -1,13 +1,13 @@
 //! Defines the core primitives (`Vertex`, `Halfedge`, `Edge`, `Face`) encoding mesh connectivity,
 //! and operations on collections of these items.
 
-use mesh::item_handle::{
+use crate::mesh::item_handle::{
     VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle,
     MeshItemHandle,
 };
-use mesh::prop::{Props, PropsMut};
-use property::PropertyContainer;
-use property::size::Size;
+use crate::mesh::prop::{Props, PropsMut};
+use crate::property::PropertyContainer;
+use crate::property::size::Size;
 
 ////////////////////////////////////////////////////////////
 // Half-edge data structure connectivity fields

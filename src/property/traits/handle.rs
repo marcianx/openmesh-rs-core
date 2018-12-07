@@ -1,6 +1,6 @@
 //! Handle trait for mesh item and item property handles.
 
-use property::size::{Index, INVALID_INDEX};
+use crate::property::size::{Index, INVALID_INDEX};
 
 /// Trait for handle types that wrap `HandleBase` which wraps an index.
 /// The `Default` implementation must initialize the handle to an invalid index.

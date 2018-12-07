@@ -1,12 +1,12 @@
 use std::io::{Read, Write};
-use io::binary::{Binary, Endian};
-use io::binary::UNKNOWN_SIZE;
-use io::result::Result;
-use util::bitvec::BitVec;
-use util::index::{IndexUnchecked, IndexSetUnchecked, IndexSet};
-use property::size::{Size, INVALID_INDEX};
-use property::traits::{self, ItemHandle, PropertyFor};
-use property::traits::{ConstructableProperty, ResizeableProperty};
+use crate::io::binary::{Binary, Endian};
+use crate::io::binary::UNKNOWN_SIZE;
+use crate::io::result::Result;
+use crate::util::bitvec::BitVec;
+use crate::util::index::{IndexUnchecked, IndexSetUnchecked, IndexSet};
+use crate::property::size::{Size, INVALID_INDEX};
+use crate::property::traits::{self, ItemHandle, PropertyFor};
+use crate::property::traits::{ConstructableProperty, ResizeableProperty};
 
 /// Implements getter/setters for the `name` and `persistent` properties.
 /// `$is_streamable` indicates whether the property is streamable, and thus, whether `persistent`
@@ -299,8 +299,8 @@ impl<H> PropertyFor<H> for bool
 
 #[cfg(test)]
 mod test {
-    use property::Property;
-    use property::traits::{self, ConstructableProperty, ItemHandle};
+    use crate::property::Property;
+    use crate::property::traits::{self, ConstructableProperty, ItemHandle};
 
     fn _assert_any<P: ::std::any::Any>(_p: P) {}
 

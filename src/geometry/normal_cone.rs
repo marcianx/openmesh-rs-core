@@ -2,8 +2,8 @@
 
 extern crate num;
 use self::num::traits::{One, Zero};
-use geometry::math::{BaseFloat, max, min};
-use geometry::vector::{Vec3, Dot};
+use crate::geometry::math::{BaseFloat, max, min};
+use crate::geometry::vector::{Vec3, Dot};
 
 #[repr(C)]
 #[derive(Eq, PartialEq, Clone, Hash, Debug, Copy)]
@@ -93,10 +93,10 @@ pub type NormalConed = NormalCone<f64>;
 
 #[cfg(test)]
 mod test {
-    use geometry::vector::{Vec3, Norm};
+    use crate::geometry::vector::{Vec3, Norm};
     use std::f64;
-    use geometry::normal_cone::{NormalCone, NormalConed};
-    use geometry::math::FloatCompare;
+    use crate::geometry::normal_cone::{NormalCone, NormalConed};
+    use crate::geometry::math::FloatCompare;
 
     const PI: f64 = f64::consts::PI;
     const TWO_PI: f64 = f64::consts::PI * 2.0;

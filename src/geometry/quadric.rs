@@ -3,8 +3,8 @@
 extern crate num;
 use self::num::traits::{One,Zero};
 use std::ops::{Add, Mul};
-use geometry::math::BaseFloat;
-use geometry::vector::{Vec3, Vec4, Dot, Norm};
+use crate::geometry::math::BaseFloat;
+use crate::geometry::vector::{Vec3, Vec4, Dot, Norm};
 
 #[repr(C)]
 #[derive(Eq, PartialEq, Clone, Hash, Debug, Copy)]
@@ -240,8 +240,8 @@ pub type Quadricd = Quadric<f64>;
 mod test {
     extern crate num;
     use self::num::traits::Zero;
-    use geometry::vector::{Vec3, Vec4, Norm};
-    use geometry::quadric::{Quadric,Quadricd};
+    use crate::geometry::vector::{Vec3, Vec4, Norm};
+    use crate::geometry::quadric::{Quadric,Quadricd};
 
     #[test]
     fn test_init() {

@@ -1,7 +1,7 @@
 use std::io::{Read, Write};
 
-use io::binary::traits::{Binary, ByteOrder};
-use io::result::{Error, Result};
+use crate::io::binary::traits::{Binary, ByteOrder};
+use crate::io::result::{Error, Result};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Implementation for string.
@@ -39,8 +39,8 @@ impl Binary for String {
 
 #[cfg(test)]
 mod test {
-    use ::io::binary::test;
-    use ::io::binary::traits::Endian::{Big, Little};
+    use crate::io::binary::test;
+    use crate::io::binary::traits::Endian::{Big, Little};
 
     #[test]
     fn test_store() {
@@ -64,8 +64,8 @@ mod test {
 
 #[cfg(test)]
 mod test_vec {
-    use ::io::binary::test;
-    use ::io::binary::traits::Endian::{Big, Little};
+    use crate::io::binary::test;
+    use crate::io::binary::traits::Endian::{Big, Little};
 
     #[test]
     fn test_store() {

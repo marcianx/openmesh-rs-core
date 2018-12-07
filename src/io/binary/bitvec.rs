@@ -1,8 +1,8 @@
 use std::io::{Read, Write};
 
-use io::binary::traits::{Binary, ByteOrder};
-use io::result::Result;
-use util::bitvec::BitVec;
+use crate::io::binary::traits::{Binary, ByteOrder};
+use crate::io::result::Result;
+use crate::util::bitvec::BitVec;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Implementation for a BitVec.
@@ -25,9 +25,9 @@ impl Binary for BitVec {
 
 #[cfg(test)]
 mod test {
-    use io::binary::test;
-    use io::binary::traits::Endian::{Big, Little};
-    use util::bitvec::BitVec;
+    use crate::io::binary::test;
+    use crate::io::binary::traits::Endian::{Big, Little};
+    use crate::util::bitvec::BitVec;
 
     #[test]
     fn test_store() {

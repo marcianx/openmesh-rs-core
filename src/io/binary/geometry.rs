@@ -3,9 +3,9 @@
 
 use std::io::{Read, Write};
 
-use geometry::vector::{Vec2, Vec3, Vec4, Vec6};
-use io::binary::traits::{Binary, ByteOrder};
-use io::result::Result;
+use crate::geometry::vector::{Vec2, Vec3, Vec4, Vec6};
+use crate::io::binary::traits::{Binary, ByteOrder};
+use crate::io::result::Result;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Implementations for the geometry vector types.
@@ -80,9 +80,9 @@ mod test {
     // Test only a subset of the impls above but all lines in the macros.
     extern crate num;
     use self::num::Zero;
-    use io::binary::test;
-    use io::binary::traits::Endian::{Big, Little};
-    use geometry::vector::*;
+    use crate::io::binary::test;
+    use crate::io::binary::traits::Endian::{Big, Little};
+    use crate::geometry::vector::*;
     use std::mem::transmute;
 
     #[test]

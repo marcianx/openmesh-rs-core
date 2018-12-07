@@ -1,8 +1,8 @@
-use property::handle::PropHandle;
-use property::size;
-use property::traits::{self, PropertyFor};
-use property::traits::ConstructableProperty; // for ::new() on property
-use property::traits::Handle; // for `PropHandle` methods
+use crate::property::handle::PropHandle;
+use crate::property::size;
+use crate::property::traits::{self, PropertyFor};
+use crate::property::traits::ConstructableProperty; // for ::new() on property
+use crate::property::traits::Handle; // for `PropHandle` methods
 
 /// Contains a parallel collection of `Property` trait objects.
 #[derive(Clone, Default)]

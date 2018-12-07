@@ -2,10 +2,10 @@ use std::io::{Read, Write};
 
 use downcast_rs::Downcast;
 
-use io::binary::{Endian, UNKNOWN_SIZE};
-use io::result::Result;
-use property::size::Size;
-use property::traits;
+use crate::io::binary::{Endian, UNKNOWN_SIZE};
+use crate::io::result::Result;
+use crate::property::size::Size;
+use crate::property::traits;
 
 /// All mesh types are stored in Properties which implement this trait. We distinguish between
 /// standard properties, which can be defined at compile time using the Attributes in the traits
