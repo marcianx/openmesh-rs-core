@@ -26,7 +26,7 @@ pub struct Quadric<Scalar> where Scalar: Copy {
 impl<Scalar: BaseFloat> Quadric<Scalar> {
     /// Quadric in the symmetric upper-triangular matrix form.
     pub fn from_matrix(m: [Scalar; 10]) -> Self {
-        Quadric { m: m }
+        Quadric { m }
     }
     /// Quadric representing distance from plane defined by ax + by + cz + d = 0.
     pub fn from_plane_coeffs(a: Scalar, b: Scalar, c: Scalar, d: Scalar) -> Self {

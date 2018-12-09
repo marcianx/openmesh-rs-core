@@ -149,7 +149,7 @@ impl<T, H> ConstructableProperty for Property<T, H>
 {
     fn new(name: String, size: Size) -> Self {
         let mut prop = Property {
-            name: name,
+            name,
             persistent: false,
             vec: Vec::new(),
             _m: ::std::marker::PhantomData
@@ -279,7 +279,7 @@ impl<H> ConstructableProperty for PropertyBits<H>
 {
     fn new(name: String, size: Size) -> PropertyBits<H> {
         let mut prop = PropertyBits {
-            name: name,
+            name,
             persistent: false,
             vec: BitVec::new(),
             _m: ::std::marker::PhantomData

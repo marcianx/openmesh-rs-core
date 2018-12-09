@@ -29,8 +29,8 @@ impl<'a, H> Props<'a, H>
     /// Instantiates an item property interface struct.
     pub(crate) fn new(props: &'a PropertyContainer<H>, len: Size) -> Self {
         Props {
-            props: props,
-            len: len,
+            props,
+            len,
         }
     }
 }
@@ -51,8 +51,8 @@ impl<'a, H> PropsMut<'a, H>
     /// Instantiates an item property interface struct.
     pub(crate) fn new(props: &'a mut PropertyContainer<H>, len: Size) -> Self {
         PropsMut {
-            props: props,
-            len: len,
+            props,
+            len,
         }
     }
 }

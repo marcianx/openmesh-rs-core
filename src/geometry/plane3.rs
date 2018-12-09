@@ -21,7 +21,7 @@ impl<T: BaseFloat> Plane3<T> {
     pub fn new(n: &Vec3<T>, pt: &Vec3<T>) -> Self {
         let mut n = *n;
         n.normalize_mut();
-        Plane3 { n: n, d: -n.dot(&pt) }
+        Plane3 { n, d: -n.dot(&pt) }
     }
     /// Zero plane.
     pub fn zero() -> Self {

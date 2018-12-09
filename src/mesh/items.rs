@@ -66,8 +66,8 @@ impl<'a, H: MeshItemHandle> Items<'a, H> {
     pub(crate) fn new(items: &'a ContainerVec<H>, props: &'a PropertyContainer<H>) -> Self
     {
         Items {
-            items: items,
-            props: props,
+            items,
+            props,
             _marker: ::std::marker::PhantomData,
         }
     }
@@ -92,8 +92,8 @@ impl<'a, H: MeshItemHandle> ItemsMut<'a, H> {
     pub(crate) fn new(items: &'a mut ContainerVec<H>, props: &'a mut PropertyContainer<H>) -> Self
     {
         ItemsMut {
-            items: items,
-            props: props,
+            items,
+            props,
             _marker: ::std::marker::PhantomData,
         }
     }

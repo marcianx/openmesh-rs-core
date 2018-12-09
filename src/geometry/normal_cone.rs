@@ -16,7 +16,7 @@ pub struct NormalCone<T> {
 impl<T: BaseFloat + One + Zero> NormalCone<T> {
     /// Plane normal to vector n that contains point pt.
     pub fn new(center_normal: &Vec3<T>, angle: T) -> Self {
-        NormalCone { center_normal: *center_normal, angle: angle }
+        NormalCone { center_normal: *center_normal, angle }
     }
     /// Zero cone.
     pub fn zero() -> Self {
