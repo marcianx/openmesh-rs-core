@@ -112,20 +112,14 @@ impl Mesh {
     }
 
     /// Resizes the mesh to have the given number of vertices, edges, and faces.
-    /// 
-    /// NOTE: This can only be used to increase the number of items and not decrease it!
-    /// Otherwise, it panics. That's to avoid dangling handle that are referenced.
-    /// To remove items from the mesh, use the 
-    /// 
-    /// TODO: Reconsider the privacy of this method.
-    /// - Should this just be a helper for higher-level mesh generation?
-    /// - Should it be exposed publicly to allow for more advanced mesh constructions?
-    pub fn resize(&mut self, nv: Size, ne: Size, nf: Size) {
-        let (old_nv, old_ne, old_nf) = (self.vertices().len(), self.edges().len(), self.faces().len());
-        assert!
-            (nv < old_nv || ne < old_ne || nf < old_nf,
-            "Cannot resize (#v, #e, #f) = ({}, {}, {}) to something smaller: ({}, {}, {})",
-            old_nv, old_ne, old_nf, nv, ne, nf);
+    ///
+    /// This is crate-local since it should not be used to remove items without also ensuring that
+    /// those items are not referenced by other items in the mesh. This is also useful for
+    /// initializing a mesh.
+    ///
+    /// For public methods to remove items from the mesh, use the mesh edit operations.
+    #[allow(dead_code)]
+    pub(crate) fn resize(&mut self, nv: Size, ne: Size, nf: Size) {
         self.vertices_mut().resize(nv);
         self.edges_mut().resize(ne);
         self.faces_mut().resize(nf);
