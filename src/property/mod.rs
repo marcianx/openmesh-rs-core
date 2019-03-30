@@ -7,6 +7,8 @@ pub mod handle;
 #[macro_use]
 mod property;
 pub use self::property::{Property, PropertyBits};
+mod value;
+pub use self::value::*;
 
 mod container;
 pub use self::container::PropertyContainer;

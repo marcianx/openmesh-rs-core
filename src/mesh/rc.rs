@@ -5,8 +5,8 @@ use crate::mesh::item_handle::{
 };
 use crate::mesh::Mesh;
 use crate::mesh::status::Status;
-use crate::property::traits::{self, PropertyFor};
-use crate::property::PropertyContainer;
+use crate::property::traits::{PropertyFor};
+use crate::property::{PropertyContainer, Value};
 use crate::property::handle::PropHandle;
 use crate::property::size::Size;
 use crate::property::traits::Handle;   // For methods.
@@ -17,7 +17,7 @@ use crate::property::traits::Handle;   // For methods.
 /// of them. This type is internal to `Mesh` and stored in the `Mesh` itself, thereby not requiring
 /// a heap allocation.
 #[derive(Clone, Default)]
-pub(crate) struct RcPropHandle<H: MeshItemHandle, T: traits::Value> {
+pub(crate) struct RcPropHandle<H: MeshItemHandle, T: Value> {
     handle: PropHandle<H, T>,
     ref_count: u32,
 }
@@ -26,7 +26,7 @@ pub(crate) struct RcPropHandle<H: MeshItemHandle, T: traits::Value> {
 fn request_prop<H, T>(name: &'static str, props: &mut PropertyContainer<H>,
                       rc_handle: &mut RcPropHandle<H, T>, len: Size)
     where H: MeshItemHandle,
-          T: traits::Value,
+          T: Value,
 {
     rc_handle.ref_count += 1;
     if rc_handle.ref_count == 1 {
@@ -39,7 +39,7 @@ fn request_prop<H, T>(name: &'static str, props: &mut PropertyContainer<H>,
 /// Request a property on the mesh if it doesn't already exist. It increases the ref count.
 fn release_prop<H, T>(props: &mut PropertyContainer<H>, rc_handle: &mut RcPropHandle<H, T>)
     where H: MeshItemHandle,
-          T: traits::Value,
+          T: Value,
 {
     if rc_handle.ref_count == 0 { return; }
     rc_handle.ref_count -= 1;

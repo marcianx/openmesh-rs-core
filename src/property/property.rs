@@ -4,6 +4,7 @@ use crate::io::binary::UNKNOWN_SIZE;
 use crate::io::result::Result;
 use crate::util::bitvec::BitVec;
 use crate::util::index::{IndexUnchecked, IndexSetUnchecked, IndexSet};
+use crate::property::Value;
 use crate::property::size::{Size, INVALID_INDEX};
 use crate::property::traits::{self, ItemHandle, PropertyFor};
 use crate::property::traits::{ConstructableProperty, ResizeableProperty};
@@ -11,7 +12,6 @@ use crate::property::traits::{ConstructableProperty, ResizeableProperty};
 /// Implements getter/setters for the `name` and `persistent` properties.
 /// `$is_streamable` indicates whether the property is streamable, and thus, whether `persistent`
 /// can ever be set to `true`.
-#[macro_export]
 macro_rules! impl_property_accessors {
     ($is_streamable: expr) => {
         fn name(&self) -> &str { &self.name }
@@ -32,7 +32,7 @@ macro_rules! impl_property_accessors {
 /// a vertex, halfedge, edge, or face property.
 ///
 /// Note that for the reflection-based implementation to work, the user-composed type `T` that is
-/// stored in `Property` **must** satisfy the bound `T: traits::Value`.
+/// stored in `Property` **must** satisfy the bound `T: Value`.
 ///
 /// The bound is not placed on this struct to avoid replicating it on most of the impls, which
 /// don't require this bound.
@@ -91,7 +91,7 @@ impl<T, H> ::std::fmt::Debug for Property<T, H> {
 // impl `traits::Property`
 
 impl<T, H> traits::Property for Property<T, H>
-    where T: traits::Value,
+    where T: Value,
           H: ItemHandle
 {
     type Handle = H;
@@ -123,7 +123,7 @@ impl<T, H> traits::Property for Property<T, H>
 }
 
 impl<T, H> ResizeableProperty for Property<T, H>
-    where T: traits::Value,
+    where T: Value,
           H: ItemHandle
 {
     fn reserve(&mut self, n: Size) {
@@ -144,7 +144,7 @@ impl<T, H> ResizeableProperty for Property<T, H>
 }
 
 impl<T, H> ConstructableProperty for Property<T, H>
-    where T: traits::Value,
+    where T: Value,
           H: ItemHandle
 {
     fn new(name: String, size: Size) -> Self {
@@ -173,7 +173,7 @@ impl<T, H> Property<T, H> {
 }
 
 impl<T, H> PropertyFor<H> for T
-    where T: traits::Value,
+    where T: Value,
           H: ItemHandle
 {
     default type Property = Property<T, H>;
@@ -313,15 +313,15 @@ impl<H> PropertyFor<H> for bool
 
 #[cfg(test)]
 mod test {
-    use crate::property::Property;
-    use crate::property::traits::{self, ConstructableProperty, ItemHandle};
+    use crate::property::{Property, Value};
+    use crate::property::traits::{ConstructableProperty, ItemHandle};
 
     fn _assert_any<P: ::std::any::Any>(_p: P) {}
 
     // This method isn't used anywhere. Instead, it serves as a compile-time assertion that the
-    // constraints `T: traits::Value` and `H: ItemHandle` imply `Property: ::std::any::Any`.
+    // constraints `T: Value` and `H: ItemHandle` imply `Property: ::std::any::Any`.
     // Test compilation will fail here if this fact is violated.
-    fn _assert_property_any<T: traits::Value, H: ItemHandle>() {
+    fn _assert_property_any<T: Value, H: ItemHandle>() {
         _assert_any(Property::<T, H>::new("test".into(), 10));
     }
 }

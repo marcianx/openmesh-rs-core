@@ -5,6 +5,7 @@ use crate::mesh::item_handle::{VertexHandle, HalfedgeHandle, EdgeHandle, FaceHan
 use crate::property::PropertyContainer;
 use crate::property::handle::PropHandle;
 use crate::property::size::Size;
+use crate::property::Value;
 use crate::property::traits::{self, PropertyFor};
 use crate::property::traits::Handle;   // For methods.
 
@@ -89,7 +90,7 @@ macro_rules! impl_props {
 
             #[doc="Returns the handle with the given name if any exists and corresponds to a"]
             #[doc="property of type `T`. Otherwise, it returns an invalid handle."]
-            pub fn handle<T: traits::Value>(&self, name: &str) -> PropHandle<H, T> {
+            pub fn handle<T: Value>(&self, name: &str) -> PropHandle<H, T> {
                 self.props.handle::<T>(name)
             }
         }
@@ -104,7 +105,7 @@ impl<'a, H> Props<'a, H>
 {
     /// Returns the `Property<T>` or `PropertyBits` (for `T = bool`), if any,
     /// corresponding to `prop_handle`.
-    pub fn get<T: traits::Value>(&self, prop_handle: PropHandle<H, T>)
+    pub fn get<T: Value>(&self, prop_handle: PropHandle<H, T>)
         -> Option<&'a <T as PropertyFor<H>>::Property>
     {
         self.props.get::<T>(prop_handle)
@@ -123,13 +124,13 @@ impl<'a, H> PropsMut<'a, H>
     /// 
     /// - Max length: 256 characters
     /// - Names matching `/^[vhefm]:/` or `/^<.*>$/` are reserved for internal use.
-    pub fn add<T: traits::Value>(&mut self, name: Option<String>) -> PropHandle<H, T> {
+    pub fn add<T: Value>(&mut self, name: Option<String>) -> PropHandle<H, T> {
         self.props.add::<T>(name, self.len)
     }
 
     /// Removes a `Property<T>` for associated item type if `prop_handle` is valid, and it
     /// invalidates `prop_handle`.
-    pub fn remove<T: traits::Value>(&mut self, prop_handle: &mut PropHandle<H, T>) {
+    pub fn remove<T: Value>(&mut self, prop_handle: &mut PropHandle<H, T>) {
         self.props.remove(*prop_handle);
         prop_handle.invalidate();
     }
@@ -137,7 +138,7 @@ impl<'a, H> PropsMut<'a, H>
     /// Returns the `Property<T>` or `PropertyBits` (for `T = bool`), if any, corresponding to
     /// `prop_handle`. This consumes `Self` since rust can't yet express re-borrows from existing
     /// mutable borrows within `Self`. https://users.rust-lang.org/t/22836
-    pub fn get<T: traits::Value>(self, prop_handle: PropHandle<H, T>)
+    pub fn get<T: Value>(self, prop_handle: PropHandle<H, T>)
         -> Option<&'a <T as PropertyFor<H>>::Property>
     {
         self.props.get::<T>(prop_handle)
@@ -146,7 +147,7 @@ impl<'a, H> PropsMut<'a, H>
     /// Returns the `Property<T>` or `PropertyBits` (for `T = bool`), if any, corresponding to
     /// `prop_handle`. This consumes `Self` since rust can't yet express re-borrows from existing
     /// mutable borrows within `Self`. https://users.rust-lang.org/t/22836
-    pub fn get_mut<T: traits::Value>(self, prop_handle: PropHandle<H, T>)
+    pub fn get_mut<T: Value>(self, prop_handle: PropHandle<H, T>)
         -> Option<&'a mut <T as PropertyFor<H>>::Property>
     {
         self.props.get_mut::<T>(prop_handle)
@@ -154,7 +155,7 @@ impl<'a, H> PropsMut<'a, H>
 
     /// Copies a single property from one item to another of the same type.
     /// It is a noop if any of the handles is invalid.
-    pub fn copy<T: traits::Value>(
+    pub fn copy<T: Value>(
         &mut self, prop_handle: PropHandle<H, T>, h_src: H, h_dst: H) {
         if h_src.is_valid() && h_dst.is_valid() {
             if let Some(p) = self.props.get_mut(prop_handle) {
@@ -165,7 +166,7 @@ impl<'a, H> PropsMut<'a, H>
 
     /// Copies all properties from one item to another of the same type.
     /// It is a noop if either handle is invalid.
-    pub fn copy_all<T: traits::Value>(&mut self, h_src: H, h_dst: H) {
+    pub fn copy_all<T: Value>(&mut self, h_src: H, h_dst: H) {
         if h_src.is_valid() && h_dst.is_valid() {
             self.props.copy_all(h_src, h_dst);
         }

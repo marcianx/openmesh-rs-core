@@ -1,4 +1,5 @@
 use crate::property::handle::PropHandle;
+use crate::property::Value;
 use crate::property::size;
 use crate::property::traits::{self, PropertyFor};
 use crate::property::traits::ConstructableProperty; // for ::new() on property
@@ -45,7 +46,7 @@ impl<H: traits::ItemHandle> PropertyContainer<H>
     /// Adds a property whose elements are of type `T`.
     /// Panics in the unlikely case that the number of properties reaches `size::INVALID_INDEX`.
     pub fn add<T>(&mut self, name: Option<String>, len: size::Size) -> PropHandle<H, T>
-        where T: traits::Value
+        where T: Value
     {
         let name = name.unwrap_or_else(|| "<unknown>".to_owned());
         let pos = self.vec.iter().position(Option::is_none);
@@ -65,7 +66,7 @@ impl<H: traits::ItemHandle> PropertyContainer<H>
 
     /// Returns the property at the given handle if any exists and if the return type matches.
     pub fn get<T>(&self, prop_handle: PropHandle<H, T>) -> Option<&<T as PropertyFor<H>>::Property>
-        where T: traits::Value
+        where T: Value
     {
         // NOTE: This handles prop_handle.index() == size::INVALID_INDEX just fine.
         self.vec
@@ -79,7 +80,7 @@ impl<H: traits::ItemHandle> PropertyContainer<H>
     /// Returns the property at the given handle if any exists and if the return type matches.
     pub fn get_mut<T>(&mut self, prop_handle: PropHandle<H, T>)
         -> Option<&mut <T as PropertyFor<H>>::Property>
-        where T: traits::Value
+        where T: Value
     {
         // NOTE: This handles prop_handle.index() == size::INVALID_INDEX just fine.
         self.vec
@@ -94,7 +95,7 @@ impl<H: traits::ItemHandle> PropertyContainer<H>
     /// value type `T` matches that of the pointed-to property type. Returns true iff something
     /// was removed.
     pub fn remove<T>(&mut self, prop_handle: PropHandle<H, T>) -> bool
-        where T: traits::Value
+        where T: Value
     {
         // NOTE: This handles prop_handle.index() == size::INVALID_INDEX just fine.
         self.vec
@@ -123,9 +124,7 @@ impl<H: traits::ItemHandle> PropertyContainer<H>
 
     /// Returns the handle with the given name if any exists and corresponds to a property of type
     /// `T`. Otherwise, it returns an invalid handle.
-    pub fn handle<T>(&self, name: &str) -> PropHandle<H, T>
-        where T: traits::Value
-    {
+    pub fn handle<T: Value>(&self, name: &str) -> PropHandle<H, T> {
         self.vec.iter()
             .position(|opt_prop| opt_prop.as_ref().map(|prop| prop.name() == name).unwrap_or(false))
             .and_then(|index| {
