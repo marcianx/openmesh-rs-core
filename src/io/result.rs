@@ -44,10 +44,18 @@ impl error::Error for self::Error {
         }
     }
 
-    fn cause(&self) -> Option<&error::Error> {
+    fn cause(&self) -> Option<&dyn error::Error> {
         match self {
-            &Error::Io(ref err)   => { err.cause() }
-            &Error::FromUtf8(ref err) => { err.cause() }
+            &Error::Io(ref err) => { err.source() }
+            &Error::FromUtf8(ref err) => { err.source() }
+            _ => { None }
+        }
+    }
+
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            &Error::Io(ref err) => { err.source() }
+            &Error::FromUtf8(ref err) => { err.source() }
             _ => { None }
         }
     }

@@ -34,21 +34,21 @@ impl Status {
     }
 
     /// Whether the DELETED flag is set.
-    pub fn deleted          (&self) -> bool { self.contains(DELETED          ) }
+    pub fn deleted          (self) -> bool { self.contains(DELETED          ) }
     /// Whether the LOCKED flag is set.
-    pub fn locked           (&self) -> bool { self.contains(LOCKED           ) }
+    pub fn locked           (self) -> bool { self.contains(LOCKED           ) }
     /// Whether the SELECTED flag is set.
-    pub fn selected         (&self) -> bool { self.contains(SELECTED         ) }
+    pub fn selected         (self) -> bool { self.contains(SELECTED         ) }
     /// Whether the HIDDEN flag is set.
-    pub fn hidden           (&self) -> bool { self.contains(HIDDEN           ) }
+    pub fn hidden           (self) -> bool { self.contains(HIDDEN           ) }
     /// Whether the FEATURE flag is set.
-    pub fn feature          (&self) -> bool { self.contains(FEATURE          ) }
+    pub fn feature          (self) -> bool { self.contains(FEATURE          ) }
     /// Whether the TAGGED flag is set.
-    pub fn tagged           (&self) -> bool { self.contains(TAGGED           ) }
+    pub fn tagged           (self) -> bool { self.contains(TAGGED           ) }
     /// Whether the TAGGED2 flag is set.
-    pub fn tagged2          (&self) -> bool { self.contains(TAGGED2          ) }
+    pub fn tagged2          (self) -> bool { self.contains(TAGGED2          ) }
     /// Whether the FIXED_NON_MANIFOLD flag is set.
-    pub fn fixed_non_manifold(&self) -> bool { self.contains(FIXED_NON_MANIFOLD) }
+    pub fn fixed_non_manifold(self) -> bool { self.contains(FIXED_NON_MANIFOLD) }
 
     /// Sets the DELETED flag.
     pub fn set_deleted          (&mut self, b: bool) { self.update(DELETED          , b) }

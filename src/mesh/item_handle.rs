@@ -77,7 +77,7 @@ macro_rules! impl_to_items {
          fn get: $get:expr,
          fn get_mut: $get_mut:expr,
      }) => {
-        impl MeshItemHandle for $Handle {
+        impl crate::mesh::item_handle::MeshItemHandle for $Handle {
             type Item = $Item;
             type ContainerItem = $ContainerItem;
             const PREFIX: &'static str = $prefix;

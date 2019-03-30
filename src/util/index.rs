@@ -39,7 +39,7 @@ impl<T> IndexSetUnchecked<usize> for Vec<T> {
 
 impl<T> IndexSet<usize> for Vec<T> {
     fn index_set(&mut self, index: usize, value: T) {
-        *self.get_mut(index).unwrap() = value;
+        self[index] = value;
     }
 }
 

@@ -8,10 +8,8 @@ use self::num::traits::Float;
 /// Methods for floating point representations, building on `nalgebra`'s eponymous trait.
 pub trait BaseFloat : self::na::BaseFloat {
     /// Returns the default epsilon value for floating point equality tests.
-    #[inline(always)]
     fn eps() -> Self;
     /// From float.
-    #[inline(always)]
     fn from_f32(val: f32) -> Self;
 }
 
