@@ -3,8 +3,8 @@ use crate::property::{
     INVALID_INDEX, Index, Size, Value,
     ItemHandle,
 };
-use crate::property::traits::{self, PropertyFor};
-use crate::property::traits::ConstructableProperty; // for ::new() on property
+use crate::property::{PropertyFor, ResizeableProperty};
+use crate::property::ConstructableProperty; // for ::new() on property
 use crate::property::Handle; // for `PropHandle` methods
 
 /// Contains a parallel collection of `Property` trait objects.
@@ -12,7 +12,7 @@ use crate::property::Handle; // for `PropHandle` methods
 pub struct PropertyContainer<H> {
     // TODO: Should there be a `RefCell` here to allow getting multiple properties mutably?
     /// List of all the properties, whose lengths are kept in sync.
-    vec: Vec<Option<Box<traits::ResizeableProperty<Handle=H>>>>,
+    vec: Vec<Option<Box<ResizeableProperty<Handle=H>>>>,
 }
 
 
@@ -73,9 +73,9 @@ impl<H: ItemHandle> PropertyContainer<H>
         // NOTE: This handles prop_handle.index() == INVALID_INDEX just fine.
         self.vec
             .get(prop_handle.index() as usize)
-            // &Option<Box<traits::Property>> -> Option<&Box<traits::Property>>
+            // &Option<Box<dyn Property>> -> Option<&Box<dyn Property>>
             .and_then(|opt_prop| opt_prop.as_ref()) // unwrap the `Option` wrapping the `Box`
-            // prop: &Box<traits::Property>
+            // prop: &Box<dyn Property>
             .and_then(|prop| prop.as_property().downcast_ref::<_>())
     }
 
@@ -87,9 +87,9 @@ impl<H: ItemHandle> PropertyContainer<H>
         // NOTE: This handles prop_handle.index() == INVALID_INDEX just fine.
         self.vec
             .get_mut(prop_handle.index() as usize)
-            // &Option<Box<traits::Property>> -> Option<&mut Box<traits::Property>>
+            // &Option<Box<dyn Property>> -> Option<&mut Box<dyn Property>>
             .and_then(|opt_prop| opt_prop.as_mut()) // unwrap the `Option` wrapping the `Box`
-            // prop: &mut Box<traits::Property>
+            // prop: &mut Box<dyn Property>
             .and_then(|prop| prop.as_property_mut().downcast_mut::<_>())
     }
 
@@ -111,7 +111,7 @@ impl<H: ItemHandle> PropertyContainer<H>
                 .map(|_| opt_prop) // Return `opt_prop` only if `T` matched.
             })
             // Explicitly typed to catch errors since any `&mut Option` would compile successfully.
-            .map(|opt_prop: &mut Option<Box<traits::ResizeableProperty<Handle=H>>>| {
+            .map(|opt_prop: &mut Option<Box<dyn ResizeableProperty<Handle=H>>>| {
                 ::std::mem::swap(opt_prop, &mut None);
             })
             .is_some()
@@ -131,8 +131,8 @@ impl<H: ItemHandle> PropertyContainer<H>
             .position(|opt_prop| opt_prop.as_ref().map(|prop| prop.name() == name).unwrap_or(false))
             .and_then(|index| {
                 // Return the index only if the found property corresponds to that for type `T`.
-                // &Option<Box<traits::Property>> -> Option<&Box<traits::Property>>
-                // -> &Box<traits::Property> -> &traits::Property -?-> TargetProperty
+                // &Option<Box<dyn Property>> -> Option<&Box<dyn Property>>
+                // -> &Box<dyn Property> -> &dyn Property -?-> TargetProperty
                 self.vec[index].as_ref().and_then(|box_prop| {
                     box_prop.as_property().downcast_ref::<TargetProperty<T, H>>()
                 }).map(|_| PropHandle::from_index(index as Index))

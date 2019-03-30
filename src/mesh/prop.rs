@@ -2,15 +2,11 @@
 //! vectices, halfedge, edge, and faces) within a mesh.
 
 use crate::mesh::item_handle::{VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle, MeshHandle};
-use crate::property::PropertyContainer;
-use crate::property::{ItemHandle, PropHandle};
-use crate::property::Size;
-use crate::property::Value;
-use crate::property::traits::PropertyFor;
-use crate::property::Handle;   // For methods.
-
-// Solely for trait methods.
-use crate::property::traits::Property as PropertyTrait;
+use crate::property::{
+    ItemHandle, PropHandle, PropertyContainer, PropertyFor,
+    Size, Value,
+};
+use crate::property::{Handle, Property}; // For methods.
 
 ////////////////////////////////////////////////////////////
 

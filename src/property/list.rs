@@ -4,10 +4,8 @@ use crate::io::binary::UNKNOWN_SIZE;
 use crate::io::result::Result;
 use crate::util::bitvec::BitVec;
 use crate::util::index::{IndexUnchecked, IndexSetUnchecked, IndexSet};
-use crate::property::Value;
-use crate::property::{Size, INVALID_INDEX, ItemHandle};
-use crate::property::traits::{self, PropertyFor};
-use crate::property::traits::{ConstructableProperty, ResizeableProperty};
+use crate::property::{INVALID_INDEX, ItemHandle, Size, Value};
+use crate::property::{ConstructableProperty, Property, PropertyFor, ResizeableProperty};
 
 /// Implements getter/setters for the `name` and `persistent` properties.
 /// `$is_streamable` indicates whether the property is streamable, and thus, whether `persistent`
@@ -88,9 +86,9 @@ impl<T, H> ::std::fmt::Debug for PropertyVec<T, H> {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// impl `traits::Property`
+// impl `Property`
 
-impl<T, H> traits::Property for PropertyVec<T, H>
+impl<T, H> Property for PropertyVec<T, H>
     where T: Value,
           H: ItemHandle
 {
@@ -139,8 +137,8 @@ impl<T, H> ResizeableProperty for PropertyVec<T, H>
     fn clear(&mut self) { ::std::mem::swap(&mut self.vec, &mut Vec::new()); }
     fn push(&mut self) { self.vec.push(Default::default()); }
     fn clone_as_trait(&self) -> Box<ResizeableProperty<Handle=H>> { Box::new(self.clone()) }
-    fn as_property(&self) -> &traits::Property<Handle=H> { self }
-    fn as_property_mut(&mut self) -> &mut traits::Property<Handle=H> { self }
+    fn as_property(&self) -> &Property<Handle=H> { self }
+    fn as_property_mut(&mut self) -> &mut Property<Handle=H> { self }
 }
 
 impl<T, H> ConstructableProperty for PropertyVec<T, H>
@@ -230,9 +228,9 @@ impl<H> ::std::fmt::Debug for PropertyBitVec<H> {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// impl `traits::Property`
+// impl `Property`
 
-impl<H> traits::Property for PropertyBitVec<H>
+impl<H> Property for PropertyBitVec<H>
     where H: ItemHandle
 {
     type Handle = H;
@@ -284,8 +282,8 @@ impl<H> ResizeableProperty for PropertyBitVec<H>
     fn clear(&mut self) { ::std::mem::swap(&mut self.vec, &mut BitVec::new()); }
     fn push(&mut self) { self.vec.push(Default::default()); }
     fn clone_as_trait(&self) -> Box<ResizeableProperty<Handle=H>> { Box::new(self.clone()) }
-    fn as_property(&self) -> &traits::Property<Handle=H> { self }
-    fn as_property_mut(&mut self) -> &mut traits::Property<Handle=H> { self }
+    fn as_property(&self) -> &Property<Handle=H> { self }
+    fn as_property_mut(&mut self) -> &mut Property<Handle=H> { self }
 }
 
 impl<H> ConstructableProperty for PropertyBitVec<H>
@@ -313,8 +311,7 @@ impl<H> PropertyFor<H> for bool
 
 #[cfg(test)]
 mod test {
-    use crate::property::{ItemHandle, PropertyVec, Value};
-    use crate::property::traits::ConstructableProperty;
+    use crate::property::{ConstructableProperty, ItemHandle, PropertyVec, Value};
 
     fn _assert_any<P: ::std::any::Any>(_p: P) {}
 
