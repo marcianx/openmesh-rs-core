@@ -32,12 +32,12 @@ macro_rules! impl_property_accessors {
 /// a vertex, halfedge, edge, or face property.
 ///
 /// Note that for the reflection-based implementation to work, the user-composed type `T` that is
-/// stored in `Property` **must** satisfy the bound `T: Value`.
+/// stored in `PropertyVec` **must** satisfy the bound `T: Value`.
 ///
 /// The bound is not placed on this struct to avoid replicating it on most of the impls, which
 /// don't require this bound.
 #[derive(Clone)]
-pub struct Property<T, H> {
+pub struct PropertyVec<T, H> {
     name: String,
     persistent: bool,
     vec: Vec<T>,
@@ -47,32 +47,32 @@ pub struct Property<T, H> {
 ////////////////////////////////////////////////////////////////////////////////
 // Index impls (pass through to vec).
 
-impl<T, H: ItemHandle> ::std::ops::Index<H> for Property<T, H> {
+impl<T, H: ItemHandle> ::std::ops::Index<H> for PropertyVec<T, H> {
     type Output = T;
     fn index(&self, index: H) -> &Self::Output {
         self.vec.index(index.index_us())
     }
 }
 
-impl<T, H: ItemHandle> ::std::ops::IndexMut<H> for Property<T, H> {
+impl<T, H: ItemHandle> ::std::ops::IndexMut<H> for PropertyVec<T, H> {
     fn index_mut(&mut self, index: H) -> &mut Self::Output {
         self.vec.index_mut(index.index_us())
     }
 }
 
-impl<T, H: ItemHandle> IndexUnchecked<H> for Property<T, H> {
+impl<T, H: ItemHandle> IndexUnchecked<H> for PropertyVec<T, H> {
     unsafe fn index_unchecked(&self, index: H) -> &Self::Output {
         self.vec.index_unchecked(index.index_us())
     }
 }
 
-impl<T, H: ItemHandle> IndexSetUnchecked<H> for Property<T, H> {
+impl<T, H: ItemHandle> IndexSetUnchecked<H> for PropertyVec<T, H> {
     unsafe fn index_set_unchecked(&mut self, index: H, value: T) {
         self.vec.index_set_unchecked(index.index_us(), value);
     }
 }
 
-impl<T, H: ItemHandle> IndexSet<H> for Property<T, H> {
+impl<T, H: ItemHandle> IndexSet<H> for PropertyVec<T, H> {
     fn index_set(&mut self, index: H, value: T) {
         self.vec.index_set(index.index_us(), value);
     }
@@ -81,7 +81,7 @@ impl<T, H: ItemHandle> IndexSet<H> for Property<T, H> {
 ////////////////////////////////////////////////////////////////////////////////
 // impl `std::fmt::Debug`
 
-impl<T, H> ::std::fmt::Debug for Property<T, H> {
+impl<T, H> ::std::fmt::Debug for PropertyVec<T, H> {
     fn fmt(&self, formatter: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         writeln!(formatter, "  {}{}", self.name, if self.persistent { ", persistent" } else { "" })
     }
@@ -90,7 +90,7 @@ impl<T, H> ::std::fmt::Debug for Property<T, H> {
 ////////////////////////////////////////////////////////////////////////////////
 // impl `traits::Property`
 
-impl<T, H> traits::Property for Property<T, H>
+impl<T, H> traits::Property for PropertyVec<T, H>
     where T: Value,
           H: ItemHandle
 {
@@ -122,7 +122,7 @@ impl<T, H> traits::Property for Property<T, H>
     }
 }
 
-impl<T, H> ResizeableProperty for Property<T, H>
+impl<T, H> ResizeableProperty for PropertyVec<T, H>
     where T: Value,
           H: ItemHandle
 {
@@ -143,12 +143,12 @@ impl<T, H> ResizeableProperty for Property<T, H>
     fn as_property_mut(&mut self) -> &mut traits::Property<Handle=H> { self }
 }
 
-impl<T, H> ConstructableProperty for Property<T, H>
+impl<T, H> ConstructableProperty for PropertyVec<T, H>
     where T: Value,
           H: ItemHandle
 {
     fn new(name: String, size: Size) -> Self {
-        let mut prop = Property {
+        let mut prop = PropertyVec {
             name,
             persistent: false,
             vec: Vec::new(),
@@ -160,7 +160,7 @@ impl<T, H> ConstructableProperty for Property<T, H>
 }
 
 // Iterators for tests. The real iterators are in src/mesh/iter.rs.
-impl<T, H> Property<T, H> {
+impl<T, H> PropertyVec<T, H> {
     /// Iterator through the property list.
     pub(crate) fn iter_internal(&self) -> impl Iterator<Item=&T> {
         self.vec.iter()
@@ -176,7 +176,7 @@ impl<T, H> PropertyFor<H> for T
     where T: Value,
           H: ItemHandle
 {
-    default type Property = Property<T, H>;
+    default type Property = PropertyVec<T, H>;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -185,7 +185,7 @@ impl<T, H> PropertyFor<H> for T
 /// For type safety, it is parametrized by the Handle type which differentiates whether this is a
 /// vertex, halfedge, edge, or face property.
 #[derive(Clone)]
-pub struct PropertyBits<H> {
+pub struct PropertyBitVec<H> {
     name: String,
     persistent: bool,
     vec: BitVec,
@@ -195,26 +195,26 @@ pub struct PropertyBits<H> {
 ////////////////////////////////////////////////////////////////////////////////
 // Index impls (pass through to vec).
 
-impl<H: ItemHandle> ::std::ops::Index<H> for PropertyBits<H> {
+impl<H: ItemHandle> ::std::ops::Index<H> for PropertyBitVec<H> {
     type Output = bool;
     fn index(&self, index: H) -> &Self::Output {
         self.vec.index(index.index_us())
     }
 }
 
-impl<H: ItemHandle> IndexUnchecked<H> for PropertyBits<H> {
+impl<H: ItemHandle> IndexUnchecked<H> for PropertyBitVec<H> {
     unsafe fn index_unchecked(&self, index: H) -> &Self::Output {
         self.vec.index_unchecked(index.index_us())
     }
 }
 
-impl<H: ItemHandle> IndexSetUnchecked<H> for PropertyBits<H> {
+impl<H: ItemHandle> IndexSetUnchecked<H> for PropertyBitVec<H> {
     unsafe fn index_set_unchecked(&mut self, index: H, value: bool) {
         self.vec.index_set_unchecked(index.index_us(), value);
     }
 }
 
-impl<H: ItemHandle> IndexSet<H> for PropertyBits<H> {
+impl<H: ItemHandle> IndexSet<H> for PropertyBitVec<H> {
     fn index_set(&mut self, index: H, value: bool) {
         self.vec.index_set(index.index_us(), value);
     }
@@ -223,7 +223,7 @@ impl<H: ItemHandle> IndexSet<H> for PropertyBits<H> {
 ////////////////////////////////////////////////////////////////////////////////
 // impl `std::fmt::Debug`
 
-impl<H> ::std::fmt::Debug for PropertyBits<H> {
+impl<H> ::std::fmt::Debug for PropertyBitVec<H> {
     fn fmt(&self, formatter: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         writeln!(formatter, "  {}{}", self.name, if self.persistent { ", persistent" } else { "" })
     }
@@ -232,7 +232,7 @@ impl<H> ::std::fmt::Debug for PropertyBits<H> {
 ////////////////////////////////////////////////////////////////////////////////
 // impl `traits::Property`
 
-impl<H> traits::Property for PropertyBits<H>
+impl<H> traits::Property for PropertyBitVec<H>
     where H: ItemHandle
 {
     type Handle = H;
@@ -264,7 +264,7 @@ impl<H> traits::Property for PropertyBits<H>
     }
 }
 
-impl<H> ResizeableProperty for PropertyBits<H>
+impl<H> ResizeableProperty for PropertyBitVec<H>
     where H: ItemHandle
 {
     fn reserve(&mut self, n: Size) {
@@ -288,11 +288,11 @@ impl<H> ResizeableProperty for PropertyBits<H>
     fn as_property_mut(&mut self) -> &mut traits::Property<Handle=H> { self }
 }
 
-impl<H> ConstructableProperty for PropertyBits<H>
+impl<H> ConstructableProperty for PropertyBitVec<H>
     where H: ItemHandle
 {
-    fn new(name: String, size: Size) -> PropertyBits<H> {
-        let mut prop = PropertyBits {
+    fn new(name: String, size: Size) -> PropertyBitVec<H> {
+        let mut prop = PropertyBitVec {
             name,
             persistent: false,
             vec: BitVec::new(),
@@ -306,22 +306,22 @@ impl<H> ConstructableProperty for PropertyBits<H>
 impl<H> PropertyFor<H> for bool
     where H: ItemHandle
 {
-    type Property = PropertyBits<H>;
+    type Property = PropertyBitVec<H>;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 #[cfg(test)]
 mod test {
-    use crate::property::{ItemHandle, Property, Value};
+    use crate::property::{ItemHandle, PropertyVec, Value};
     use crate::property::traits::ConstructableProperty;
 
     fn _assert_any<P: ::std::any::Any>(_p: P) {}
 
     // This method isn't used anywhere. Instead, it serves as a compile-time assertion that the
-    // constraints `T: Value` and `H: ItemHandle` imply `Property: ::std::any::Any`.
+    // constraints `T: Value` and `H: ItemHandle` imply `PropertyVec: ::std::any::Any`.
     // Test compilation will fail here if this fact is violated.
     fn _assert_property_any<T: Value, H: ItemHandle>() {
-        _assert_any(Property::<T, H>::new("test".into(), 10));
+        _assert_any(PropertyVec::<T, H>::new("test".into(), 10));
     }
 }

@@ -3,13 +3,13 @@
 use crate::mesh::item_handle::MeshItemHandle;
 use crate::mesh::Mesh;
 use crate::mesh::status::{self, Status};
-use crate::property::Property;
+use crate::property::PropertyVec;
 
 
 struct IterBase<'a, H: MeshItemHandle> {
     mesh: &'a Mesh,
     h: H,
-    status_prop: Option<&'a Property<Status, H>>,
+    status_prop: Option<&'a PropertyVec<Status, H>>,
     skip_bits: Status,
 }
 

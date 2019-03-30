@@ -3,7 +3,7 @@
 use crate::mesh::Mesh;
 use crate::mesh::items::{Vertex, Halfedge, Edge, Face};
 use crate::mesh::status::Status;
-use crate::property::{ItemHandle, Property, PropertyContainer, Size};
+use crate::property::{ItemHandle, PropertyVec, PropertyContainer, Size};
 use crate::property::Handle; // import methods of Handle
 use crate::property::traits::PropertyFor;
 
@@ -66,7 +66,7 @@ pub trait MeshItemHandle: ItemHandle {
     // Mesh iteration.
 
     /// Gets the status property.
-    fn status_prop(mesh: &Mesh) -> Option<&Property<Status, Self>>;
+    fn status_prop(mesh: &Mesh) -> Option<&PropertyVec<Status, Self>>;
 }
 
 macro_rules! impl_to_items {
@@ -106,7 +106,7 @@ macro_rules! impl_to_items {
                 $get_mut
             }
 
-            fn status_prop(mesh: &Mesh) -> Option<&Property<Status, Self>> {
+            fn status_prop(mesh: &Mesh) -> Option<&PropertyVec<Status, Self>> {
                 mesh.$get_status()
             }
         }
@@ -131,7 +131,7 @@ macro_rules! impl_to_items {
 impl<H> PropertyFor<H> for Status
     where H: ItemHandle
 {
-    type Property = Property<Status, H>;
+    type Property = PropertyVec<Status, H>;
 }
 
 
