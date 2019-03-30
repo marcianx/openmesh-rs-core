@@ -3,9 +3,9 @@
 use crate::mesh::Mesh;
 use crate::mesh::items::{Vertex, Halfedge, Edge, Face};
 use crate::mesh::status::Status;
-use crate::property::{Property, PropertyContainer};
-use crate::property::Size;
-use crate::property::traits::{self, Handle, PropertyFor}; // import methods of Handle
+use crate::property::{ItemHandle, Property, PropertyContainer, Size};
+use crate::property::Handle; // import methods of Handle
+use crate::property::traits::PropertyFor;
 
 def_handle!(VertexHandle, "Vertex handle.");
 def_handle!(HalfedgeHandle, "Halfedge handle.");
@@ -14,17 +14,17 @@ def_handle!(FaceHandle, "Face handle.");
 def_handle!(MeshHandle, "Mesh handle (only needed for parametrizing PropertyContainer).");
 
 // Define the marker trait (used to define the property containers).
-impl traits::ItemHandle for VertexHandle {}
-impl traits::ItemHandle for HalfedgeHandle {}
-impl traits::ItemHandle for EdgeHandle {}
-impl traits::ItemHandle for FaceHandle {}
-impl traits::ItemHandle for MeshHandle {}
+impl ItemHandle for VertexHandle {}
+impl ItemHandle for HalfedgeHandle {}
+impl ItemHandle for EdgeHandle {}
+impl ItemHandle for FaceHandle {}
+impl ItemHandle for MeshHandle {}
 
 
 /// Relates each `ItemHandle` type to corresponding structures within the Mesh itself.
 /// The methods and types within this trait **are implementation details** and should not be used
 /// outside of this framework.
-pub trait MeshItemHandle: traits::ItemHandle {
+pub trait MeshItemHandle: ItemHandle {
     /// Mesh item type corresponding to `Self` which is one of `Vertex`, `Halfedge`, `Edge`, or
     /// `Face`.
     type Item: Clone + Default;
@@ -129,7 +129,7 @@ macro_rules! impl_to_items {
 // TODO: This is required for some incomprehensible reason for `status_prop()` above to work.
 // Figure out why and whether there's a bug in the compiler's (unstable) associated type support.
 impl<H> PropertyFor<H> for Status
-    where H: traits::ItemHandle
+    where H: ItemHandle
 {
     type Property = Property<Status, H>;
 }

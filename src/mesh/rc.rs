@@ -5,11 +5,9 @@ use crate::mesh::item_handle::{
 };
 use crate::mesh::Mesh;
 use crate::mesh::status::Status;
-use crate::property::traits::{PropertyFor};
-use crate::property::{PropertyContainer, Value};
-use crate::property::handle::PropHandle;
-use crate::property::Size;
-use crate::property::traits::Handle;   // For methods.
+use crate::property::traits::PropertyFor;
+use crate::property::{PropertyContainer, PropHandle, Size, Value};
+use crate::property::Handle;   // For methods.
 
 /// Ref-counted property handle.
 ///

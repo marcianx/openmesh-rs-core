@@ -3,11 +3,11 @@
 
 use crate::mesh::item_handle::{VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle, MeshHandle};
 use crate::property::PropertyContainer;
-use crate::property::handle::PropHandle;
+use crate::property::{ItemHandle, PropHandle};
 use crate::property::Size;
 use crate::property::Value;
-use crate::property::traits::{self, PropertyFor};
-use crate::property::traits::Handle;   // For methods.
+use crate::property::traits::PropertyFor;
+use crate::property::Handle;   // For methods.
 
 // Solely for trait methods.
 use crate::property::traits::Property as PropertyTrait;
@@ -19,13 +19,13 @@ use crate::property::traits::Property as PropertyTrait;
 /// It is returned by each of the following methods on `mesh::Mesh`:
 /// `mesh.vprops()`, `mesh.hprops()`, `mesh.eprops()`, `mesh.fprops()`,
 /// `mesh.mprops()`.
-pub struct Props<'a, H: traits::ItemHandle> {
+pub struct Props<'a, H: ItemHandle> {
     props: &'a PropertyContainer<H>,
     len: Size,
 }
 
 impl<'a, H> Props<'a, H>
-    where H: traits::ItemHandle,
+    where H: ItemHandle,
 {
     /// Instantiates an item property interface struct.
     pub(crate) fn new(props: &'a PropertyContainer<H>, len: Size) -> Self {
@@ -41,13 +41,13 @@ impl<'a, H> Props<'a, H>
 /// It is returned by each of the following methods on `mesh::Mesh`:
 /// `mesh.vprops_mut()`, `mesh.hprops_mut()`, `mesh.eprops_mut()`,
 /// `mesh.fprops_mut()`, `mesh.mprops_mut()`.
-pub struct PropsMut<'a, H: traits::ItemHandle> {
+pub struct PropsMut<'a, H: ItemHandle> {
     props: &'a mut PropertyContainer<H>,
     len: Size,
 }
 
 impl<'a, H> PropsMut<'a, H>
-    where H: traits::ItemHandle,
+    where H: ItemHandle,
 {
     /// Instantiates an item property interface struct.
     pub(crate) fn new(props: &'a mut PropertyContainer<H>, len: Size) -> Self {
@@ -83,7 +83,7 @@ pub type MPropsMut<'a> = PropsMut<'a, MeshHandle>;
 macro_rules! impl_props {
     ($Props:ident) => {
         impl<'a, H> $Props<'a, H>
-            where H: traits::ItemHandle,
+            where H: ItemHandle,
         {
             #[doc="Number of elements of the given type."]
             pub fn len(&self) -> Size { self.len }
@@ -101,7 +101,7 @@ impl_props!(Props);
 impl_props!(PropsMut);
 
 impl<'a, H> Props<'a, H>
-    where H: traits::ItemHandle
+    where H: ItemHandle
 {
     /// Returns the `Property<T>` or `PropertyBits` (for `T = bool`), if any,
     /// corresponding to `prop_handle`.
@@ -114,7 +114,7 @@ impl<'a, H> Props<'a, H>
 
 
 impl<'a, H> PropsMut<'a, H>
-    where H: traits::ItemHandle,
+    where H: ItemHandle,
 {
     /// Adds a `Property<T>` for the associated item type (vertex, halfedge, edge, face, mesh).
     /// 
@@ -175,7 +175,7 @@ impl<'a, H> PropsMut<'a, H>
 
 
 impl<'a, H> ::std::fmt::Debug for Props<'a, H>
-    where H: traits::ItemHandle,
+    where H: ItemHandle,
 {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         self.props.fmt(f)
@@ -184,7 +184,7 @@ impl<'a, H> ::std::fmt::Debug for Props<'a, H>
 
 
 impl<'a, H> ::std::fmt::Debug for PropsMut<'a, H>
-    where H: traits::ItemHandle,
+    where H: ItemHandle,
 {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         self.props.fmt(f)

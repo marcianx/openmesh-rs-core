@@ -4,8 +4,7 @@ use downcast_rs::Downcast;
 
 use crate::io::binary::{Endian, UNKNOWN_SIZE};
 use crate::io::result::Result;
-use crate::property::Size;
-use crate::property::traits;
+use crate::property::{ItemHandle, Size};
 
 /// All mesh types are stored in Properties which implement this trait. We distinguish between
 /// standard properties, which can be defined at compile time using the Attributes in the traits
@@ -16,7 +15,7 @@ use crate::property::traits;
 pub trait Property: Downcast + ::std::fmt::Debug
 {
     /// Handle for the item type (Vertex, Halfedge, Edge, Face) to which the property belongs.
-    type Handle: traits::ItemHandle;
+    type Handle: ItemHandle;
 
     ////////////////////////////////////////////////////////////////////////////////
     // synchronized array interface
@@ -111,14 +110,14 @@ pub trait ConstructableProperty: ResizeableProperty {
 
 
 /// Allows picking the optimal property container for implemented type.
-pub trait PropertyFor<H: traits::ItemHandle> {
+pub trait PropertyFor<H: ItemHandle> {
     /// Property container type to be used to store objects of type `Self`.
     type Property: ConstructableProperty<Handle=H>;
 }
 
 
 // Support down-casting from `Property` to a struct implementing it.
-impl_downcast!(Property assoc Handle where Handle: traits::ItemHandle);
+impl_downcast!(Property assoc Handle where Handle: ItemHandle);
 
 
 impl<H> Clone for Box<ResizeableProperty<Handle=H>>

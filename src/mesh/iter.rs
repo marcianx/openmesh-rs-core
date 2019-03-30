@@ -170,7 +170,7 @@ impl<'a, H: MeshItemHandle> Iterator for BwdIter<'a, H> {
 mod test {
     use super::{FwdIter, BwdIter};
     use crate::property::{Index, Size};
-    use crate::property::traits::Handle; // For constructor.
+    use crate::property::Handle; // For constructor.
     use crate::mesh::item_handle::VertexHandle;
     use crate::mesh::status::{DELETED, HIDDEN, SELECTED};
     use crate::mesh::Mesh;

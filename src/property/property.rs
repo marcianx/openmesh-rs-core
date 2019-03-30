@@ -5,8 +5,8 @@ use crate::io::result::Result;
 use crate::util::bitvec::BitVec;
 use crate::util::index::{IndexUnchecked, IndexSetUnchecked, IndexSet};
 use crate::property::Value;
-use crate::property::{Size, INVALID_INDEX};
-use crate::property::traits::{self, ItemHandle, PropertyFor};
+use crate::property::{Size, INVALID_INDEX, ItemHandle};
+use crate::property::traits::{self, PropertyFor};
 use crate::property::traits::{ConstructableProperty, ResizeableProperty};
 
 /// Implements getter/setters for the `name` and `persistent` properties.
@@ -313,8 +313,8 @@ impl<H> PropertyFor<H> for bool
 
 #[cfg(test)]
 mod test {
-    use crate::property::{Property, Value};
-    use crate::property::traits::{ConstructableProperty, ItemHandle};
+    use crate::property::{ItemHandle, Property, Value};
+    use crate::property::traits::ConstructableProperty;
 
     fn _assert_any<P: ::std::any::Any>(_p: P) {}
 

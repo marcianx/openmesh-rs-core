@@ -5,7 +5,7 @@ use crate::mesh::Mesh;
 use crate::mesh::item_handle::{VertexHandle, HalfedgeHandle, FaceHandle};
 use crate::mesh::items::{Vertex, Halfedge, Edge, Face};
 use crate::property::Size;
-use crate::property::traits::Handle; // For handle construction methods.
+use crate::property::Handle; // For handle construction methods.
 
 impl Mesh {
     /// Creates a new empty mesh. Same as Default:;default().

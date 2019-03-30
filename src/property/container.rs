@@ -1,8 +1,11 @@
 use crate::property::handle::PropHandle;
-use crate::property::{INVALID_INDEX, Index, Size, Value};
+use crate::property::{
+    INVALID_INDEX, Index, Size, Value,
+    ItemHandle,
+};
 use crate::property::traits::{self, PropertyFor};
 use crate::property::traits::ConstructableProperty; // for ::new() on property
-use crate::property::traits::Handle; // for `PropHandle` methods
+use crate::property::Handle; // for `PropHandle` methods
 
 /// Contains a parallel collection of `Property` trait objects.
 #[derive(Clone, Default)]
@@ -13,7 +16,7 @@ pub struct PropertyContainer<H> {
 }
 
 
-impl<H: traits::ItemHandle> ::std::fmt::Debug for PropertyContainer<H> {
+impl<H: ItemHandle> ::std::fmt::Debug for PropertyContainer<H> {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         for opt_prop in self.vec.iter() {
             opt_prop.as_ref()
@@ -30,7 +33,7 @@ impl<H: traits::ItemHandle> ::std::fmt::Debug for PropertyContainer<H> {
 type TargetProperty<T, H> = <T as PropertyFor<H>>::Property;
 
 
-impl<H: traits::ItemHandle> PropertyContainer<H>
+impl<H: ItemHandle> PropertyContainer<H>
 {
     ////////////////////////////////////////////////////////////////////////////////
     // Addition/getting/removal of properties.

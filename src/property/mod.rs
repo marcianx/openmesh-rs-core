@@ -1,8 +1,9 @@
 //! Defines mesh `Property` lists and related traits and data types.
 
-#[macro_use]
 pub mod traits;
-pub mod handle;
+#[macro_use]
+mod handle;
+pub use self::handle::*;
 
 #[macro_use]
 mod property;
