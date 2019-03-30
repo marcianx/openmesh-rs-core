@@ -42,14 +42,17 @@ pub trait Property: Downcast + ::std::fmt::Debug
     /// Enables or disables persistency. `self` must be a named property to enable persistency.
     fn set_persistent(&mut self, enable: bool);
 
-    /// Number of elements in property
-    fn n_elements(&self) -> usize;
+    /// Number of elements in property.
+    fn len(&self) -> usize;
+
+    /// Whether the property list is empty.
+    fn is_empty(&self) -> bool { self.len() == 0 }
 
     /// Size of one element in bytes or `openmesh::io::binary::UNKNOWN_SIZE` if not known.
     fn element_size(&self) -> usize;
 
     /// Size of property in bytes.
-    fn size_of(&self) -> usize { self.size_of_len(self.n_elements()) }
+    fn size_of(&self) -> usize { self.size_of_len(self.len()) }
 
     /// Size of property if it has `n_elem` elements, or `openmesh::io::binary::UNKNOWN_SIZE`
     /// if the size cannot be estimated.

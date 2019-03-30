@@ -111,7 +111,7 @@ impl<T, H> traits::Property for Property<T, H>
     ////////////////////////////////////////
     // I/O support
 
-    fn n_elements(&self) -> usize { self.vec.len() }
+    fn len(&self) -> usize { self.vec.len() }
     fn element_size(&self) -> usize { <T as Binary>::size_of_type() }
     fn size_of(&self) -> usize { <Vec<T> as Binary>::size_of_value(&self.vec) }
     fn store(&self, writer: &mut Write, endian: Endian) -> Result<usize> {
@@ -240,7 +240,7 @@ impl<H> traits::Property for PropertyBits<H>
     ////////////////////////////////////////
     // I/O support
 
-    fn n_elements(&self) -> usize { self.vec.len() }
+    fn len(&self) -> usize { self.vec.len() }
     fn element_size(&self) -> usize { UNKNOWN_SIZE }
     fn size_of(&self) -> usize { <BitVec as Binary>::size_of_value(&self.vec) }
     fn store(&self, writer: &mut Write, endian: Endian) -> Result<usize> {
