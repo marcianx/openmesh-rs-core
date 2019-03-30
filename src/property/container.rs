@@ -1,6 +1,5 @@
 use crate::property::handle::PropHandle;
-use crate::property::Value;
-use crate::property::size;
+use crate::property::{INVALID_INDEX, Index, Size, Value};
 use crate::property::traits::{self, PropertyFor};
 use crate::property::traits::ConstructableProperty; // for ::new() on property
 use crate::property::traits::Handle; // for `PropHandle` methods
@@ -38,14 +37,14 @@ impl<H: traits::ItemHandle> PropertyContainer<H>
 
     /// Returns the length of the `Property`-holder. The number of stored properties does not
     /// exceed this length.
-    pub fn len(&self) -> size::Size { self.vec.len() as size::Size }
+    pub fn len(&self) -> Size { self.vec.len() as Size }
 
     /// Whether the container is empty.
     pub fn is_empty(&self) -> bool { self.vec.is_empty() }
 
     /// Adds a property whose elements are of type `T`.
-    /// Panics in the unlikely case that the number of properties reaches `size::INVALID_INDEX`.
-    pub fn add<T>(&mut self, name: Option<String>, len: size::Size) -> PropHandle<H, T>
+    /// Panics in the unlikely case that the number of properties reaches `INVALID_INDEX`.
+    pub fn add<T>(&mut self, name: Option<String>, len: Size) -> PropHandle<H, T>
         where T: Value
     {
         let name = name.unwrap_or_else(|| "<unknown>".to_owned());
@@ -58,17 +57,17 @@ impl<H: traits::ItemHandle> PropertyContainer<H>
             }
         };
         self.vec[pos] = Some(Box::new(<T as PropertyFor<H>>::Property::new(name, len)));
-        if pos >= size::INVALID_INDEX as usize {
-            panic!("Number of properties {} exceeds bounds {}-1", pos, size::INVALID_INDEX);
+        if pos >= INVALID_INDEX as usize {
+            panic!("Number of properties {} exceeds bounds {}-1", pos, INVALID_INDEX);
         }
-        PropHandle::from_index(pos as size::Size)
+        PropHandle::from_index(pos as Size)
     }
 
     /// Returns the property at the given handle if any exists and if the return type matches.
     pub fn get<T>(&self, prop_handle: PropHandle<H, T>) -> Option<&<T as PropertyFor<H>>::Property>
         where T: Value
     {
-        // NOTE: This handles prop_handle.index() == size::INVALID_INDEX just fine.
+        // NOTE: This handles prop_handle.index() == INVALID_INDEX just fine.
         self.vec
             .get(prop_handle.index() as usize)
             // &Option<Box<traits::Property>> -> Option<&Box<traits::Property>>
@@ -82,7 +81,7 @@ impl<H: traits::ItemHandle> PropertyContainer<H>
         -> Option<&mut <T as PropertyFor<H>>::Property>
         where T: Value
     {
-        // NOTE: This handles prop_handle.index() == size::INVALID_INDEX just fine.
+        // NOTE: This handles prop_handle.index() == INVALID_INDEX just fine.
         self.vec
             .get_mut(prop_handle.index() as usize)
             // &Option<Box<traits::Property>> -> Option<&mut Box<traits::Property>>
@@ -97,7 +96,7 @@ impl<H: traits::ItemHandle> PropertyContainer<H>
     pub fn remove<T>(&mut self, prop_handle: PropHandle<H, T>) -> bool
         where T: Value
     {
-        // NOTE: This handles prop_handle.index() == size::INVALID_INDEX just fine.
+        // NOTE: This handles prop_handle.index() == INVALID_INDEX just fine.
         self.vec
             .get_mut(prop_handle.index() as usize)
             .and_then(|opt_prop| {
@@ -133,7 +132,7 @@ impl<H: traits::ItemHandle> PropertyContainer<H>
                 // -> &Box<traits::Property> -> &traits::Property -?-> TargetProperty
                 self.vec[index].as_ref().and_then(|box_prop| {
                     box_prop.as_property().downcast_ref::<TargetProperty<T, H>>()
-                }).map(|_| PropHandle::from_index(index as size::Index))
+                }).map(|_| PropHandle::from_index(index as Index))
             })
             .unwrap_or_else(PropHandle::new)
     }
@@ -161,7 +160,7 @@ impl<H: traits::ItemHandle> PropertyContainer<H>
     }
 
     /// Reserves space for `n` items in each active property list.
-    pub fn reserve_all(&mut self, n: size::Size) {
+    pub fn reserve_all(&mut self, n: Size) {
         for opt_prop in self.vec.iter_mut() {
             if let Some(prop) = opt_prop.as_mut() {
                 prop.reserve(n);
@@ -170,7 +169,7 @@ impl<H: traits::ItemHandle> PropertyContainer<H>
     }
 
     /// Resizes each active property list.
-    pub fn resize_all(&mut self, n: size::Size) {
+    pub fn resize_all(&mut self, n: Size) {
         for opt_prop in self.vec.iter_mut() {
             if let Some(prop) = opt_prop.as_mut() {
                 prop.resize(n);

@@ -7,7 +7,7 @@ use crate::mesh::item_handle::{
 };
 use crate::mesh::prop::{Props, PropsMut};
 use crate::property::PropertyContainer;
-use crate::property::size::Size;
+use crate::property::Size;
 
 ////////////////////////////////////////////////////////////
 // Half-edge data structure connectivity fields

@@ -5,7 +5,7 @@ use crate::io::result::Result;
 use crate::util::bitvec::BitVec;
 use crate::util::index::{IndexUnchecked, IndexSetUnchecked, IndexSet};
 use crate::property::Value;
-use crate::property::size::{Size, INVALID_INDEX};
+use crate::property::{Size, INVALID_INDEX};
 use crate::property::traits::{self, ItemHandle, PropertyFor};
 use crate::property::traits::{ConstructableProperty, ResizeableProperty};
 

@@ -1,6 +1,6 @@
 //! Handle trait for mesh item and item property handles.
 
-use crate::property::size::{Index, INVALID_INDEX};
+use crate::property::{Index, INVALID_INDEX};
 
 /// Trait for handle types that wrap `HandleBase` which wraps an index.
 /// The `Default` implementation must initialize the handle to an invalid index.
@@ -70,25 +70,25 @@ macro_rules! def_handle {
     (@def $Handle:ident ( $($Types:ident),* ), $doc:expr) => {
         #[doc=$doc]
         pub struct $Handle<$($Types),*>(
-            $crate::property::size::Index,
+            $crate::property::Index,
             ::std::marker::PhantomData<($($Types),*)>);
 
         impl<$($Types),*> ::std::default::Default for $Handle<$($Types),*> {
             fn default() -> Self {
-                $Handle($crate::property::size::INVALID_INDEX, ::std::marker::PhantomData::<_>)
+                $Handle($crate::property::INVALID_INDEX, ::std::marker::PhantomData::<_>)
             }
         }
 
         impl<$($Types: ::std::any::Any),*> $crate::property::traits::Handle for $Handle<$($Types),*> {
             #[inline(always)]
-            fn from_index(idx: $crate::property::size::Index) -> Self {
-                assert!(idx != $crate::property::size::INVALID_INDEX);
+            fn from_index(idx: $crate::property::Index) -> Self {
+                assert!(idx != $crate::property::INVALID_INDEX);
                 $Handle(idx, ::std::marker::PhantomData::<_>)
             }
             #[inline(always)]
-            fn index(self) -> $crate::property::size::Index { self.0 }
+            fn index(self) -> $crate::property::Index { self.0 }
             #[inline(always)]
-            fn set_index(&mut self, idx: $crate::property::size::Index) { self.0 = idx; }
+            fn set_index(&mut self, idx: $crate::property::Index) { self.0 = idx; }
         }
 
         // Because of the type parameters, these cannot be auto-derived.

@@ -4,7 +4,7 @@ use crate::mesh::Mesh;
 use crate::mesh::items::{Vertex, Halfedge, Edge, Face};
 use crate::mesh::status::Status;
 use crate::property::{Property, PropertyContainer};
-use crate::property::size::Size;
+use crate::property::Size;
 use crate::property::traits::{self, Handle, PropertyFor}; // import methods of Handle
 
 def_handle!(VertexHandle, "Vertex handle.");

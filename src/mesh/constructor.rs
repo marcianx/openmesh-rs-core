@@ -4,7 +4,7 @@ use crate::geometry::vector::Vec3d;
 use crate::mesh::Mesh;
 use crate::mesh::item_handle::{VertexHandle, HalfedgeHandle, FaceHandle};
 use crate::mesh::items::{Vertex, Halfedge, Edge, Face};
-use crate::property::size::Size;
+use crate::property::Size;
 use crate::property::traits::Handle; // For handle construction methods.
 
 impl Mesh {

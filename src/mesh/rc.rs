@@ -8,7 +8,7 @@ use crate::mesh::status::Status;
 use crate::property::traits::{PropertyFor};
 use crate::property::{PropertyContainer, Value};
 use crate::property::handle::PropHandle;
-use crate::property::size::Size;
+use crate::property::Size;
 use crate::property::traits::Handle;   // For methods.
 
 /// Ref-counted property handle.

@@ -4,7 +4,7 @@ use downcast_rs::Downcast;
 
 use crate::io::binary::{Endian, UNKNOWN_SIZE};
 use crate::io::result::Result;
-use crate::property::size::Size;
+use crate::property::Size;
 use crate::property::traits;
 
 /// All mesh types are stored in Properties which implement this trait. We distinguish between

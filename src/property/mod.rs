@@ -12,4 +12,5 @@ pub use self::value::*;
 
 mod container;
 pub use self::container::PropertyContainer;
-pub mod size;
+mod size;
+pub use self::size::*;

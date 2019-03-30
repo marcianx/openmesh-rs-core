@@ -18,7 +18,7 @@ use crate::mesh::rc::{
 };
 use crate::mesh::status::Status;
 use crate::property::PropertyContainer;
-use crate::property::size::Size;
+use crate::property::Size;
 
 // TODO: Determine carefully what ought to be reexported.
 pub mod item_handle;
