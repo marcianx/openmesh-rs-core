@@ -159,6 +159,19 @@ impl<T, H> ConstructableProperty for Property<T, H>
     }
 }
 
+// Iterators for tests. The real iterators are in src/mesh/iter.rs.
+impl<T, H> Property<T, H> {
+    /// Iterator through the property list.
+    pub(crate) fn iter_internal(&self) -> impl Iterator<Item=&T> {
+        self.vec.iter()
+    }
+
+    /// Iterator through the property list mutably.
+    pub(crate) fn iter_internal_mut(&mut self) -> impl Iterator<Item=&mut T> {
+        self.vec.iter_mut()
+    }
+}
+
 impl<T, H> PropertyFor<H> for T
     where T: traits::Value,
           H: ItemHandle

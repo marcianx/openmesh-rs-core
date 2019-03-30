@@ -69,6 +69,12 @@ macro_rules! def_prop_rc {
         pub fn $get_fn(&self) -> Option<&<Status as PropertyFor<$Handle>>::Property> {
             self.$props_field.get(self.$rc_field.handle)
         }
+
+        #[doc="Gets the corresponding `Property` list mutably if it exists."]
+        #[allow(dead_code)]
+        pub(crate) fn $get_fn_mut(&mut self) -> Option<&mut <Status as PropertyFor<$Handle>>::Property> {
+            self.$props_field.get_mut(self.$rc_field.handle)
+        }
     };
 }
 

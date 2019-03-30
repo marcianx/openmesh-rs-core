@@ -4,6 +4,7 @@ use crate::geometry::vector::Vec3d;
 use crate::mesh::mesh::Mesh;
 use crate::mesh::item_handle::{VertexHandle, HalfedgeHandle, FaceHandle};
 use crate::mesh::items::{Vertex, Halfedge, Edge, Face};
+use crate::property::size::Size;
 use crate::property::traits::Handle; // For handle construction methods.
 
 impl Mesh {
@@ -55,6 +56,49 @@ impl Mesh {
             ]),
         ];
         // TODO: Actually use the positions by adding a position property.
+        Mesh::from_parts(vertices, edges, faces)
+    }
+
+    /// Returns a mesh representing `num_tri` triangles for testing.
+    #[allow(dead_code)]
+    pub(crate) fn debug_triangles(num_tri: usize) -> Mesh {
+        let vh = VertexHandle::from_index;
+        let hh = HalfedgeHandle::from_index;
+        let fh = FaceHandle::from_index;
+        let inval = FaceHandle::new();
+        //      _   0
+        //      / / |\ \
+        //     3 2    0 1
+        //    / /      \ \
+        //   /|/___4___\\ \|
+        //  1 <----5----- 2
+        let mut vertices = Vec::with_capacity(num_tri * 3);
+        let mut faces = Vec::with_capacity(num_tri);
+        let mut edges = Vec::with_capacity(num_tri * 3);
+        for i in 0..(num_tri as Size) {
+            let vi = i * 3;
+            let hi = i * 6;
+            let fh = fh(i);
+            vertices.push(Vertex { hh: hh(hi    ) });
+            vertices.push(Vertex { hh: hh(hi + 2) });
+            vertices.push(Vertex { hh: hh(hi + 4) });
+            faces.push(Face { hh: hh(hi) });
+            edges.push(
+                Edge([
+                    Halfedge { fh       , vh: vh(vi    ), hnext: hh(hi + 2), hprev: hh(hi + 4) }, // hh 0
+                    Halfedge { fh: inval, vh: vh(vi + 2), hnext: hh(hi + 5), hprev: hh(hi + 3) }, // hh 1
+                ]));
+            edges.push(
+                Edge([
+                    Halfedge { fh       , vh: vh(vi + 1), hnext: hh(hi + 4), hprev: hh(hi    ) }, // hh 2
+                    Halfedge { fh: inval, vh: vh(vi + 1), hnext: hh(hi + 1), hprev: hh(hi + 5) }, // hh 3
+                ]));
+            edges.push(
+                Edge([
+                    Halfedge { fh       , vh: vh(vi + 2), hnext: hh(hi    ), hprev: hh(hi + 2) }, // hh 4
+                    Halfedge { fh: inval, vh: vh(vi    ), hnext: hh(hi + 3), hprev: hh(hi + 1) }, // hh 5
+                ]));
+        }
         Mesh::from_parts(vertices, edges, faces)
     }
 }

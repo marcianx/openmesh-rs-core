@@ -166,104 +166,92 @@ impl<'a, H: MeshItemHandle> Iterator for BwdIter<'a, H> {
 }
 
 
-/*
 #[cfg(test)]
 mod test {
-    use super::{MeshItemHandle, FwdIter, BwdIter};
-    use mesh::item_handle::{VertexHandle, MeshItemHandle};
-    use mesh::status::{Status, DELETED, HIDDEN, SELECTED};
-    use property::size::{Index, Size};
-
-    struct Mesh {
-        skip: Box<Fn(Index) -> bool>
-    }
-    impl ::std::fmt::Debug for Mesh {
-        fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-            write!(f, "Mesh")
-        }
-    }
-
-    static mut SKIP_INDEX: u32 = 0;
-
-    // TODO: This should be replaced with the actual implementation on VertexHandle and tested
-    // there.
-    impl MeshItemHandle for VertexHandle {
-        fn status(mesh: &Mesh, h: VertexHandle) -> Status {
-            if (*mesh.skip)(h.index()) {
-                unsafe { SKIP_INDEX += 1; }
-                (match unsafe { SKIP_INDEX } % 3 {
-                    0 => DELETED,
-                    1 => HIDDEN,
-                    _ => DELETED | HIDDEN
-                } | SELECTED)
-            } else {
-                SELECTED
-            }
-        }
-        fn size(_mesh: &Mesh) -> Size { 10 }
-    }
+    use super::{FwdIter, BwdIter};
+    use crate::property::size::{Index, Size};
+    use crate::property::traits::Handle; // For constructor.
+    use crate::mesh::item_handle::VertexHandle;
+    use crate::mesh::status::{DELETED, HIDDEN, SELECTED};
+    use crate::mesh::mesh::Mesh;
 
     fn fwd_list(mesh: Mesh, skip: bool) -> Vec<Index> {
-        FwdIter::<Meta>::new(&mesh, VertexHandle::from_index(0), skip)
+        FwdIter::new(&mesh, VertexHandle::from_index(0), skip)
             .map(|x| x.index()).collect()
     }
     fn bwd_list(mesh: Mesh, skip: bool) -> Vec<Index> {
-        BwdIter::<Meta>::new(&mesh, VertexHandle::from_index(9), skip)
+        let end = mesh.vertices().len() as Size - 1;
+        BwdIter::new(&mesh, VertexHandle::from_index(end), skip)
             .map(|x| x.index()).collect()
     }
 
+    /// Adds skippable status on all vertices for whom `skip_index_fn` returns true on its handle.
+    /// It circulates between variations of skippable statuses.
+    fn with_status(mesh: Mesh, skip_index_fn: for<'a> fn(&'a Index) -> bool) -> Mesh {
+        let mut mesh = mesh;
+        mesh.request_vertex_status();
+        let prop = mesh.get_vertex_status_mut().unwrap();
+        let mut skip_type = 0;
+        for (i, status) in prop.iter_internal_mut().enumerate() {
+            *status =
+                if skip_index_fn(&(i as Index)) {
+                    skip_type += 1;
+                    (match skip_type % 3 {
+                        0 => DELETED,
+                        1 => HIDDEN,
+                        _ => DELETED | HIDDEN,
+                    } | SELECTED)
+                } else {
+                    SELECTED
+                }
+        }
+        mesh
+    }
+    
+    fn is_even(i: &Index) -> bool { i % 2 == 0 }
+    fn is_odd(i: &Index) -> bool { i % 2 == 1 }
+
     #[test]
     fn test_fwd_iter_no_skip() {
-        let all = &(0..10).collect::<Vec<_>>();
-        let mesh = Mesh {
-            skip: Box::new(|x| x % 2 == 0)
-        };
+        let all = &(0..15).collect::<Vec<_>>();
+
+        let mesh = with_status(Mesh::debug_triangles(5), is_even);
         assert_eq!(&fwd_list(mesh, false /* skip */), all);
-        let mesh = Mesh {
-            skip: Box::new(|x| x % 2 == 1)
-        };
+
+        let mesh = with_status(Mesh::debug_triangles(5), is_odd);
         assert_eq!(&fwd_list(mesh, false /* skip */), all);
     }
 
     #[test]
     fn test_fwd_iter_skip() {
-        let mesh = Mesh {
-            skip: Box::new(|x| x % 2 == 0)
-        };
+        let mesh = with_status(Mesh::debug_triangles(5), is_even);
         assert_eq!(&fwd_list(mesh, true /* skip */),
-                   &(0..5).map(|x| x * 2 + 1).collect::<Vec<_>>());
-        let mesh = Mesh {
-            skip: Box::new(|x| x % 2 == 1)
-        };
+                   &(0..15).filter(is_odd).collect::<Vec<_>>());
+
+        let mesh = with_status(Mesh::debug_triangles(5), is_odd);
         assert_eq!(&fwd_list(mesh, true /* skip */),
-                   &(0..5).map(|x| x * 2).collect::<Vec<_>>());
+                   &(0..15).filter(is_even).collect::<Vec<_>>());
     }
 
     #[test]
     fn test_bwd_iter_no_skip() {
-        let all_rev = &(0..10).rev().collect::<Vec<_>>();
-        let mesh = Mesh {
-            skip: Box::new(|x| x % 2 == 0)
-        };
+        let all_rev = &(0..15).rev().collect::<Vec<_>>();
+
+        let mesh = with_status(Mesh::debug_triangles(5), is_even);
         assert_eq!(&bwd_list(mesh, false /* skip */), all_rev);
-        let mesh = Mesh {
-            skip: Box::new(|x| x % 2 == 1)
-        };
+
+        let mesh = with_status(Mesh::debug_triangles(5), is_odd);
         assert_eq!(&bwd_list(mesh, false /* skip */), all_rev);
     }
 
     #[test]
     fn test_bwd_iter_skip() {
-        let mesh = Mesh {
-            skip: Box::new(|x| x % 2 == 0)
-        };
+        let mesh = with_status(Mesh::debug_triangles(5), is_even);
         assert_eq!(&bwd_list(mesh, true /* skip */),
-                   &(0..5).rev().map(|x| x * 2 + 1).collect::<Vec<_>>());
-        let mesh = Mesh {
-            skip: Box::new(|x| x % 2 == 1)
-        };
+                   &(0..15).rev().filter(is_odd).collect::<Vec<_>>());
+
+        let mesh = with_status(Mesh::debug_triangles(5), is_odd);
         assert_eq!(&bwd_list(mesh, true /* skip */),
-                   &(0..5).rev().map(|x| x * 2).collect::<Vec<_>>());
+                   &(0..15).rev().filter(is_even).collect::<Vec<_>>());
     }
 }
-*/
