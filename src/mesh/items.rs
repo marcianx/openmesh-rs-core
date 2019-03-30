@@ -48,6 +48,7 @@ pub struct Face {
 
 ////////////////////////////////////////////////////////////
 
+type ContainerSlice<H> = [<H as MeshItemHandle>::ContainerItem];
 type ContainerVec<H> = Vec<<H as MeshItemHandle>::ContainerItem>;
 
 /// Manages immutable operations on the list of a particular mesh item type.
@@ -55,7 +56,7 @@ type ContainerVec<H> = Vec<<H as MeshItemHandle>::ContainerItem>;
 /// `vertices()`, `halfedges()`, `edges()`, `faces()`.
 pub struct Items<'a, H: MeshItemHandle> {
     /// Item connectivity.
-    items: &'a ContainerVec<H>,
+    items: &'a ContainerSlice<H>,
     /// Item properties.
     props: &'a PropertyContainer<H>,
     _marker: ::std::marker::PhantomData<H>,
@@ -63,7 +64,7 @@ pub struct Items<'a, H: MeshItemHandle> {
 
 impl<'a, H: MeshItemHandle> Items<'a, H> {
     /// Instantiates an item + property interface struct.
-    pub(crate) fn new(items: &'a ContainerVec<H>, props: &'a PropertyContainer<H>) -> Self
+    pub(crate) fn new(items: &'a ContainerSlice<H>, props: &'a PropertyContainer<H>) -> Self
     {
         Items {
             items,

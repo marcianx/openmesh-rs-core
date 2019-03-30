@@ -25,9 +25,9 @@ pub enum Error {
 
 impl fmt::Display for self::Error {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
-        match self {
-            &Error::Io(ref err) => { err.fmt(formatter) }
-            &Error::FromUtf8(ref err) => { err.fmt(formatter) }
+        match *self {
+            Error::Io(ref err) => { err.fmt(formatter) }
+            Error::FromUtf8(ref err) => { err.fmt(formatter) }
             _ => { error::Error::description(self).fmt(formatter) }
         }
     }
@@ -35,27 +35,27 @@ impl fmt::Display for self::Error {
 
 impl error::Error for self::Error {
     fn description(&self) -> &str {
-        match self {
-            &Error::Unsupported => { "Unsupported functionality" }
-            &Error::UnexpectedEOF => { "Unexpected EOF" }
-            &Error::StringExceeds64k => { "Cannot store string longer than 64Kb" }
-            &Error::Io(ref err) => { err.description() }
-            &Error::FromUtf8(ref err) => { err.description() }
+        match *self {
+            Error::Unsupported => { "Unsupported functionality" }
+            Error::UnexpectedEOF => { "Unexpected EOF" }
+            Error::StringExceeds64k => { "Cannot store string longer than 64Kb" }
+            Error::Io(ref err) => { err.description() }
+            Error::FromUtf8(ref err) => { err.description() }
         }
     }
 
     fn cause(&self) -> Option<&dyn error::Error> {
-        match self {
-            &Error::Io(ref err) => { err.source() }
-            &Error::FromUtf8(ref err) => { err.source() }
+        match *self {
+            Error::Io(ref err) => { err.source() }
+            Error::FromUtf8(ref err) => { err.source() }
             _ => { None }
         }
     }
 
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match self {
-            &Error::Io(ref err) => { err.source() }
-            &Error::FromUtf8(ref err) => { err.source() }
+        match *self {
+            Error::Io(ref err) => { err.source() }
+            Error::FromUtf8(ref err) => { err.source() }
             _ => { None }
         }
     }

@@ -50,7 +50,7 @@ pub trait MeshItemHandle: traits::ItemHandle {
     // Mesh items.
 
     /// Number of items of type `Self` in the underlying storage vector.
-    fn num_items(vec: &Vec<Self::ContainerItem>) -> usize;
+    fn num_items(vec: &[Self::ContainerItem]) -> usize;
 
     /// Gets the number of items of the given type.
     fn len(mesh: &Mesh) -> Size {
@@ -58,10 +58,10 @@ pub trait MeshItemHandle: traits::ItemHandle {
     }
 
     /// Gets item of type `Self` from the underlying storage vector.
-    fn get(vec: &Vec<Self::ContainerItem>, handle: Self) -> Option<&Self::Item>;
+    fn get(vec: &[Self::ContainerItem], handle: Self) -> Option<&Self::Item>;
 
     /// Gets item of type `Self` mutably from the underlying storage vector.
-    fn get_mut(vec: &mut Vec<Self::ContainerItem>, handle: Self) -> Option<&mut Self::Item>;
+    fn get_mut(vec: &mut [Self::ContainerItem], handle: Self) -> Option<&mut Self::Item>;
 
     // Mesh iteration.
 
@@ -94,15 +94,15 @@ macro_rules! impl_to_items {
                 (&mut m.$item_field, &mut m.$prop_field)
             }
 
-            fn num_items($vec: &Vec<Self::ContainerItem>) -> usize {
+            fn num_items($vec: &[Self::ContainerItem]) -> usize {
                 $num_items
             }
 
-            fn get($vec: &Vec<Self::ContainerItem>, $handle: Self) -> Option<&Self::Item> {
+            fn get($vec: &[Self::ContainerItem], $handle: Self) -> Option<&Self::Item> {
                 $get
             }
 
-            fn get_mut($vec: &mut Vec<Self::ContainerItem>, $handle: Self) -> Option<&mut Self::Item> {
+            fn get_mut($vec: &mut [Self::ContainerItem], $handle: Self) -> Option<&mut Self::Item> {
                 $get_mut
             }
 

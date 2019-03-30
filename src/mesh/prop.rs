@@ -157,7 +157,9 @@ impl<'a, H> PropsMut<'a, H>
     pub fn copy<T: traits::Value>(
         &mut self, prop_handle: PropHandle<H, T>, h_src: H, h_dst: H) {
         if h_src.is_valid() && h_dst.is_valid() {
-            self.props.get_mut(prop_handle).map(|p| p.copy(h_src, h_dst));
+            if let Some(p) = self.props.get_mut(prop_handle) {
+                p.copy(h_src, h_dst);
+            }
         }
     }
 

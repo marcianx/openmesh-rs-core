@@ -20,7 +20,7 @@ impl<H: traits::ItemHandle> ::std::fmt::Debug for PropertyContainer<H> {
         for opt_prop in self.vec.iter() {
             opt_prop.as_ref()
                  .map(|prop| prop.fmt(f))
-                 .unwrap_or("[deleted]".fmt(f))?;
+                 .unwrap_or_else(|| "[deleted]".fmt(f))?;
             '\n'.fmt(f)?;
         }
         Ok(())
@@ -41,12 +41,15 @@ impl<H: traits::ItemHandle> PropertyContainer<H>
     /// exceed this length.
     pub fn len(&self) -> size::Size { self.vec.len() as size::Size }
 
+    /// Whether the container is empty.
+    pub fn is_empty(&self) -> bool { self.vec.is_empty() }
+
     /// Adds a property whose elements are of type `T`.
     /// Panics in the unlikely case that the number of properties reaches `size::INVALID_INDEX`.
     pub fn add<T>(&mut self, name: Option<String>) -> PropHandle<H, T>
         where T: traits::Value
     {
-        let name = name.unwrap_or("<unknown>".to_owned());
+        let name = name.unwrap_or_else(|| "<unknown>".to_owned());
         let pos = self.vec.iter().position(Option::is_none);
         let pos = match pos {
             Some(n) => n,
@@ -135,7 +138,7 @@ impl<H: traits::ItemHandle> PropertyContainer<H>
                     box_prop.as_property().downcast_ref::<TargetProperty<T, H>>()
                 }).map(|_| PropHandle::from_index(index as size::Index))
             })
-            .unwrap_or(PropHandle::new())
+            .unwrap_or_else(PropHandle::new)
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -145,7 +148,9 @@ impl<H: traits::ItemHandle> PropertyContainer<H>
     /// It may panic if either handle is invalid.
     pub fn copy_all(&mut self, h_src: H, h_dst: H) {
         for opt_prop in self.vec.iter_mut() {
-            opt_prop.as_mut().map(|prop| prop.copy(h_src, h_dst));
+            if let Some(prop) = opt_prop.as_mut() {
+                prop.copy(h_src, h_dst);
+            }
         }
     }
 
@@ -153,14 +158,18 @@ impl<H: traits::ItemHandle> PropertyContainer<H>
     pub fn clear_all(&mut self) {
         self.prop_len = 0;
         for opt_prop in self.vec.iter_mut() {
-            opt_prop.as_mut().map(|prop| prop.clear());
+            if let Some(prop) = opt_prop.as_mut() {
+                prop.clear();
+            }
         }
     }
 
     /// Reserves space for `n` items in each active property list.
     pub fn reserve_all(&mut self, n: size::Size) {
         for opt_prop in self.vec.iter_mut() {
-            opt_prop.as_mut().map(|prop| prop.reserve(n));
+            if let Some(prop) = opt_prop.as_mut() {
+                prop.reserve(n);
+            }
         }
     }
 
@@ -168,14 +177,18 @@ impl<H: traits::ItemHandle> PropertyContainer<H>
     pub fn resize_all(&mut self, n: size::Size) {
         self.prop_len = n;
         for opt_prop in self.vec.iter_mut() {
-            opt_prop.as_mut().map(|prop| prop.resize(n));
+            if let Some(prop) = opt_prop.as_mut() {
+                prop.resize(n);
+            }
         }
     }
 
     /// Pushes an item to the end of the property list.
     pub fn push_all(&mut self) {
         for opt_prop in self.vec.iter_mut() {
-            opt_prop.as_mut().map(|prop| prop.push());
+            if let Some(prop) = opt_prop.as_mut() {
+                prop.push();
+            }
         }
     }
 
@@ -183,7 +196,9 @@ impl<H: traits::ItemHandle> PropertyContainer<H>
     /// TODO: Return an error if the indices were out of bounds.
     pub fn swap_all(&mut self, i0: H, i1: H) {
         for opt_prop in self.vec.iter_mut() {
-            opt_prop.as_mut().map(|prop| prop.swap(i0, i1));
+            if let Some(prop) = opt_prop.as_mut() {
+                prop.swap(i0, i1);
+            }
         }
     }
 }

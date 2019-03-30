@@ -77,7 +77,7 @@ impl<T: Binary> Binary for Vec<T> {
         if !<Self as Binary>::is_streamable() {
             UNKNOWN_SIZE
         } else if <Self as Binary>::size_of_type() == UNKNOWN_SIZE {
-            self.iter().map(|s| s.size_of_value()).fold(0, |a, b| a + b)
+            self.iter().map(|s| s.size_of_value()).sum()
         } else {
             self.len() * <Self as Binary>::size_of_type()
         }

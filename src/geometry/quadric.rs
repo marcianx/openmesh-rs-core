@@ -216,6 +216,7 @@ impl<'a, Scalar> Mul<Vec4<Scalar>> for &'a Quadric<Scalar>
 {
     type Output = Vec4<Scalar>;
 
+    #[allow(clippy::op_ref)]
     fn mul(self, v: Vec4<Scalar>) -> Self::Output { self * &v }
 }
 

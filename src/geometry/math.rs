@@ -20,7 +20,7 @@ impl BaseFloat for f32 {
 
 impl BaseFloat for f64 {
     fn eps() -> Self { 1e-09f64 }
-    fn from_f32(val: f32) -> Self { val as f64 }
+    fn from_f32(val: f32) -> Self { f64::from(val) }
 }
 
 /// Comparison methods for all `BaseFloat` types.

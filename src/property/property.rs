@@ -261,6 +261,7 @@ impl<H> ResizeableProperty for PropertyBits<H>
             self.vec.reserve(n - len);
         }
     }
+    #[allow(clippy::absurd_extreme_comparisons)]
     fn resize(&mut self, n: Size) {
         if n >= INVALID_INDEX {
             panic!("Resize dimensions {} exceeded bounds {}-1", n, INVALID_INDEX);
