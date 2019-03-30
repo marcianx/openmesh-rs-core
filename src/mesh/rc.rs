@@ -8,6 +8,7 @@ use crate::mesh::status::Status;
 use crate::property::traits::{self, PropertyFor};
 use crate::property::PropertyContainer;
 use crate::property::handle::PropHandle;
+use crate::property::size::Size;
 use crate::property::traits::Handle;   // For methods.
 
 /// Ref-counted property handle.
@@ -23,7 +24,7 @@ pub(crate) struct RcPropHandle<H: MeshItemHandle, T: traits::Value> {
 
 /// Request a property on the mesh if it doesn't already exist. It increases the ref count.
 fn request_prop<H, T>(name: &'static str, props: &mut PropertyContainer<H>,
-                      rc_handle: &mut RcPropHandle<H, T>)
+                      rc_handle: &mut RcPropHandle<H, T>, len: Size)
     where H: MeshItemHandle,
           T: traits::Value,
 {
@@ -31,7 +32,7 @@ fn request_prop<H, T>(name: &'static str, props: &mut PropertyContainer<H>,
     if rc_handle.ref_count == 1 {
         debug_assert!(rc_handle.handle == Default::default());
         let name = H::with_prefix(name);
-        rc_handle.handle = props.add::<T>(Some(name));
+        rc_handle.handle = props.add::<T>(Some(name), len);
     }
 }
 
@@ -50,11 +51,12 @@ fn release_prop<H, T>(props: &mut PropertyContainer<H>, rc_handle: &mut RcPropHa
 
 macro_rules! def_prop_rc {
     ($Handle:ty, $props_field: ident, $rc_field:ident, $name:expr, $request_fn:ident,
-     $release_fn:ident, $get_fn:ident) => {
+     $release_fn:ident, $get_fn:ident, $get_fn_mut:ident) => {
         #[doc="Requests the corresponding property on the mesh if it doesn't already exist. It"]
         #[doc=" increases the ref count."]
         pub fn $request_fn(&mut self) {
-            request_prop($name, &mut self.$props_field, &mut self.$rc_field);
+            let size = self.props::<$Handle>().len();
+            request_prop($name, &mut self.$props_field, &mut self.$rc_field, size);
         }
 
         #[doc="Releases the corresponding property on the mesh if it exists. If the ref count"]
@@ -72,13 +74,17 @@ macro_rules! def_prop_rc {
 
 impl Mesh {
     def_prop_rc!(VertexHandle, v_props, v_status, "status",
-                 request_vertex_status, release_vertex_status, get_vertex_status);
+                 request_vertex_status, release_vertex_status,
+                 get_vertex_status, get_vertex_status_mut);
     def_prop_rc!(HalfedgeHandle, h_props, h_status, "status",
-                 request_halfedge_status, release_halfedge_status, get_halfedge_status);
+                 request_halfedge_status, release_halfedge_status,
+                 get_halfedge_status, get_halfedge_status_mut);
     def_prop_rc!(EdgeHandle, e_props, e_status, "status",
-                 request_edge_status, release_edge_status, get_edge_status);
+                 request_edge_status, release_edge_status,
+                 get_edge_status, get_edge_status_mut);
     def_prop_rc!(FaceHandle, f_props, f_status, "status",
-                 request_face_status, release_face_status, get_face_status);
+                 request_face_status, release_face_status,
+                 get_face_status, get_face_status_mut);
 }
 
 

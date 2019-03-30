@@ -102,8 +102,8 @@ impl_props!(PropsMut);
 impl<'a, H> Props<'a, H>
     where H: traits::ItemHandle
 {
-    /// Returns the `Property<T>` or `PropertyBits` (for `T = bool`), if any,"]
-    ///  corresponding to `prop_handle`.
+    /// Returns the `Property<T>` or `PropertyBits` (for `T = bool`), if any,
+    /// corresponding to `prop_handle`.
     pub fn get<T: traits::Value>(&self, prop_handle: PropHandle<H, T>)
         -> Option<&'a <T as PropertyFor<H>>::Property>
     {
@@ -124,7 +124,7 @@ impl<'a, H> PropsMut<'a, H>
     /// - Max length: 256 characters
     /// - Names matching `/^[vhefm]:/` or `/^<.*>$/` are reserved for internal use.
     pub fn add<T: traits::Value>(&mut self, name: Option<String>) -> PropHandle<H, T> {
-        self.props.add::<T>(name)
+        self.props.add::<T>(name, self.len)
     }
 
     /// Removes a `Property<T>` for associated item type if `prop_handle` is valid, and it

@@ -10,8 +10,6 @@ pub struct PropertyContainer<H> {
     // TODO: Should there be a `RefCell` here to allow getting multiple properties mutably?
     /// List of all the properties, whose lengths are kept in sync.
     vec: Vec<Option<Box<traits::ResizeableProperty<Handle=H>>>>,
-    /// Length of each property.
-    prop_len: size::Size,
 }
 
 
@@ -46,7 +44,7 @@ impl<H: traits::ItemHandle> PropertyContainer<H>
 
     /// Adds a property whose elements are of type `T`.
     /// Panics in the unlikely case that the number of properties reaches `size::INVALID_INDEX`.
-    pub fn add<T>(&mut self, name: Option<String>) -> PropHandle<H, T>
+    pub fn add<T>(&mut self, name: Option<String>, len: size::Size) -> PropHandle<H, T>
         where T: traits::Value
     {
         let name = name.unwrap_or_else(|| "<unknown>".to_owned());
@@ -58,7 +56,7 @@ impl<H: traits::ItemHandle> PropertyContainer<H>
                 self.vec.len() - 1
             }
         };
-        self.vec[pos] = Some(Box::new(<T as PropertyFor<H>>::Property::new(name, self.prop_len)));
+        self.vec[pos] = Some(Box::new(<T as PropertyFor<H>>::Property::new(name, len)));
         if pos >= size::INVALID_INDEX as usize {
             panic!("Number of properties {} exceeds bounds {}-1", pos, size::INVALID_INDEX);
         }
@@ -156,7 +154,6 @@ impl<H: traits::ItemHandle> PropertyContainer<H>
 
     /// Clears the contents of each active property list.
     pub fn clear_all(&mut self) {
-        self.prop_len = 0;
         for opt_prop in self.vec.iter_mut() {
             if let Some(prop) = opt_prop.as_mut() {
                 prop.clear();
@@ -175,7 +172,6 @@ impl<H: traits::ItemHandle> PropertyContainer<H>
 
     /// Resizes each active property list.
     pub fn resize_all(&mut self, n: size::Size) {
-        self.prop_len = n;
         for opt_prop in self.vec.iter_mut() {
             if let Some(prop) = opt_prop.as_mut() {
                 prop.resize(n);
