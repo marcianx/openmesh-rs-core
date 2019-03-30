@@ -3,7 +3,7 @@ use crate::mesh::item_handle::{
     VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle,
     MeshItemHandle,
 };
-use crate::mesh::mesh::Mesh;
+use crate::mesh::Mesh;
 use crate::mesh::status::Status;
 use crate::property::traits::{self, PropertyFor};
 use crate::property::PropertyContainer;

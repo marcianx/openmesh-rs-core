@@ -1,6 +1,6 @@
 //! Mesh item handle types.
 
-use crate::mesh::mesh::Mesh;
+use crate::mesh::Mesh;
 use crate::mesh::items::{Vertex, Halfedge, Edge, Face};
 use crate::mesh::status::Status;
 use crate::property::{Property, PropertyContainer};

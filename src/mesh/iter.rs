@@ -1,7 +1,7 @@
 //! Iterators to enumerate all items in the mesh, skipping DELETED and HIDDEN items.
 
 use crate::mesh::item_handle::MeshItemHandle;
-use crate::mesh::mesh::Mesh;
+use crate::mesh::Mesh;
 use crate::mesh::status::{self, Status};
 use crate::property::Property;
 
@@ -173,7 +173,7 @@ mod test {
     use crate::property::traits::Handle; // For constructor.
     use crate::mesh::item_handle::VertexHandle;
     use crate::mesh::status::{DELETED, HIDDEN, SELECTED};
-    use crate::mesh::mesh::Mesh;
+    use crate::mesh::Mesh;
 
     fn fwd_list(mesh: Mesh, skip: bool) -> Vec<Index> {
         FwdIter::new(&mesh, VertexHandle::from_index(0), skip)
