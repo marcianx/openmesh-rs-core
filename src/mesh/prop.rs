@@ -2,10 +2,7 @@
 //! vectices, halfedge, edge, and faces) within a mesh.
 
 use crate::mesh::item_handle::{VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle, MeshHandle};
-use crate::property::{
-    ItemHandle, PropHandle, PropertyContainer, PropertyFor,
-    Size, Value,
-};
+use crate::property::{ItemHandle, PropHandle, PropertyContainer, PropertyList, Size, Value};
 use crate::property::{Handle, Property}; // For methods.
 
 ////////////////////////////////////////////////////////////
@@ -102,7 +99,7 @@ impl<'a, H> Props<'a, H>
     /// Returns the `Property<T>` or `PropertyBits` (for `T = bool`), if any,
     /// corresponding to `prop_handle`.
     pub fn get<T: Value>(&self, prop_handle: PropHandle<H, T>)
-        -> Option<&'a <T as PropertyFor<H>>::Property>
+        -> Option<&'a PropertyList<T, H>>
     {
         self.props.get::<T>(prop_handle)
     }
@@ -135,7 +132,7 @@ impl<'a, H> PropsMut<'a, H>
     /// `prop_handle`. This consumes `Self` since rust can't yet express re-borrows from existing
     /// mutable borrows within `Self`. https://users.rust-lang.org/t/22836
     pub fn get<T: Value>(self, prop_handle: PropHandle<H, T>)
-        -> Option<&'a <T as PropertyFor<H>>::Property>
+        -> Option<&'a PropertyList<T, H>>
     {
         self.props.get::<T>(prop_handle)
     }
@@ -144,7 +141,7 @@ impl<'a, H> PropsMut<'a, H>
     /// `prop_handle`. This consumes `Self` since rust can't yet express re-borrows from existing
     /// mutable borrows within `Self`. https://users.rust-lang.org/t/22836
     pub fn get_mut<T: Value>(self, prop_handle: PropHandle<H, T>)
-        -> Option<&'a mut <T as PropertyFor<H>>::Property>
+        -> Option<&'a mut PropertyList<T, H>>
     {
         self.props.get_mut::<T>(prop_handle)
     }

@@ -3,7 +3,7 @@ use crate::property::{
     INVALID_INDEX, Index, Size, Value,
     ItemHandle,
 };
-use crate::property::{PropertyFor, ResizeableProperty};
+use crate::property::{PropertyList, ResizeableProperty};
 use crate::property::ConstructableProperty; // for ::new() on property
 use crate::property::Handle; // for `PropHandle` methods
 
@@ -27,10 +27,6 @@ impl<H: ItemHandle> ::std::fmt::Debug for PropertyContainer<H> {
         Ok(())
     }
 }
-
-
-// Helper for brevity.
-type TargetProperty<T, H> = <T as PropertyFor<H>>::Property;
 
 
 impl<H: ItemHandle> PropertyContainer<H>
@@ -59,7 +55,7 @@ impl<H: ItemHandle> PropertyContainer<H>
                 self.vec.len() - 1
             }
         };
-        self.vec[pos] = Some(Box::new(<T as PropertyFor<H>>::Property::new(name, len)));
+        self.vec[pos] = Some(Box::new(PropertyList::<T, H>::new(name, len)));
         if pos >= INVALID_INDEX as usize {
             panic!("Number of properties {} exceeds bounds {}-1", pos, INVALID_INDEX);
         }
@@ -67,7 +63,7 @@ impl<H: ItemHandle> PropertyContainer<H>
     }
 
     /// Returns the property at the given handle if any exists and if the return type matches.
-    pub fn get<T>(&self, prop_handle: PropHandle<H, T>) -> Option<&<T as PropertyFor<H>>::Property>
+    pub fn get<T>(&self, prop_handle: PropHandle<H, T>) -> Option<&PropertyList<T, H>>
         where T: Value
     {
         // NOTE: This handles prop_handle.index() == INVALID_INDEX just fine.
@@ -81,7 +77,7 @@ impl<H: ItemHandle> PropertyContainer<H>
 
     /// Returns the property at the given handle if any exists and if the return type matches.
     pub fn get_mut<T>(&mut self, prop_handle: PropHandle<H, T>)
-        -> Option<&mut <T as PropertyFor<H>>::Property>
+        -> Option<&mut PropertyList<T, H>>
         where T: Value
     {
         // NOTE: This handles prop_handle.index() == INVALID_INDEX just fine.
@@ -106,7 +102,7 @@ impl<H: ItemHandle> PropertyContainer<H>
                 // Require that `T` match the underlying property's type.
                 opt_prop.as_ref().and_then(|box_prop| {
                     // Map finally to `Option<()>` to avoid borrowing from `opt_prop` for next map.
-                    box_prop.as_property().downcast_ref::<TargetProperty<T, H>>().map(|_| ())
+                    box_prop.as_property().downcast_ref::<PropertyList<T, H>>().map(|_| ())
                 })
                 .map(|_| opt_prop) // Return `opt_prop` only if `T` matched.
             })
@@ -132,9 +128,9 @@ impl<H: ItemHandle> PropertyContainer<H>
             .and_then(|index| {
                 // Return the index only if the found property corresponds to that for type `T`.
                 // &Option<Box<dyn Property>> -> Option<&Box<dyn Property>>
-                // -> &Box<dyn Property> -> &dyn Property -?-> TargetProperty
+                // -> &Box<dyn Property> -> &dyn Property -?-> PropertyList
                 self.vec[index].as_ref().and_then(|box_prop| {
-                    box_prop.as_property().downcast_ref::<TargetProperty<T, H>>()
+                    box_prop.as_property().downcast_ref::<PropertyList<T, H>>()
                 }).map(|_| PropHandle::from_index(index as Index))
             })
             .unwrap_or_else(PropHandle::new)

@@ -109,13 +109,6 @@ pub trait ConstructableProperty: ResizeableProperty {
 }
 
 
-/// Allows picking the optimal property container for implemented type.
-pub trait PropertyFor<H: ItemHandle> {
-    /// Property container type to be used to store objects of type `Self`.
-    type Property: ConstructableProperty<Handle=H>;
-}
-
-
 // Support down-casting from `Property` to a struct implementing it.
 impl_downcast!(Property assoc Handle where Handle: ItemHandle);
 

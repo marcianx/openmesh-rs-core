@@ -3,9 +3,8 @@
 use crate::mesh::Mesh;
 use crate::mesh::items::{Vertex, Halfedge, Edge, Face};
 use crate::mesh::status::Status;
-use crate::property::{ItemHandle, PropertyVec, PropertyContainer, Size};
+use crate::property::{ItemHandle, PropertyList, PropertyContainer, Size};
 use crate::property::Handle; // import methods of Handle
-use crate::property::PropertyFor;
 
 def_handle!(VertexHandle, "Vertex handle.");
 def_handle!(HalfedgeHandle, "Halfedge handle.");
@@ -66,7 +65,7 @@ pub trait MeshItemHandle: ItemHandle {
     // Mesh iteration.
 
     /// Gets the status property.
-    fn status_prop(mesh: &Mesh) -> Option<&PropertyVec<Status, Self>>;
+    fn status_prop(mesh: &Mesh) -> Option<&PropertyList<Status, Self>>;
 }
 
 macro_rules! impl_to_items {
@@ -106,7 +105,7 @@ macro_rules! impl_to_items {
                 $get_mut
             }
 
-            fn status_prop(mesh: &Mesh) -> Option<&PropertyVec<Status, Self>> {
+            fn status_prop(mesh: &Mesh) -> Option<&PropertyList<Status, Self>> {
                 mesh.$get_status()
             }
         }
@@ -124,16 +123,6 @@ macro_rules! impl_to_items {
         );
     };
 }
-
-
-// TODO: This is required for some incomprehensible reason for `status_prop()` above to work.
-// Figure out why and whether there's a bug in the compiler's (unstable) associated type support.
-impl<H> PropertyFor<H> for Status
-    where H: ItemHandle
-{
-    type Property = PropertyVec<Status, H>;
-}
-
 
 impl_to_items!(  Vertex, Vertex,   VertexHandle, "v:", vertices, v_props, get_vertex_status);
 impl_to_items!(    Edge,   Edge,     EdgeHandle, "e:",    edges, e_props, get_edge_status);

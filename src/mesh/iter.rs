@@ -3,13 +3,13 @@
 use crate::mesh::item_handle::MeshItemHandle;
 use crate::mesh::Mesh;
 use crate::mesh::status::{self, Status};
-use crate::property::PropertyVec;
+use crate::property::PropertyList;
 
 
 struct IterBase<'a, H: MeshItemHandle> {
     mesh: &'a Mesh,
     h: H,
-    status_prop: Option<&'a PropertyVec<Status, H>>,
+    status_prop: Option<&'a PropertyList<Status, H>>,
     skip_bits: Status,
 }
 
@@ -169,10 +169,10 @@ impl<'a, H: MeshItemHandle> Iterator for BwdIter<'a, H> {
 #[cfg(test)]
 mod test {
     use super::{FwdIter, BwdIter};
-    use crate::property::{Index, Size};
+    use crate::property::{Index, Size, StorageFor};
     use crate::property::Handle; // For constructor.
     use crate::mesh::item_handle::VertexHandle;
-    use crate::mesh::status::{DELETED, HIDDEN, SELECTED};
+    use crate::mesh::status::{DELETED, HIDDEN, SELECTED, Status};
     use crate::mesh::Mesh;
 
     fn fwd_list(mesh: Mesh, skip: bool) -> Vec<Index> {
@@ -185,6 +185,11 @@ mod test {
             .map(|x| x.index()).collect()
     }
 
+    /// Needed only because of associated type defaults not working properly (unstable feature).
+    impl StorageFor for Status {
+        type Storage = Vec<Status>;
+    }
+
     /// Adds skippable status on all vertices for whom `skip_index_fn` returns true on its handle.
     /// It circulates between variations of skippable statuses.
     fn with_status(mesh: Mesh, skip_index_fn: for<'a> fn(&'a Index) -> bool) -> Mesh {
@@ -192,7 +197,7 @@ mod test {
         mesh.request_vertex_status();
         let prop = mesh.get_vertex_status_mut().unwrap();
         let mut skip_type = 0;
-        for (i, status) in prop.iter_internal_mut().enumerate() {
+        for (i, status) in prop.storage.iter_mut().enumerate() {
             *status =
                 if skip_index_fn(&(i as Index)) {
                     skip_type += 1;

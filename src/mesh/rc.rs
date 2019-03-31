@@ -5,7 +5,7 @@ use crate::mesh::item_handle::{
 };
 use crate::mesh::Mesh;
 use crate::mesh::status::Status;
-use crate::property::{PropHandle,PropertyContainer, PropertyFor, Size, Value};
+use crate::property::{PropHandle, PropertyContainer, PropertyList, Size, Value};
 use crate::property::Handle;   // For methods.
 
 /// Ref-counted property handle.
@@ -63,13 +63,13 @@ macro_rules! def_prop_rc {
         }
 
         #[doc="Gets the corresponding `Property` list if it exists."]
-        pub fn $get_fn(&self) -> Option<&<Status as PropertyFor<$Handle>>::Property> {
+        pub fn $get_fn(&self) -> Option<&PropertyList<Status, $Handle>> {
             self.$props_field.get(self.$rc_field.handle)
         }
 
         #[doc="Gets the corresponding `Property` list mutably if it exists."]
         #[allow(dead_code)]
-        pub(crate) fn $get_fn_mut(&mut self) -> Option<&mut <Status as PropertyFor<$Handle>>::Property> {
+        pub(crate) fn $get_fn_mut(&mut self) -> Option<&mut PropertyList<Status, $Handle>> {
             self.$props_field.get_mut(self.$rc_field.handle)
         }
     };
