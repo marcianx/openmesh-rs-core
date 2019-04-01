@@ -3,6 +3,7 @@
 #[macro_use]
 mod handle;
 pub use self::handle::*;
+#[macro_use]
 mod storage;
 pub use self::storage::*;
 mod property;

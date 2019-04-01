@@ -2,6 +2,8 @@
 
 extern crate bitflags;
 
+use crate::property::StorageFor;
+
 #[doc(hidden)]
 pub type FlagBits = u32;
 
@@ -78,6 +80,10 @@ impl Status {
 
 impl Default for Status {
     fn default() -> Self { Status::empty() }
+}
+
+impl StorageFor for Status {
+    type Storage = Vec<Status>;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -169,10 +169,10 @@ impl<'a, H: MeshItemHandle> Iterator for BwdIter<'a, H> {
 #[cfg(test)]
 mod test {
     use super::{FwdIter, BwdIter};
-    use crate::property::{Index, Size, StorageFor};
+    use crate::property::{Index, Size};
     use crate::property::Handle; // For constructor.
     use crate::mesh::item_handle::VertexHandle;
-    use crate::mesh::status::{DELETED, HIDDEN, SELECTED, Status};
+    use crate::mesh::status::{DELETED, HIDDEN, SELECTED};
     use crate::mesh::Mesh;
 
     fn fwd_list(mesh: Mesh, skip: bool) -> Vec<Index> {
@@ -183,11 +183,6 @@ mod test {
         let end = mesh.vertices().len() as Size - 1;
         BwdIter::new(&mesh, VertexHandle::from_index(end), skip)
             .map(|x| x.index()).collect()
-    }
-
-    /// Needed only because of associated type defaults not working properly (unstable feature).
-    impl StorageFor for Status {
-        type Storage = Vec<Status>;
     }
 
     /// Adds skippable status on all vertices for whom `skip_index_fn` returns true on its handle.

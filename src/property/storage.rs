@@ -1,4 +1,5 @@
 use crate::io::binary::{Binary, UNKNOWN_SIZE};
+//use crate::geometry::vector::{Vec2, Vec3, Vec4, Vec6};
 use crate::property::Value;
 use crate::util::bitvec::BitVec;
 use crate::util::index::{IndexUnchecked, IndexSetUnchecked, IndexSet};
@@ -61,9 +62,49 @@ impl<T: Value> Storage for Vec<T> {
     fn push(&mut self) { Vec::push(self, Default::default()) }
 }
 
-impl<T: Value> StorageFor for T {
-    default type Storage = Vec<T>;
+#[macro_export]
+macro_rules! impl_vec_storage_for {
+    ($Type:ty) => {
+        impl $crate::property::StorageFor for $Type {
+            type Storage = Vec<$Type>;
+        }
+    }
 }
+impl_vec_storage_for!(i8);
+impl_vec_storage_for!(i16);
+impl_vec_storage_for!(i32);
+impl_vec_storage_for!(i64);
+impl_vec_storage_for!(u8);
+impl_vec_storage_for!(u16);
+impl_vec_storage_for!(u32);
+impl_vec_storage_for!(u64);
+impl_vec_storage_for!(f32);
+impl_vec_storage_for!(f64);
+impl_vec_storage_for!(String);
+
+// TODO: Add this once after introducing an alternative to Default since nalgebra doesn't implement
+// it for any of its types to avoid ambiguity: https://github.com/rustsim/nalgebra/issues/201.
+//
+//macro_rules! impl_vec_storage_for_vec {
+//    ($Type:ty) => {
+//        impl_vec_storage_for!($Type);
+//        impl_vec_storage_for!(Vec2<$Type>);
+//        impl_vec_storage_for!(Vec3<$Type>);
+//        impl_vec_storage_for!(Vec4<$Type>);
+//        impl_vec_storage_for!(Vec6<$Type>);
+//    }
+//}
+//
+//impl_vec_storage_for_vec!(i8);
+//impl_vec_storage_for_vec!(i16);
+//impl_vec_storage_for_vec!(i32);
+//impl_vec_storage_for_vec!(i64);
+//impl_vec_storage_for_vec!(u8);
+//impl_vec_storage_for_vec!(u16);
+//impl_vec_storage_for_vec!(u32);
+//impl_vec_storage_for_vec!(u64);
+//impl_vec_storage_for_vec!(f32);
+//impl_vec_storage_for_vec!(f64);
 
 impl Storage for BitVec {
     type Value = bool;
