@@ -18,7 +18,7 @@ struct IterBase<'a, H: MeshItemHandle> {
 // though).
 
 impl<'a, H: MeshItemHandle> ::std::fmt::Debug for IterBase<'a, H> {
-    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
         write!(f, "IterBase(h={:?}, skip_bits={:?})", self.h, self.skip_bits)
     }
 }

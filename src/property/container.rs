@@ -12,12 +12,12 @@ use crate::property::Handle; // for `PropHandle` methods
 pub struct PropertyContainer<H> {
     // TODO: Should there be a `RefCell` here to allow getting multiple properties mutably?
     /// List of all the properties, whose lengths are kept in sync.
-    vec: Vec<Option<Box<ResizeableProperty<Handle=H>>>>,
+    vec: Vec<Option<Box<dyn ResizeableProperty<Handle=H>>>>,
 }
 
 
 impl<H: ItemHandle> ::std::fmt::Debug for PropertyContainer<H> {
-    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
         for opt_prop in self.vec.iter() {
             opt_prop.as_ref()
                  .map(|prop| prop.fmt(f))

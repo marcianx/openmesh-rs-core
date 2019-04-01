@@ -1,13 +1,11 @@
 //! Status flags for mesh items.
 
-extern crate bitflags;
-
 use crate::property::StorageFor;
 
 #[doc(hidden)]
 pub type FlagBits = u32;
 
-bitflags! {
+bitflags::bitflags! {
     #[doc = "Flags for each vertex/halfedge/edge/face field."]
     flags Status: FlagBits {
         #[doc = "Whether the item is deleted."]

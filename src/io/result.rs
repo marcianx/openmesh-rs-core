@@ -1,7 +1,5 @@
 //! Result type for mesh I/O operations.
 
-extern crate byteorder;
-
 use std::error;
 use std::fmt;
 use std::result;
@@ -24,7 +22,7 @@ pub enum Error {
 }
 
 impl fmt::Display for self::Error {
-    fn fmt(&self, formatter: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> result::Result<(), fmt::Error> {
         match *self {
             Error::Io(ref err) => { err.fmt(formatter) }
             Error::FromUtf8(ref err) => { err.fmt(formatter) }

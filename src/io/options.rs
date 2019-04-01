@@ -1,6 +1,6 @@
 //! I/O options.
 
-extern crate bitflags;
+use bitflags;
 
 #[doc(hidden)]
 pub type FlagBits = u32;

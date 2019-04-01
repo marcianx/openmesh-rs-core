@@ -64,11 +64,11 @@ pub trait Property: Downcast + ::std::fmt::Debug
     }
 
     /// Store self as one binary block.
-    fn store(&self, writer: &mut Write, endian: Endian) -> Result<usize>;
+    fn store(&self, writer: &mut dyn Write, endian: Endian) -> Result<usize>;
 
     /// Restore self from a binary block. Uses `resize()` to set the size of `self` before
     /// restoring.
-    fn restore(&mut self, reader: &mut Read, endian: Endian) -> Result<usize>;
+    fn restore(&mut self, reader: &mut dyn Read, endian: Endian) -> Result<usize>;
 }
 
 
@@ -77,7 +77,7 @@ pub trait Property: Downcast + ::std::fmt::Debug
 /// as a trait object.
 pub trait ResizeableProperty: Property {
     /// A deep copy of `self` as a trait object. Used to implement the `Clone` trait.
-    fn clone_as_trait(&self) -> Box<ResizeableProperty<Handle=Self::Handle>>;
+    fn clone_as_trait(&self) -> Box<dyn ResizeableProperty<Handle=Self::Handle>>;
 
     /// Reserve memory for `n` elements.
     ///
@@ -95,10 +95,10 @@ pub trait ResizeableProperty: Property {
     fn push(&mut self);
 
     /// Convert to a mutable `Property` trait object.
-    fn as_property(&self) -> &Property<Handle=Self::Handle>;
+    fn as_property(&self) -> &dyn Property<Handle=Self::Handle>;
 
     /// Convert to a mutable `Property` trait object.
-    fn as_property_mut(&mut self) -> &mut Property<Handle=Self::Handle>;
+    fn as_property_mut(&mut self) -> &mut dyn Property<Handle=Self::Handle>;
 }
 
 
@@ -113,7 +113,7 @@ pub trait ConstructableProperty: ResizeableProperty {
 impl_downcast!(Property assoc Handle where Handle: ItemHandle);
 
 
-impl<H> Clone for Box<ResizeableProperty<Handle=H>>
+impl<H> Clone for Box<dyn ResizeableProperty<Handle=H>>
 {
     fn clone(&self) -> Self {
         self.clone_as_trait()

@@ -1,7 +1,6 @@
 //! See documentation for the `Quadric` struct.
 
-extern crate num;
-use self::num::traits::{One,Zero};
+use num::traits::{One, Zero};
 use std::ops::{Add, Mul};
 use crate::geometry::math::BaseFloat;
 use crate::geometry::vector::{Vec3, Vec4, Dot, Norm};
@@ -239,8 +238,7 @@ pub type Quadricd = Quadric<f64>;
 
 #[cfg(test)]
 mod test {
-    extern crate num;
-    use self::num::traits::Zero;
+    use num::traits::Zero;
     use crate::geometry::vector::{Vec3, Vec4, Norm};
     use crate::geometry::quadric::{Quadric,Quadricd};
 

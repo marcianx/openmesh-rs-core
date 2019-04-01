@@ -84,7 +84,7 @@ impl<T: Value, H: ItemHandle> IndexSet<H> for PropertyList<T, H> {
 // impl `std::fmt::Debug`
 
 impl<T: Value, H> ::std::fmt::Debug for PropertyList<T, H> {
-    fn fmt(&self, formatter: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+    fn fmt(&self, formatter: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
         writeln!(formatter, "  {}{}", self.name, if self.persistent { ", persistent" } else { "" })
     }
 }
@@ -117,10 +117,10 @@ impl<T, H> Property for PropertyList<T, H>
     fn len(&self) -> usize { self.storage.len() }
     fn element_size(&self) -> usize { <T as Binary>::size_of_type() }
     fn size_of(&self) -> usize { <StorageForValue<T> as Binary>::size_of_value(&self.storage) }
-    fn store(&self, writer: &mut Write, endian: Endian) -> Result<usize> {
+    fn store(&self, writer: &mut dyn Write, endian: Endian) -> Result<usize> {
         <StorageForValue<T> as Binary>::store(&self.storage, writer, endian)
     }
-    fn restore(&mut self, reader: &mut Read, endian: Endian) -> Result<usize> {
+    fn restore(&mut self, reader: &mut dyn Read, endian: Endian) -> Result<usize> {
         <StorageForValue<T> as Binary>::restore(&mut self.storage, reader, endian)
     }
 }
@@ -147,9 +147,9 @@ impl<T, H> ResizeableProperty for PropertyList<T, H>
         ::std::mem::swap(&mut self.storage, &mut <T as StorageFor>::Storage::new());
     }
     fn push(&mut self) { self.storage.push(); }
-    fn clone_as_trait(&self) -> Box<ResizeableProperty<Handle=H>> { Box::new(self.clone()) }
-    fn as_property(&self) -> &Property<Handle=H> { self }
-    fn as_property_mut(&mut self) -> &mut Property<Handle=H> { self }
+    fn clone_as_trait(&self) -> Box<dyn ResizeableProperty<Handle=H>> { Box::new(self.clone()) }
+    fn as_property(&self) -> &dyn Property<Handle=H> { self }
+    fn as_property_mut(&mut self) -> &mut dyn Property<Handle=H> { self }
 }
 
 impl<T, H> ConstructableProperty for PropertyList<T, H>

@@ -10,7 +10,7 @@ impl Binary for String {
     fn is_streamable() -> bool { true }
     fn size_of_value(&self) -> usize { self.len() + <u16 as Binary>::size_of_type() }
 
-    fn store_endian<B: ByteOrder>(&self, writer: &mut Write) -> Result<usize> {
+    fn store_endian<B: ByteOrder>(&self, writer: &mut dyn Write) -> Result<usize> {
         let len = self.len();
         if len > u16::max_value() as usize {
             return Err(Error::StringExceeds64k)
@@ -22,7 +22,7 @@ impl Binary for String {
         Ok(len + len_size)
     }
 
-    fn restore_endian<B: ByteOrder>(&mut self, reader: &mut Read) -> Result<usize> {
+    fn restore_endian<B: ByteOrder>(&mut self, reader: &mut dyn Read) -> Result<usize> {
         let mut len = 0u16;
         // TODO: OpenMesh has a bug where len is double-swapped.
         // Reproduce the bug for backward-compatibility with OpenMesh files?

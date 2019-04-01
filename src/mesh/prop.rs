@@ -170,7 +170,7 @@ impl<'a, H> PropsMut<'a, H>
 impl<'a, H> ::std::fmt::Debug for Props<'a, H>
     where H: ItemHandle,
 {
-    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
         self.props.fmt(f)
     }
 }
@@ -179,7 +179,7 @@ impl<'a, H> ::std::fmt::Debug for Props<'a, H>
 impl<'a, H> ::std::fmt::Debug for PropsMut<'a, H>
     where H: ItemHandle,
 {
-    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
         self.props.fmt(f)
     }
 }

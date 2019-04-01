@@ -1,9 +1,7 @@
 //! Re-exports of geometric vector types from `nalgebra` and type aliases for common
 //! instantiations.
 
-extern crate nalgebra as na;
-
-pub use self::na::{Vec2, Vec3, Vec4, Vec6, Dot, Norm};
+pub use nalgebra::{Vec2, Vec3, Vec4, Vec6, Dot, Norm};
 
 /// 2-byte signed vector
 pub type Vec2c = Vec2<i8>;

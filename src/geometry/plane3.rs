@@ -1,7 +1,6 @@
 //! See documentation for the `Plane3` struct.
 
-extern crate num;
-use self::num::traits::Zero;
+use num::traits::Zero;
 use crate::geometry::math::BaseFloat;
 use crate::geometry::vector::{Vec3, Dot, Norm};
 

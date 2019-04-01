@@ -1,5 +1,4 @@
-extern crate num;
-use self::num::Zero;
+use num::Zero;
 
 use std::io::{Read, Write};
 use std::mem;
@@ -15,11 +14,11 @@ impl Binary for Status {
     fn is_streamable() -> bool { true }
     fn size_of_type() -> usize { mem::size_of::<Self>() }
 
-    fn store_endian<B: ByteOrder>(&self, writer: &mut Write) -> Result<usize> {
+    fn store_endian<B: ByteOrder>(&self, writer: &mut dyn Write) -> Result<usize> {
         self.bits().store_endian::<B>(writer)
     }
 
-    fn restore_endian<B: ByteOrder>(&mut self, reader: &mut Read) -> Result<usize> {
+    fn restore_endian<B: ByteOrder>(&mut self, reader: &mut dyn Read) -> Result<usize> {
         let mut bits: FlagBits = Zero::zero();
         let len = bits.restore_endian::<B>(reader)?;
         *self = Status::from_bits_truncate(bits);

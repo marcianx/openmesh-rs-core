@@ -1,5 +1,4 @@
-extern crate byteorder;
-use self::byteorder::{ReadBytesExt, WriteBytesExt};
+use byteorder::{ReadBytesExt, WriteBytesExt};
 
 use std::io::{Read, Write};
 use std::mem;
@@ -17,12 +16,12 @@ macro_rules! binary_impl_int8 {
             fn is_streamable() -> bool { true }
             fn size_of_type() -> usize { mem::size_of::<Self>() }
 
-            fn store_endian<B: ByteOrder>(&self, writer: &mut Write) -> Result<usize> {
+            fn store_endian<B: ByteOrder>(&self, writer: &mut dyn Write) -> Result<usize> {
                 writer.$write_fn(*self)?;
                 Ok(mem::size_of::<Self>())
             }
 
-            fn restore_endian<B: ByteOrder>(&mut self, reader: &mut Read) -> Result<usize> {
+            fn restore_endian<B: ByteOrder>(&mut self, reader: &mut dyn Read) -> Result<usize> {
                 let value = reader.$read_fn()?;
                 *self = value;
                 Ok(mem::size_of::<Self>())
@@ -42,12 +41,12 @@ macro_rules! binary_impl_primitive {
             fn is_streamable() -> bool { true }
             fn size_of_type() -> usize { mem::size_of::<Self>() }
 
-            fn store_endian<B: ByteOrder>(&self, writer: &mut Write) -> Result<usize> {
+            fn store_endian<B: ByteOrder>(&self, writer: &mut dyn Write) -> Result<usize> {
                 writer.$write_fn::<B>(*self)?;
                 Ok(mem::size_of::<Self>())
             }
 
-            fn restore_endian<B: ByteOrder>(&mut self, reader: &mut Read) -> Result<usize> {
+            fn restore_endian<B: ByteOrder>(&mut self, reader: &mut dyn Read) -> Result<usize> {
                 *self = reader.$read_fn::<B>()?;
                 Ok(mem::size_of::<Self>())
             }

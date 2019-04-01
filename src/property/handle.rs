@@ -103,7 +103,7 @@ macro_rules! def_handle {
         impl<$($Types),*> Eq for $Handle<$($Types),*> {}
 
         impl<$($Types),*> ::std::fmt::Debug for $Handle<$($Types),*> {
-            fn fmt(&self, fmt: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+            fn fmt(&self, fmt: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
                 stringify!($Handle).fmt(fmt)?;
                 "(".fmt(fmt)?;
                 self.0.fmt(fmt)?;
@@ -116,7 +116,7 @@ macro_rules! def_handle {
         }
 
         impl<$($Types),*> ::std::fmt::Display for $Handle<$($Types),*> {
-            fn fmt(&self, formatter: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+            fn fmt(&self, formatter: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
                 self.0.fmt(formatter)
             }
         }

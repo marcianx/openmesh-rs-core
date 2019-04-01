@@ -1,4 +1,4 @@
-extern crate bitflags;
+use bitflags;
 
 // TODO: Check if usable in this form to be able to select primitives at compile time.
 bitflags! {

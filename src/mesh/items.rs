@@ -163,7 +163,7 @@ macro_rules! impl_items {
             }
 
             #[doc="Returns the properties container associated with the mesh item type."]
-            pub fn props(&self) -> Props<H> {
+            pub fn props(&self) -> Props<'_, H> {
                 Props::new(self.props, self.len())
             }
 
@@ -192,7 +192,7 @@ impl<'a, H> ItemsMut<'a, H>
     }
 
     /// Returns the mutable properties container associated with the mesh item type.
-    pub fn props_mut(&mut self) -> PropsMut<H> {
+    pub fn props_mut(&mut self) -> PropsMut<'_, H> {
         let len = self.len();
         PropsMut::new(&mut self.props, len)
     }

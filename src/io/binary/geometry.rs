@@ -17,14 +17,14 @@ macro_rules! binary_impl_vec {
             fn size_of_value(&self) -> usize { self.len() * <$item_ty as Binary>::size_of_type() }
             fn size_of_type() -> usize { ::std::mem::size_of::<Self>() }
 
-            fn store_endian<B: ByteOrder>(&self, writer: &mut Write) -> Result<usize> {
+            fn store_endian<B: ByteOrder>(&self, writer: &mut dyn Write) -> Result<usize> {
                 for val in self.as_ref().iter() {
                     (*val).store_endian::<B>(writer)?;
                 }
                 Ok(self.size_of_value())
             }
 
-            fn restore_endian<B: ByteOrder>(&mut self, reader: &mut Read) -> Result<usize> {
+            fn restore_endian<B: ByteOrder>(&mut self, reader: &mut dyn Read) -> Result<usize> {
                 for val in self.as_mut().iter_mut() {
                     (*val).restore_endian::<B>(reader)?;
                 }
@@ -78,8 +78,7 @@ binary_impl_vec!(Vec6, f64, read_f64, write_f64);
 #[cfg(test)]
 mod test {
     // Test only a subset of the impls above but all lines in the macros.
-    extern crate num;
-    use self::num::Zero;
+    use num::Zero;
     use crate::io::binary::test;
     use crate::io::binary::traits::Endian::{Big, Little};
     use crate::geometry::vector::*;
