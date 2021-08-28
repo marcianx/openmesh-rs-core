@@ -62,6 +62,8 @@ impl<T: Value> Storage for Vec<T> {
     fn push(&mut self) { Vec::push(self, Default::default()) }
 }
 
+/// Implements trait to assert that the optimal storage for the specified
+/// type is a `Vec`.
 #[macro_export]
 macro_rules! impl_vec_storage_for {
     ($Type:ty) => {
