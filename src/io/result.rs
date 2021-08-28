@@ -11,8 +11,6 @@ use std::string;
 pub enum Error {
     /// Unsupported functionality.
     Unsupported,
-    /// Unexpected EOF.
-    UnexpectedEOF,
     /// String exceeds 64Kb.
     StringExceeds64k,
     /// Invalid UTF-8.
@@ -25,7 +23,6 @@ impl fmt::Display for self::Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> result::Result<(), fmt::Error> {
         match *self {
             Error::Unsupported => "Unsupported functionality".fmt(f),
-            Error::UnexpectedEOF => "Unexpected EOF".fmt(f),
             Error::StringExceeds64k => "Cannot store string longer than 64Kb".fmt(f),
             Error::Io(ref err) => err.fmt(f),
             Error::FromUtf8(ref err) => err.fmt(f),
@@ -49,15 +46,6 @@ pub type Result<T> = result::Result<T, Error>;
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Error {
         Error::Io(err)
-    }
-}
-
-impl From<byteorder::Error> for Error {
-    fn from(err: byteorder::Error) -> Error {
-        match err {
-            byteorder::Error::UnexpectedEOF => Error::UnexpectedEOF,
-            byteorder::Error::Io(err) => Error::Io(err),
-        }
     }
 }
 
