@@ -9,7 +9,7 @@ use crate::property::Handle; // for `PropHandle` methods
 
 /// Contains a parallel collection of `Property` trait objects.
 #[derive(Clone, Default)]
-pub struct PropertyContainer<H> {
+pub struct PropertyContainer<H: ItemHandle> {
     // TODO: Should there be a `RefCell` here to allow getting multiple properties mutably?
     /// List of all the properties, whose lengths are kept in sync.
     vec: Vec<Option<Box<dyn ResizeableProperty<Handle=H>>>>,

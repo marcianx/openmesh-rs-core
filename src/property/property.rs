@@ -113,7 +113,7 @@ pub trait ConstructableProperty: ResizeableProperty {
 impl_downcast!(Property assoc Handle where Handle: ItemHandle);
 
 
-impl<H> Clone for Box<dyn ResizeableProperty<Handle=H>>
+impl<H: ItemHandle> Clone for Box<dyn ResizeableProperty<Handle=H>>
 {
     fn clone(&self) -> Self {
         self.clone_as_trait()
