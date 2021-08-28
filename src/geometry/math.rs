@@ -11,13 +11,21 @@ pub trait BaseFloat: nalgebra::BaseFloat {
 }
 
 impl BaseFloat for f32 {
-    fn eps() -> Self { 1e-05f32 }
-    fn from_f32(val: f32) -> Self { val }
+    fn eps() -> Self {
+        1e-05f32
+    }
+    fn from_f32(val: f32) -> Self {
+        val
+    }
 }
 
 impl BaseFloat for f64 {
-    fn eps() -> Self { 1e-09f64 }
-    fn from_f32(val: f32) -> Self { f64::from(val) }
+    fn eps() -> Self {
+        1e-09f64
+    }
+    fn from_f32(val: f32) -> Self {
+        f64::from(val)
+    }
 }
 
 /// Comparison methods for all `BaseFloat` types.
@@ -58,26 +66,48 @@ pub trait FloatCompare: BaseFloat {
     }
 
     /// Checks for equality within the default epsilon.
-    #[inline(always)] fn is_zero(self) -> bool { self.is_zero_eps(Self::eps()) }
+    #[inline(always)]
+    fn is_zero(self) -> bool {
+        self.is_zero_eps(Self::eps())
+    }
     /// Checks for equality within the default epsilon.
-    #[inline(always)] fn is_eq(self, other: Self) -> bool { self.is_eq_eps(other, Self::eps()) }
+    #[inline(always)]
+    fn is_eq(self, other: Self) -> bool {
+        self.is_eq_eps(other, Self::eps())
+    }
     /// Returns whether self is greater than other and not equal to within the default epsilon.
-    #[inline(always)] fn is_gt(self, other: Self) -> bool { self.is_gt_eps(other, Self::eps()) }
+    #[inline(always)]
+    fn is_gt(self, other: Self) -> bool {
+        self.is_gt_eps(other, Self::eps())
+    }
     /// Returns whether self is greater than other or equal to it within the default epsilon.
-    #[inline(always)] fn is_ge(self, other: Self) -> bool { self.is_ge_eps(other, Self::eps()) }
+    #[inline(always)]
+    fn is_ge(self, other: Self) -> bool {
+        self.is_ge_eps(other, Self::eps())
+    }
     /// Returns whether self is greater than other and not equal to within the default epsilon.
-    #[inline(always)] fn is_lt(self, other: Self) -> bool { self.is_lt_eps(other, Self::eps()) }
+    #[inline(always)]
+    fn is_lt(self, other: Self) -> bool {
+        self.is_lt_eps(other, Self::eps())
+    }
     /// Returns whether self is greater than other or equal to it within the default epsilon.
-    #[inline(always)] fn is_le(self, other: Self) -> bool { self.is_le_eps(other, Self::eps()) }
+    #[inline(always)]
+    fn is_le(self, other: Self) -> bool {
+        self.is_le_eps(other, Self::eps())
+    }
 }
 
 impl<T: BaseFloat> FloatCompare for T {}
 
 /// Max for floating point types as per the standard library.
-pub fn max<T: Float>(v1: T, v2: T) -> T { v1.max(v2) }
+pub fn max<T: Float>(v1: T, v2: T) -> T {
+    v1.max(v2)
+}
 
 /// Min for floating point types as per the standard library.
-pub fn min<T: Float>(v1: T, v2: T) -> T { v1.min(v2) }
+pub fn min<T: Float>(v1: T, v2: T) -> T {
+    v1.min(v2)
+}
 
 /// Adds 2pi to the angle if it is negative.
 #[inline(always)]
@@ -92,8 +122,12 @@ pub fn positive_angle<T: BaseFloat>(ang: T) -> T {
 /// Computes the angle in (-pi, pi] based on the provided y (`self`) and `x`-coordinates of the
 /// vector from the origin.
 #[inline(always)]
-pub fn angle2<T: BaseFloat>(y: T, x: T) -> T { T::atan2(y, x) }
+pub fn angle2<T: BaseFloat>(y: T, x: T) -> T {
+    T::atan2(y, x)
+}
 
 /// Computes the angle in [0, 2pi) based on the provided y (`self`) and `x`-coordinates of the
 /// vector from the origin.
-pub fn positive_angle2<T: BaseFloat>(y: T, x: T) -> T { positive_angle(angle2(y, x)) }
+pub fn positive_angle2<T: BaseFloat>(y: T, x: T) -> T {
+    positive_angle(angle2(y, x))
+}

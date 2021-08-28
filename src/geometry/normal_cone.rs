@@ -1,42 +1,53 @@
 //! See documentation for the `NormalCone` struct.
 
+use crate::geometry::math::{max, min, BaseFloat};
+use crate::geometry::vector::{Dot, Vec3};
 use num::traits::{One, Zero};
-use crate::geometry::math::{BaseFloat, max, min};
-use crate::geometry::vector::{Vec3, Dot};
 
 #[repr(C)]
 #[derive(Eq, PartialEq, Clone, Hash, Debug, Copy)]
 /// Normal cone as defined by a direction vector and the angle from the vector to the cone surface.
 pub struct NormalCone<T> {
-  center_normal: Vec3<T>,
-  angle: T
+    center_normal: Vec3<T>,
+    angle: T,
 }
 
 impl<T: BaseFloat + One + Zero> NormalCone<T> {
     /// Plane normal to vector n that contains point pt.
     pub fn new(center_normal: &Vec3<T>, angle: T) -> Self {
-        NormalCone { center_normal: *center_normal, angle }
+        NormalCone {
+            center_normal: *center_normal,
+            angle,
+        }
     }
     /// Zero cone.
     pub fn zero() -> Self {
         NormalCone {
             center_normal: Zero::zero(),
-            angle: Zero::zero()
+            angle: Zero::zero(),
         }
     }
 
     /// Returns the cone center normal.
-    pub fn center_normal(&self) -> &Vec3<T> { &self.center_normal }
+    pub fn center_normal(&self) -> &Vec3<T> {
+        &self.center_normal
+    }
     /// Returns the cone angle.
-    pub fn angle(&self) -> T { self.angle }
+    pub fn angle(&self) -> T {
+        self.angle
+    }
 
     /// Max distance (radians) from unit vector to cone (distant side).
     pub fn max_angle_to_vec(&self, normal: &Vec3<T>) -> T {
         let dotp: T = self.center_normal.dot(&normal);
         let one: T = One::one();
-        let center_angle =      if dotp >=  one { Zero::zero() }
-                           else if dotp <= -one { T::pi() }
-                           else                 { dotp.acos() };
+        let center_angle = if dotp >= one {
+            Zero::zero()
+        } else if dotp <= -one {
+            T::pi()
+        } else {
+            dotp.acos()
+        };
         // TODO: Should this have been clamped to pi?
         center_angle + self.angle
     }
@@ -45,9 +56,13 @@ impl<T: BaseFloat + One + Zero> NormalCone<T> {
     pub fn max_angle_to_cone(&self, cone: &NormalCone<T>) -> T {
         let dotp = self.center_normal.dot(&cone.center_normal);
         let one: T = One::one();
-        let center_angle =      if dotp >=  one { Zero::zero() }
-                           else if dotp <= -one { T::pi() }
-                           else                 { dotp.acos() };
+        let center_angle = if dotp >= one {
+            Zero::zero()
+        } else if dotp <= -one {
+            T::pi()
+        } else {
+            dotp.acos()
+        };
         // TODO: A large cone inside a small cone => max distance between any point on one cone to
         // any point on the other cone seems to be the sum of the angles. This formula instead
         // computes twice the largest cone angle. Check the intention with the authors.
@@ -65,13 +80,14 @@ impl<T: BaseFloat + One + Zero> NormalCone<T> {
             // New angle
             let center_angle = dotp.acos();
             let min_angle = min(-self.angle, center_angle - cone.angle);
-            let max_angle = max( self.angle, center_angle + cone.angle);
+            let max_angle = max(self.angle, center_angle + cone.angle);
             self.angle = (max_angle - min_angle) * half;
 
             // Axis by SLERP
             let axis_angle = half * (min_angle + max_angle);
             self.center_normal = (self.center_normal * (center_angle - axis_angle).sin()
-                                  + cone.center_normal * axis_angle.sin()) / center_angle.sin();
+                + cone.center_normal * axis_angle.sin())
+                / center_angle.sin();
         } else {
             self.angle = if dotp > Zero::zero() {
                 // Axes point in the same direction
@@ -89,13 +105,12 @@ pub type NormalConef = NormalCone<f32>;
 /// Alias for `NormalCone<f64>`.
 pub type NormalConed = NormalCone<f64>;
 
-
 #[cfg(test)]
 mod test {
-    use crate::geometry::vector::{Vec3, Norm};
-    use std::f64;
-    use crate::geometry::normal_cone::{NormalCone, NormalConed};
     use crate::geometry::math::FloatCompare;
+    use crate::geometry::normal_cone::{NormalCone, NormalConed};
+    use crate::geometry::vector::{Norm, Vec3};
+    use std::f64;
 
     const PI: f64 = f64::consts::PI;
     const TWO_PI: f64 = f64::consts::PI * 2.0;
@@ -104,7 +119,10 @@ mod test {
     fn test_init() {
         println!("{:?}", NormalConed::zero());
         println!("{:?}", NormalCone::new(&Vec3::new(1.0, 2.0, 3.0), TWO_PI));
-        assert_eq!(NormalCone::new(&Vec3::new(0.0, 0.0, 0.0), 0.0), NormalCone::zero());
+        assert_eq!(
+            NormalCone::new(&Vec3::new(0.0, 0.0, 0.0), 0.0),
+            NormalCone::zero()
+        );
     }
 
     #[test]
@@ -115,9 +133,19 @@ mod test {
         let cone = NormalCone::new(&dir, angle);
         assert!(cone.max_angle_to_vec(&dir).is_eq(angle));
         let max_angle = cone.max_angle_to_vec(&dir_perp);
-        assert!(max_angle.is_eq(PI / 2.0 + angle), "max_angle_to_vec = {}, expected = {}", max_angle, PI / 2.0 + angle);
+        assert!(
+            max_angle.is_eq(PI / 2.0 + angle),
+            "max_angle_to_vec = {}, expected = {}",
+            max_angle,
+            PI / 2.0 + angle
+        );
         let max_angle = cone.max_angle_to_vec(&-dir);
-        assert!(max_angle.is_eq(PI + angle), "max_angle_to_vec = {}, expected = {}", max_angle, PI + angle);
+        assert!(
+            max_angle.is_eq(PI + angle),
+            "max_angle_to_vec = {}, expected = {}",
+            max_angle,
+            PI + angle
+        );
     }
 
     #[test]
@@ -131,9 +159,13 @@ mod test {
         let cone_perp = NormalCone::new(&dir_perp, angle2);
         let cone_opp = NormalCone::new(&-dir, angle2);
         // NOTE: Really, expected angle1 + angle2 instead of 2*angle2.
-        assert!(cone.max_angle_to_cone(&cone_parallel).is_eq(2.0*angle2));
-        assert!(cone.max_angle_to_cone(&cone_perp).is_eq(PI / 2.0 + angle1 + angle2));
-        assert!(cone.max_angle_to_cone(&cone_opp).is_eq(PI + angle1 + angle2));
+        assert!(cone.max_angle_to_cone(&cone_parallel).is_eq(2.0 * angle2));
+        assert!(cone
+            .max_angle_to_cone(&cone_perp)
+            .is_eq(PI / 2.0 + angle1 + angle2));
+        assert!(cone
+            .max_angle_to_cone(&cone_opp)
+            .is_eq(PI + angle1 + angle2));
     }
 
     #[test]
@@ -163,8 +195,12 @@ mod test {
         cone1.merge(&cone2);
         let expected_angle = PI / 4.0 + angle;
         let expected_normal = ((dir_unit + dir_unit_perp) / 2.0).normalize();
-        assert!(cone1.angle().is_eq(expected_angle),
-            "cone1.angle() = {}, expected = {}", cone1.angle(), expected_angle);
+        assert!(
+            cone1.angle().is_eq(expected_angle),
+            "cone1.angle() = {}, expected = {}",
+            cone1.angle(),
+            expected_angle
+        );
         assert!((*cone1.center_normal() - expected_normal).norm().is_zero());
 
         // Cones of different sizes perpendicular to each other.
@@ -172,8 +208,11 @@ mod test {
         let cone2 = NormalCone::new(&dir_perp, angle);
         cone1.merge(&cone2);
         let expected_angle = PI / 4.0 + angle * (17.0 / 32.0);
-        assert!(cone1.angle().is_eq(expected_angle),
-            "cone1.angle() = {}, expected = {}", cone1.angle(), expected_angle);
+        assert!(
+            cone1.angle().is_eq(expected_angle),
+            "cone1.angle() = {}, expected = {}",
+            cone1.angle(),
+            expected_angle
+        );
     }
 }
-

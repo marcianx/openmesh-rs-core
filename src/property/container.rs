@@ -1,50 +1,50 @@
 use crate::property::handle::PropHandle;
-use crate::property::{
-    INVALID_INDEX, Index, Size, Value,
-    ItemHandle,
-};
-use crate::property::{PropertyList, ResizeableProperty};
 use crate::property::ConstructableProperty; // for ::new() on property
-use crate::property::Handle; // for `PropHandle` methods
+use crate::property::Handle;
+use crate::property::{Index, ItemHandle, Size, Value, INVALID_INDEX};
+use crate::property::{PropertyList, ResizeableProperty}; // for `PropHandle` methods
 
 /// Contains a parallel collection of `Property` trait objects.
 #[derive(Clone, Default)]
 pub struct PropertyContainer<H: ItemHandle> {
     // TODO: Should there be a `RefCell` here to allow getting multiple properties mutably?
     /// List of all the properties, whose lengths are kept in sync.
-    vec: Vec<Option<Box<dyn ResizeableProperty<Handle=H>>>>,
+    vec: Vec<Option<Box<dyn ResizeableProperty<Handle = H>>>>,
 }
-
 
 impl<H: ItemHandle> ::std::fmt::Debug for PropertyContainer<H> {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
         for opt_prop in self.vec.iter() {
-            opt_prop.as_ref()
-                 .map(|prop| prop.fmt(f))
-                 .unwrap_or_else(|| "[deleted]".fmt(f))?;
+            opt_prop
+                .as_ref()
+                .map(|prop| prop.fmt(f))
+                .unwrap_or_else(|| "[deleted]".fmt(f))?;
             '\n'.fmt(f)?;
         }
         Ok(())
     }
 }
 
-
-impl<H: ItemHandle> PropertyContainer<H>
-{
+impl<H: ItemHandle> PropertyContainer<H> {
     ////////////////////////////////////////////////////////////////////////////////
     // Addition/getting/removal of properties.
 
     /// Returns the length of the `Property`-holder. The number of stored properties does not
     /// exceed this length.
-    pub fn len(&self) -> Size { self.vec.len() as Size }
+    pub fn len(&self) -> Size {
+        self.vec.len() as Size
+    }
 
     /// Whether the container is empty.
-    pub fn is_empty(&self) -> bool { self.vec.is_empty() }
+    pub fn is_empty(&self) -> bool {
+        self.vec.is_empty()
+    }
 
     /// Adds a property whose elements are of type `T`.
     /// Panics in the unlikely case that the number of properties reaches `INVALID_INDEX`.
     pub fn add<T>(&mut self, name: Option<String>, len: Size) -> PropHandle<H, T>
-        where T: Value
+    where
+        T: Value,
     {
         let name = name.unwrap_or_else(|| "<unknown>".to_owned());
         let pos = self.vec.iter().position(Option::is_none);
@@ -57,14 +57,18 @@ impl<H: ItemHandle> PropertyContainer<H>
         };
         self.vec[pos] = Some(Box::new(PropertyList::<T, H>::new(name, len)));
         if pos >= INVALID_INDEX as usize {
-            panic!("Number of properties {} exceeds bounds {}-1", pos, INVALID_INDEX);
+            panic!(
+                "Number of properties {} exceeds bounds {}-1",
+                pos, INVALID_INDEX
+            );
         }
         PropHandle::from_index(pos as Size)
     }
 
     /// Returns the property at the given handle if any exists and if the return type matches.
     pub fn get<T>(&self, prop_handle: PropHandle<H, T>) -> Option<&PropertyList<T, H>>
-        where T: Value
+    where
+        T: Value,
     {
         // NOTE: This handles prop_handle.index() == INVALID_INDEX just fine.
         self.vec
@@ -76,9 +80,9 @@ impl<H: ItemHandle> PropertyContainer<H>
     }
 
     /// Returns the property at the given handle if any exists and if the return type matches.
-    pub fn get_mut<T>(&mut self, prop_handle: PropHandle<H, T>)
-        -> Option<&mut PropertyList<T, H>>
-        where T: Value
+    pub fn get_mut<T>(&mut self, prop_handle: PropHandle<H, T>) -> Option<&mut PropertyList<T, H>>
+    where
+        T: Value,
     {
         // NOTE: This handles prop_handle.index() == INVALID_INDEX just fine.
         self.vec
@@ -93,23 +97,31 @@ impl<H: ItemHandle> PropertyContainer<H>
     /// value type `T` matches that of the pointed-to property type. Returns true iff something
     /// was removed.
     pub fn remove<T>(&mut self, prop_handle: PropHandle<H, T>) -> bool
-        where T: Value
+    where
+        T: Value,
     {
         // NOTE: This handles prop_handle.index() == INVALID_INDEX just fine.
         self.vec
             .get_mut(prop_handle.index() as usize)
             .and_then(|opt_prop| {
                 // Require that `T` match the underlying property's type.
-                opt_prop.as_ref().and_then(|box_prop| {
-                    // Map finally to `Option<()>` to avoid borrowing from `opt_prop` for next map.
-                    box_prop.as_property().downcast_ref::<PropertyList<T, H>>().map(|_| ())
-                })
-                .map(|_| opt_prop) // Return `opt_prop` only if `T` matched.
+                opt_prop
+                    .as_ref()
+                    .and_then(|box_prop| {
+                        // Map finally to `Option<()>` to avoid borrowing from `opt_prop` for next map.
+                        box_prop
+                            .as_property()
+                            .downcast_ref::<PropertyList<T, H>>()
+                            .map(|_| ())
+                    })
+                    .map(|_| opt_prop) // Return `opt_prop` only if `T` matched.
             })
             // Explicitly typed to catch errors since any `&mut Option` would compile successfully.
-            .map(|opt_prop: &mut Option<Box<dyn ResizeableProperty<Handle=H>>>| {
-                ::std::mem::swap(opt_prop, &mut None);
-            })
+            .map(
+                |opt_prop: &mut Option<Box<dyn ResizeableProperty<Handle = H>>>| {
+                    ::std::mem::swap(opt_prop, &mut None);
+                },
+            )
             .is_some()
     }
 
@@ -123,15 +135,24 @@ impl<H: ItemHandle> PropertyContainer<H>
     /// Returns the handle with the given name if any exists and corresponds to a property of type
     /// `T`. Otherwise, it returns an invalid handle.
     pub fn handle<T: Value>(&self, name: &str) -> PropHandle<H, T> {
-        self.vec.iter()
-            .position(|opt_prop| opt_prop.as_ref().map(|prop| prop.name() == name).unwrap_or(false))
+        self.vec
+            .iter()
+            .position(|opt_prop| {
+                opt_prop
+                    .as_ref()
+                    .map(|prop| prop.name() == name)
+                    .unwrap_or(false)
+            })
             .and_then(|index| {
                 // Return the index only if the found property corresponds to that for type `T`.
                 // &Option<Box<dyn Property>> -> Option<&Box<dyn Property>>
                 // -> &Box<dyn Property> -> &dyn Property -?-> PropertyList
-                self.vec[index].as_ref().and_then(|box_prop| {
-                    box_prop.as_property().downcast_ref::<PropertyList<T, H>>()
-                }).map(|_| PropHandle::from_index(index as Index))
+                self.vec[index]
+                    .as_ref()
+                    .and_then(|box_prop| {
+                        box_prop.as_property().downcast_ref::<PropertyList<T, H>>()
+                    })
+                    .map(|_| PropHandle::from_index(index as Index))
             })
             .unwrap_or_else(PropHandle::new)
     }
@@ -195,4 +216,3 @@ impl<H: ItemHandle> PropertyContainer<H>
         }
     }
 }
-

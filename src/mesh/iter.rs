@@ -1,10 +1,9 @@
 //! Iterators to enumerate all items in the mesh, skipping DELETED and HIDDEN items.
 
 use crate::mesh::item_handle::MeshItemHandle;
-use crate::mesh::Mesh;
 use crate::mesh::status::{self, Status};
+use crate::mesh::Mesh;
 use crate::property::PropertyList;
-
 
 struct IterBase<'a, H: MeshItemHandle> {
     mesh: &'a Mesh,
@@ -19,12 +18,19 @@ struct IterBase<'a, H: MeshItemHandle> {
 
 impl<'a, H: MeshItemHandle> ::std::fmt::Debug for IterBase<'a, H> {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-        write!(f, "IterBase(h={:?}, skip_bits={:?})", self.h, self.skip_bits)
+        write!(
+            f,
+            "IterBase(h={:?}, skip_bits={:?})",
+            self.h, self.skip_bits
+        )
     }
 }
 impl<'a, H: MeshItemHandle> Copy for IterBase<'a, H> {}
-impl<'a, H: MeshItemHandle> Clone for IterBase<'a, H> { fn clone(&self) -> Self { *self } }
-
+impl<'a, H: MeshItemHandle> Clone for IterBase<'a, H> {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
 
 impl<'a, H: MeshItemHandle> IterBase<'a, H> {
     fn new(mesh: &'a Mesh, handle: H, skip: bool, is_fwd: bool) -> IterBase<'a, H> {
@@ -35,7 +41,7 @@ impl<'a, H: MeshItemHandle> IterBase<'a, H> {
             mesh,
             h: handle,
             status_prop: <H as MeshItemHandle>::status_prop(mesh),
-            skip_bits: if skip { skippable } else { Status::empty() }
+            skip_bits: if skip { skippable } else { Status::empty() },
         };
         if skip {
             if is_fwd {
@@ -56,12 +62,14 @@ impl<'a, H: MeshItemHandle> IterBase<'a, H> {
     /// If the iterator is on an item to be skipped, it increments the iterator until a
     /// non-skipped item is encounted or the list is exhausted.
     fn skip_fwd(&mut self) {
-        if !self.h.is_valid() { return; }
+        if !self.h.is_valid() {
+            return;
+        }
         let mut within_bounds;
         while {
-                  within_bounds = self.h.index() < H::len(self.mesh);
-                  within_bounds
-              } && self.should_skip()
+            within_bounds = self.h.index() < H::len(self.mesh);
+            within_bounds
+        } && self.should_skip()
         {
             self.h.__increment();
         }
@@ -84,15 +92,19 @@ impl<'a, H: MeshItemHandle> IterBase<'a, H> {
     /// If the iterator is on an item to be skipped, it decrements the iterator until a
     /// non-skipped item is encounted or the list is exhausted.
     fn skip_bwd(&mut self) {
-        if !self.h.is_valid() { return; }
-        assert!(self.h.index() < H::len(self.mesh),
-                "Handle, if valid, must be within mesh bounds.");
+        if !self.h.is_valid() {
+            return;
+        }
+        assert!(
+            self.h.index() < H::len(self.mesh),
+            "Handle, if valid, must be within mesh bounds."
+        );
         let mut skip;
         // Important to compute skip before checking index due to end condition.
         while {
-                  skip = self.should_skip();
-                  skip
-              } && self.h.index() > 0
+            skip = self.should_skip();
+            skip
+        } && self.h.index() > 0
         {
             self.h.__decrement();
         }
@@ -113,21 +125,24 @@ impl<'a, H: MeshItemHandle> IterBase<'a, H> {
     }
 }
 
-
 /// Forward iterator through the mesh.
 #[derive(Debug)]
 pub struct FwdIter<'a, H: MeshItemHandle>(IterBase<'a, H>);
 
 // Manually implement `Copy`, `Clone` due to https://github.com/rust-lang/rust/issues/32872.
 impl<'a, H: MeshItemHandle> Copy for FwdIter<'a, H> {}
-impl<'a, H: MeshItemHandle> Clone for FwdIter<'a, H> { fn clone(&self) -> Self { *self } }
+impl<'a, H: MeshItemHandle> Clone for FwdIter<'a, H> {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
 
 impl<'a, H: MeshItemHandle> FwdIter<'a, H> {
     /// Initialize a forward iterator through the mesh starting at the given handle.
     /// If `skip` is true and the mesh stores a status field, then the iterator skips
     /// all elements with DELETED or HIDDEN status.
     pub fn new(mesh: &'a Mesh, handle: H, skip: bool) -> FwdIter<'a, H> {
-        FwdIter(IterBase::new(mesh, handle, skip, true /* is_fwd */))
+        FwdIter(IterBase::new(mesh, handle, skip, /* is_fwd= */ true))
     }
 }
 
@@ -139,21 +154,24 @@ impl<'a, H: MeshItemHandle> Iterator for FwdIter<'a, H> {
     }
 }
 
-
 /// Backward iterator through the mesh.
 #[derive(Debug)]
 pub struct BwdIter<'a, H: MeshItemHandle>(IterBase<'a, H>);
 
 // Manually implement `Copy`, `Clone` due to https://github.com/rust-lang/rust/issues/32872.
 impl<'a, H: MeshItemHandle> Copy for BwdIter<'a, H> {}
-impl<'a, H: MeshItemHandle> Clone for BwdIter<'a, H> { fn clone(&self) -> Self { *self } }
+impl<'a, H: MeshItemHandle> Clone for BwdIter<'a, H> {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
 
 impl<'a, H: MeshItemHandle> BwdIter<'a, H> {
     /// Initialize a backward iterator through the mesh starting at the given handle.
     /// If `skip` is true and the mesh stores a status field, then the iterator skips
     /// all elements with DELETED or HIDDEN status.
     pub fn new(mesh: &'a Mesh, handle: H, skip: bool) -> BwdIter<'a, H> {
-        BwdIter(IterBase::new(mesh, handle, skip, false /* is_fwd */))
+        BwdIter(IterBase::new(mesh, handle, skip, /* is_fwd = */ false))
     }
 }
 
@@ -165,24 +183,25 @@ impl<'a, H: MeshItemHandle> Iterator for BwdIter<'a, H> {
     }
 }
 
-
 #[cfg(test)]
 mod test {
-    use super::{FwdIter, BwdIter};
-    use crate::property::{Index, Size};
-    use crate::property::Handle; // For constructor.
+    use super::{BwdIter, FwdIter};
     use crate::mesh::item_handle::VertexHandle;
     use crate::mesh::status::{DELETED, HIDDEN, SELECTED};
     use crate::mesh::Mesh;
+    use crate::property::Handle; // For constructor.
+    use crate::property::{Index, Size};
 
     fn fwd_list(mesh: Mesh, skip: bool) -> Vec<Index> {
         FwdIter::new(&mesh, VertexHandle::from_index(0), skip)
-            .map(|x| x.index()).collect()
+            .map(|x| x.index())
+            .collect()
     }
     fn bwd_list(mesh: Mesh, skip: bool) -> Vec<Index> {
         let end = mesh.vertices().len() as Size - 1;
         BwdIter::new(&mesh, VertexHandle::from_index(end), skip)
-            .map(|x| x.index()).collect()
+            .map(|x| x.index())
+            .collect()
     }
 
     /// Adds skippable status on all vertices for whom `skip_index_fn` returns true on its handle.
@@ -193,44 +212,51 @@ mod test {
         let prop = mesh.get_vertex_status_mut().unwrap();
         let mut skip_type = 0;
         for (i, status) in prop.storage.iter_mut().enumerate() {
-            *status =
-                if skip_index_fn(&(i as Index)) {
-                    skip_type += 1;
-                    (match skip_type % 3 {
-                        0 => DELETED,
-                        1 => HIDDEN,
-                        _ => DELETED | HIDDEN,
-                    } | SELECTED)
-                } else {
-                    SELECTED
-                }
+            *status = if skip_index_fn(&(i as Index)) {
+                skip_type += 1;
+                (match skip_type % 3 {
+                    0 => DELETED,
+                    1 => HIDDEN,
+                    _ => DELETED | HIDDEN,
+                } | SELECTED)
+            } else {
+                SELECTED
+            }
         }
         mesh
     }
-    
-    fn is_even(i: &Index) -> bool { i % 2 == 0 }
-    fn is_odd(i: &Index) -> bool { i % 2 == 1 }
+
+    fn is_even(i: &Index) -> bool {
+        i % 2 == 0
+    }
+    fn is_odd(i: &Index) -> bool {
+        i % 2 == 1
+    }
 
     #[test]
     fn test_fwd_iter_no_skip() {
         let all = &(0..15).collect::<Vec<_>>();
 
         let mesh = with_status(Mesh::debug_triangles(5), is_even);
-        assert_eq!(&fwd_list(mesh, false /* skip */), all);
+        assert_eq!(&fwd_list(mesh, /* skip= */ false), all);
 
         let mesh = with_status(Mesh::debug_triangles(5), is_odd);
-        assert_eq!(&fwd_list(mesh, false /* skip */), all);
+        assert_eq!(&fwd_list(mesh, /* skip= */ false), all);
     }
 
     #[test]
     fn test_fwd_iter_skip() {
         let mesh = with_status(Mesh::debug_triangles(5), is_even);
-        assert_eq!(&fwd_list(mesh, true /* skip */),
-                   &(0..15).filter(is_odd).collect::<Vec<_>>());
+        assert_eq!(
+            &fwd_list(mesh, /* skip= */ true),
+            &(0..15).filter(is_odd).collect::<Vec<_>>()
+        );
 
         let mesh = with_status(Mesh::debug_triangles(5), is_odd);
-        assert_eq!(&fwd_list(mesh, true /* skip */),
-                   &(0..15).filter(is_even).collect::<Vec<_>>());
+        assert_eq!(
+            &fwd_list(mesh, /* skip= */ true),
+            &(0..15).filter(is_even).collect::<Vec<_>>()
+        );
     }
 
     #[test]
@@ -238,20 +264,24 @@ mod test {
         let all_rev = &(0..15).rev().collect::<Vec<_>>();
 
         let mesh = with_status(Mesh::debug_triangles(5), is_even);
-        assert_eq!(&bwd_list(mesh, false /* skip */), all_rev);
+        assert_eq!(&bwd_list(mesh, /* skip= */ false), all_rev);
 
         let mesh = with_status(Mesh::debug_triangles(5), is_odd);
-        assert_eq!(&bwd_list(mesh, false /* skip */), all_rev);
+        assert_eq!(&bwd_list(mesh, /* skip= */ false), all_rev);
     }
 
     #[test]
     fn test_bwd_iter_skip() {
         let mesh = with_status(Mesh::debug_triangles(5), is_even);
-        assert_eq!(&bwd_list(mesh, true /* skip */),
-                   &(0..15).rev().filter(is_odd).collect::<Vec<_>>());
+        assert_eq!(
+            &bwd_list(mesh, /* skip= */ true),
+            &(0..15).rev().filter(is_odd).collect::<Vec<_>>()
+        );
 
         let mesh = with_status(Mesh::debug_triangles(5), is_odd);
-        assert_eq!(&bwd_list(mesh, true /* skip */),
-                   &(0..15).rev().filter(is_even).collect::<Vec<_>>());
+        assert_eq!(
+            &bwd_list(mesh, /* skip= */ true),
+            &(0..15).rev().filter(is_even).collect::<Vec<_>>()
+        );
     }
 }

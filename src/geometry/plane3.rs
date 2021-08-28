@@ -1,18 +1,18 @@
 //! See documentation for the `Plane3` struct.
 
-use num::traits::Zero;
 use crate::geometry::math::BaseFloat;
-use crate::geometry::vector::{Vec3, Dot, Norm};
+use crate::geometry::vector::{Dot, Norm, Vec3};
+use num::traits::Zero;
 
 #[repr(C)]
 #[derive(Eq, PartialEq, Clone, Hash, Debug, Copy)]
 /// Defines a plane in the form:
 ///   n . <x, y, z> + d = 0
 pub struct Plane3<T> {
-  #[allow(missing_docs)]
-  pub n: Vec3<T>,
-  #[allow(missing_docs)]
-  pub d: T
+    #[allow(missing_docs)]
+    pub n: Vec3<T>,
+    #[allow(missing_docs)]
+    pub d: T,
 }
 
 impl<T: BaseFloat> Plane3<T> {
@@ -26,7 +26,7 @@ impl<T: BaseFloat> Plane3<T> {
     pub fn zero() -> Self {
         Plane3 {
             n: Zero::zero(),
-            d: Zero::zero()
+            d: Zero::zero(),
         }
     }
     /// Signed distance of a point from the plane.
@@ -40,16 +40,18 @@ pub type Plane3f = Plane3<f32>;
 /// Alias for Plane3<f64>.
 pub type Plane3d = Plane3<f64>;
 
-
 #[cfg(test)]
 mod test {
-    use crate::geometry::vector::Vec3;
     use crate::geometry::plane3::Plane3d;
+    use crate::geometry::vector::Vec3;
 
     #[test]
     fn test_init() {
         println!("{:?}", Plane3d::zero());
-        println!("{:?}", Plane3d::new(&Vec3::new(1.0, 2.0, 3.0), &Vec3::new(-1.0, 0.0, -1.0)));
+        println!(
+            "{:?}",
+            Plane3d::new(&Vec3::new(1.0, 2.0, 3.0), &Vec3::new(-1.0, 0.0, -1.0))
+        );
     }
 
     #[test]

@@ -1,11 +1,11 @@
 //! Mesh constructors
 
 use crate::geometry::vector::Vec3d;
+use crate::mesh::item_handle::{FaceHandle, HalfedgeHandle, VertexHandle};
+use crate::mesh::items::{Edge, Face, Halfedge, Vertex};
 use crate::mesh::Mesh;
-use crate::mesh::item_handle::{VertexHandle, HalfedgeHandle, FaceHandle};
-use crate::mesh::items::{Vertex, Halfedge, Edge, Face};
-use crate::property::Size;
-use crate::property::Handle; // For handle construction methods.
+use crate::property::Handle;
+use crate::property::Size; // For handle construction methods.
 
 impl Mesh {
     /// Creates a new empty mesh. Same as Default:;default().
@@ -41,6 +41,7 @@ impl Mesh {
             Vertex { hh: hh(4) },
         ];
         let faces = vec![Face { hh: hh(0) }];
+        #[rustfmt::skip]
         let edges = vec![
             Edge([
                 Halfedge { fh: fh(0), vh: vh(0), hnext: hh(2), hprev: hh(4) }, // hh 0
@@ -48,11 +49,11 @@ impl Mesh {
             ]),
             Edge([
                 Halfedge { fh: fh(0), vh: vh(1), hnext: hh(4), hprev: hh(0) }, // hh 2
-                Halfedge { fh: inval, vh: vh(1), hnext: hh(1), hprev: hh(5) }, // hh 3
+                Halfedge { fh: inval, vh: vh(0), hnext: hh(1), hprev: hh(5) }, // hh 3
             ]),
             Edge([
                 Halfedge { fh: fh(0), vh: vh(2), hnext: hh(0), hprev: hh(2) }, // hh 4
-                Halfedge { fh: inval, vh: vh(0), hnext: hh(3), hprev: hh(1) }, // hh 5
+                Halfedge { fh: inval, vh: vh(1), hnext: hh(3), hprev: hh(1) }, // hh 5
             ]),
         ];
         // TODO: Actually use the positions by adding a position property.
@@ -79,25 +80,25 @@ impl Mesh {
             let vi = i * 3;
             let hi = i * 6;
             let fh = fh(i);
-            vertices.push(Vertex { hh: hh(hi    ) });
+            vertices.push(Vertex { hh: hh(hi) });
             vertices.push(Vertex { hh: hh(hi + 2) });
             vertices.push(Vertex { hh: hh(hi + 4) });
             faces.push(Face { hh: hh(hi) });
-            edges.push(
-                Edge([
-                    Halfedge { fh       , vh: vh(vi    ), hnext: hh(hi + 2), hprev: hh(hi + 4) }, // hh 0
-                    Halfedge { fh: inval, vh: vh(vi + 2), hnext: hh(hi + 5), hprev: hh(hi + 3) }, // hh 1
-                ]));
-            edges.push(
-                Edge([
-                    Halfedge { fh       , vh: vh(vi + 1), hnext: hh(hi + 4), hprev: hh(hi    ) }, // hh 2
-                    Halfedge { fh: inval, vh: vh(vi + 1), hnext: hh(hi + 1), hprev: hh(hi + 5) }, // hh 3
-                ]));
-            edges.push(
-                Edge([
-                    Halfedge { fh       , vh: vh(vi + 2), hnext: hh(hi    ), hprev: hh(hi + 2) }, // hh 4
-                    Halfedge { fh: inval, vh: vh(vi    ), hnext: hh(hi + 3), hprev: hh(hi + 1) }, // hh 5
-                ]));
+            #[rustfmt::skip]
+            edges.extend([
+                Edge([ // hh 0, hh 1
+                    Halfedge { fh       , vh: vh(vi    ), hnext: hh(hi + 2), hprev: hh(hi + 4) },
+                    Halfedge { fh: inval, vh: vh(vi + 2), hnext: hh(hi + 5), hprev: hh(hi + 3) },
+                ]),
+                Edge([ // hh 2, hh 3
+                    Halfedge { fh       , vh: vh(vi + 1), hnext: hh(hi + 4), hprev: hh(hi    ) },
+                    Halfedge { fh: inval, vh: vh(vi + 1), hnext: hh(hi + 1), hprev: hh(hi + 5) },
+                ]),
+                Edge([ // hh 4, hh 5
+                    Halfedge { fh       , vh: vh(vi + 2), hnext: hh(hi    ), hprev: hh(hi + 2) },
+                    Halfedge { fh: inval, vh: vh(vi    ), hnext: hh(hi + 3), hprev: hh(hi + 1) },
+                ]),
+            ]);
         }
         Mesh::from_parts(vertices, edges, faces)
     }
@@ -105,8 +106,8 @@ impl Mesh {
 
 #[cfg(test)]
 mod test {
-    use crate::mesh::Mesh;
     use crate::geometry::vector::Vec3d;
+    use crate::mesh::Mesh;
 
     #[test]
     fn empty_mesh() {

@@ -55,7 +55,11 @@ impl IndexUnchecked<usize> for BitVec {
     unsafe fn index_unchecked(&self, index: usize) -> &Self::Output {
         assert!(index < self.len());
         let value = self.get_unchecked(index);
-        if value { &TRUE } else { &FALSE }
+        if value {
+            &TRUE
+        } else {
+            &FALSE
+        }
     }
 }
 
@@ -76,7 +80,7 @@ impl IndexSet<usize> for BitVec {
 
 #[cfg(test)]
 mod test {
-    use super::{IndexUnchecked, IndexSetUnchecked, IndexSet};
+    use super::{IndexSet, IndexSetUnchecked, IndexUnchecked};
     use crate::util::bitvec::BitVec;
 
     #[test]

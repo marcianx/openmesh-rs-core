@@ -1,13 +1,16 @@
 //! Handles for mesh item and item property handles.
-use crate::mesh::item_handle::{VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle, MeshHandle};
+use crate::mesh::item_handle::{EdgeHandle, FaceHandle, HalfedgeHandle, MeshHandle, VertexHandle};
 use crate::property::{Index, INVALID_INDEX};
 
 /// Trait for handle types that wrap `HandleBase` which wraps an index.
 /// The `Default` implementation must initialize the handle to an invalid index.
-pub trait Handle: ::std::any::Any + Copy + Clone + Default + ::std::fmt::Debug + Eq + 'static
+pub trait Handle:
+    ::std::any::Any + Copy + Clone + Default + ::std::fmt::Debug + Eq + 'static
 {
     /// Initialize a handle with an invalid index.
-    fn new() -> Self { Default::default() }
+    fn new() -> Self {
+        Default::default()
+    }
 
     /// Construct from index.
     fn from_index(idx: Index) -> Self;
@@ -22,15 +25,21 @@ pub trait Handle: ::std::any::Any + Copy + Clone + Default + ::std::fmt::Debug +
 
     /// Gets the index as a usize for indexing into standard subcontainer.
     #[inline(always)]
-    fn index_us(self) -> usize { self.index() as usize }
+    fn index_us(self) -> usize {
+        self.index() as usize
+    }
 
     /// Whether the handle is valid.
     #[inline(always)]
-    fn is_valid(self) -> bool { self.index() != INVALID_INDEX }
+    fn is_valid(self) -> bool {
+        self.index() != INVALID_INDEX
+    }
 
     /// Invalidates the underlying index.
     #[inline(always)]
-    fn invalidate(&mut self) { self.set_index(INVALID_INDEX); }
+    fn invalidate(&mut self) {
+        self.set_index(INVALID_INDEX);
+    }
 
     /// Increments the handle's underlying index.
     ///
@@ -56,7 +65,11 @@ pub trait Handle: ::std::any::Any + Copy + Clone + Default + ::std::fmt::Debug +
     /// Converts the handle to `Some(self)` if valid, else `None`.
     #[inline(always)]
     fn to_option(self) -> Option<Self> {
-        if self.is_valid() { Some(self) } else { None }
+        if self.is_valid() {
+            Some(self)
+        } else {
+            None
+        }
     }
 }
 

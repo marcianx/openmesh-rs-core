@@ -1,21 +1,17 @@
 //! 2-manifold surface mesh represented as a halfedge data structure.
 
 use crate::mesh::item_handle::{
-    VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle, MeshHandle,
-    MeshItemHandle,
+    EdgeHandle, FaceHandle, HalfedgeHandle, MeshHandle, MeshItemHandle, VertexHandle,
 };
 use crate::mesh::items::{
-    Vertex, Edge, Face,
-    Items, VItems, HItems, EItems, FItems,
-    ItemsMut, VItemsMut, HItemsMut, EItemsMut, FItemsMut,
+    EItems, EItemsMut, Edge, FItems, FItemsMut, Face, HItems, HItemsMut, Items, ItemsMut, VItems,
+    VItemsMut, Vertex,
 };
 use crate::mesh::prop::{
-    Props, VProps, HProps, EProps, FProps, MProps,
-    PropsMut, VPropsMut, HPropsMut, EPropsMut, FPropsMut, MPropsMut,
+    EProps, EPropsMut, FProps, FPropsMut, HProps, HPropsMut, MProps, MPropsMut, Props, PropsMut,
+    VProps, VPropsMut,
 };
-use crate::mesh::rc::{
-    RcVPropHandle, RcHPropHandle, RcEPropHandle, RcFPropHandle,
-};
+use crate::mesh::rc::{RcEPropHandle, RcFPropHandle, RcHPropHandle, RcVPropHandle};
 use crate::mesh::status::Status;
 use crate::property::PropertyContainer;
 use crate::property::Size;
@@ -48,7 +44,7 @@ pub struct Mesh {
     pub(crate) m_props: PropertyContainer<MeshHandle>,
 
     // See `impl` in `rc.rs`.
-    // Handles for mesh status. 
+    // Handles for mesh status.
     pub(crate) v_status: RcVPropHandle<Status>,
     pub(crate) h_status: RcHPropHandle<Status>,
     pub(crate) e_status: RcEPropHandle<Status>,
@@ -97,19 +93,42 @@ impl Mesh {
 // Public accessor methods
 macro_rules! item_accessors {
     ($Handle:ty, $method:ident, $method_mut:ident, $Struct:ident, $StructMut:ident, $item:expr) => {
-        #[doc="Returns a struct to access "] #[doc=$item] #[doc=" mesh items and properties."]
-        pub fn $method(&self) -> $Struct<'_> { self.items() }
-        #[doc="Returns a struct to mutably access "] #[doc=$item] #[doc=" mesh items and properties."]
-        pub fn $method_mut(&mut self) -> $StructMut<'_> { self.items_mut() }
-    }
+        #[doc = "Returns a struct to access "]
+        #[doc=$item]
+        #[doc = " mesh items and properties."]
+        pub fn $method(&self) -> $Struct<'_> {
+            self.items()
+        }
+
+        #[doc = "Returns a struct to mutably access "]
+        #[doc=$item]
+        #[doc = " mesh items and properties."]
+        pub fn $method_mut(&mut self) -> $StructMut<'_> {
+            self.items_mut()
+        }
+    };
 }
 
 impl Mesh {
     // Property accessors
-    item_accessors!(  VertexHandle,  vertices,  vertices_mut, VItems, VItemsMut,   "vertex");
-    item_accessors!(HalfedgeHandle, halfedges, halfedges_mut, HItems, HItemsMut, "halfedge");
-    item_accessors!(    EdgeHandle,     edges,     edges_mut, EItems, EItemsMut,     "edge");
-    item_accessors!(    FaceHandle,     faces,     faces_mut, FItems, FItemsMut,     "face");
+    item_accessors!(
+        VertexHandle,
+        vertices,
+        vertices_mut,
+        VItems,
+        VItemsMut,
+        "vertex"
+    );
+    item_accessors!(
+        HalfedgeHandle,
+        halfedges,
+        halfedges_mut,
+        HItems,
+        HItemsMut,
+        "halfedge"
+    );
+    item_accessors!(EdgeHandle, edges, edges_mut, EItems, EItemsMut, "edge");
+    item_accessors!(FaceHandle, faces, faces_mut, FItems, FItemsMut, "face");
 }
 
 ////////////////////////////////////////////////////////////
@@ -153,13 +172,23 @@ impl Mesh {
 // Public accessor methods
 macro_rules! prop_accessors {
     ($Handle:ty, $method:ident, $method_mut:ident, $Struct:ident, $StructMut:ident, $item:expr) => {
-        #[doc="Returns a struct to access "] #[doc=$item] #[doc=" properties."]
-        pub fn $method(&self) -> $Struct<'_> { self.props() }
-        #[doc="Returns a struct to mutably access "] #[doc=$item] #[doc=" properties."]
-        pub fn $method_mut(&mut self) -> $StructMut<'_> { self.props_mut() }
-    }
+        #[doc = "Returns a struct to access "]
+        #[doc=$item]
+        #[doc = " properties."]
+        pub fn $method(&self) -> $Struct<'_> {
+            self.props()
+        }
+
+        #[doc = "Returns a struct to mutably access "]
+        #[doc=$item]
+        #[doc = " properties."]
+        pub fn $method_mut(&mut self) -> $StructMut<'_> {
+            self.props_mut()
+        }
+    };
 }
 
+#[rustfmt::skip::macros(prop_accessors)]
 impl Mesh {
     // Property accessors
     prop_accessors!(  VertexHandle, v_props, v_props_mut, VProps, VPropsMut,   "vertex");
@@ -167,17 +196,20 @@ impl Mesh {
     prop_accessors!(    EdgeHandle, e_props, e_props_mut, EProps, EPropsMut,     "edge");
     prop_accessors!(    FaceHandle, f_props, f_props_mut, FProps, FPropsMut,     "face");
 
-    #[doc="Returns a struct to access mesh properties."]
+    /// Returns a struct to access mesh properties.
     pub fn m_props(&self) -> MProps<'_> {
         Props::new(&self.m_props, 1)
     }
-    #[doc="Returns a struct to mutably access mesh properties."]
+
+    /// Returns a struct to mutably access mesh properties.
     pub fn m_props_mut(&mut self) -> MPropsMut<'_> {
         PropsMut::new(&mut self.m_props, 1)
     }
 
     /// Struct implementing `std::fmt::Debug`, which outputs property list stats.
-    pub fn prop_stats(&self) -> FormattedPropStats<'_> { FormattedPropStats(self) }
+    pub fn prop_stats(&self) -> FormattedPropStats<'_> {
+        FormattedPropStats(self)
+    }
 }
 
 /// Generated by `Mesh::prop_stats()` for outputting property list stats.
@@ -220,4 +252,3 @@ impl Mesh {
     // - resize(_, _, _)
     // - reserve(_, _, _)
 }
-

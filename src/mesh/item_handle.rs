@@ -1,16 +1,19 @@
 //! Mesh item handle types.
 
-use crate::mesh::Mesh;
-use crate::mesh::items::{Vertex, Halfedge, Edge, Face};
+use crate::mesh::items::{Edge, Face, Halfedge, Vertex};
 use crate::mesh::status::Status;
-use crate::property::{ItemHandle, PropertyList, PropertyContainer, Size};
-use crate::property::Handle; // import methods of Handle
+use crate::mesh::Mesh;
+use crate::property::Handle;
+use crate::property::{ItemHandle, PropertyContainer, PropertyList, Size}; // import methods of Handle
 
 def_handle!(VertexHandle, "Vertex handle.");
 def_handle!(HalfedgeHandle, "Halfedge handle.");
 def_handle!(EdgeHandle, "Edge handle.");
 def_handle!(FaceHandle, "Face handle.");
-def_handle!(MeshHandle, "Mesh handle (only needed for parametrizing PropertyContainer).");
+def_handle!(
+    MeshHandle,
+    "Mesh handle (only needed for parametrizing PropertyContainer)."
+);
 
 // Define the marker trait (used to define the property containers).
 impl ItemHandle for VertexHandle {}
@@ -18,7 +21,6 @@ impl ItemHandle for HalfedgeHandle {}
 impl ItemHandle for EdgeHandle {}
 impl ItemHandle for FaceHandle {}
 impl ItemHandle for MeshHandle {}
-
 
 /// Relates each `ItemHandle` type to corresponding structures within the Mesh itself.
 /// The methods and types within this trait **are implementation details** and should not be used
@@ -38,13 +40,17 @@ pub trait MeshItemHandle: ItemHandle {
     const PREFIX: &'static str;
 
     /// Prepends a name with the canonical prefix for this item type.
-    fn with_prefix(name: &str) -> String { format!("{}{}", Self::PREFIX, name) }
+    fn with_prefix(name: &str) -> String {
+        format!("{}{}", Self::PREFIX, name)
+    }
 
     /// Gets container underlying the mesh item type out of the mesh.
     fn items_props(m: &Mesh) -> (&Vec<Self::ContainerItem>, &PropertyContainer<Self>);
 
     /// Gets container underlying the mesh item type out of the mesh mutably.
-    fn items_props_mut(m: &mut Mesh) -> (&mut Vec<Self::ContainerItem>, &mut PropertyContainer<Self>);
+    fn items_props_mut(
+        m: &mut Mesh,
+    ) -> (&mut Vec<Self::ContainerItem>, &mut PropertyContainer<Self>);
 
     // Mesh items.
 
@@ -124,22 +130,46 @@ macro_rules! impl_to_items {
     };
 }
 
-impl_to_items!(  Vertex, Vertex,   VertexHandle, "v:", vertices, v_props, get_vertex_status);
-impl_to_items!(    Edge,   Edge,     EdgeHandle, "e:",    edges, e_props, get_edge_status);
-impl_to_items!(    Face,   Face,     FaceHandle, "f:",    faces, f_props, get_face_status);
+impl_to_items!(
+    Vertex,
+    Vertex,
+    VertexHandle,
+    "v:",
+    vertices,
+    v_props,
+    get_vertex_status
+);
+impl_to_items!(
+    Edge,
+    Edge,
+    EdgeHandle,
+    "e:",
+    edges,
+    e_props,
+    get_edge_status
+);
+impl_to_items!(
+    Face,
+    Face,
+    FaceHandle,
+    "f:",
+    faces,
+    f_props,
+    get_face_status
+);
 impl_to_items!(Halfedge,   Edge, HalfedgeHandle, "h:",    edges, h_props, get_halfedge_status,
-               // Halfedges are stored within edges.
-               (vec, handle) -> {
-                   fn num_items: {
-                       debug_assert!(vec.len() <= usize::max_value() / 2);
-                       vec.len() * 2
-                   },
-                   fn get: {
-                       let index = handle.index_us();
-                       vec.get(index / 2).map(|edge| &edge.0[index % 2])
-                   },
-                   fn get_mut: {
-                       let index = handle.index_us();
-                       vec.get_mut(index / 2).map(|edge| &mut edge.0[index % 2])
-                   },
-               });
+// Halfedges are stored within edges.
+(vec, handle) -> {
+    fn num_items: {
+        debug_assert!(vec.len() <= usize::max_value() / 2);
+        vec.len() * 2
+    },
+    fn get: {
+        let index = handle.index_us();
+        vec.get(index / 2).map(|edge| &edge.0[index % 2])
+    },
+    fn get_mut: {
+        let index = handle.index_us();
+        vec.get_mut(index / 2).map(|edge| &mut edge.0[index % 2])
+    },
+});

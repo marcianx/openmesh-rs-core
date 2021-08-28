@@ -7,4 +7,3 @@ pub type Index = u32;
 pub type Size = u32;
 /// An invalid `Index` value used to indicate an uninitialized index.
 pub const INVALID_INDEX: Index = !(0 as Index);
-

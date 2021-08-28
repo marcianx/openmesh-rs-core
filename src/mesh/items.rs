@@ -2,8 +2,7 @@
 //! and operations on collections of these items.
 
 use crate::mesh::item_handle::{
-    VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle,
-    MeshItemHandle,
+    EdgeHandle, FaceHandle, HalfedgeHandle, MeshItemHandle, VertexHandle,
 };
 use crate::mesh::prop::{Props, PropsMut};
 use crate::property::PropertyContainer;
@@ -64,8 +63,7 @@ pub struct Items<'a, H: MeshItemHandle> {
 
 impl<'a, H: MeshItemHandle> Items<'a, H> {
     /// Instantiates an item + property interface struct.
-    pub(crate) fn new(items: &'a ContainerSlice<H>, props: &'a PropertyContainer<H>) -> Self
-    {
+    pub(crate) fn new(items: &'a ContainerSlice<H>, props: &'a PropertyContainer<H>) -> Self {
         Items {
             items,
             props,
@@ -73,7 +71,6 @@ impl<'a, H: MeshItemHandle> Items<'a, H> {
         }
     }
 }
-
 
 /// Manages immutable and mutable operations on the list of a particular mesh item type.
 /// These are created by `Mesh`'s methods:
@@ -90,8 +87,7 @@ pub struct ItemsMut<'a, H: MeshItemHandle> {
 
 impl<'a, H: MeshItemHandle> ItemsMut<'a, H> {
     /// Instantiates an item + property mutable interface struct.
-    pub(crate) fn new(items: &'a mut ContainerVec<H>, props: &'a mut PropertyContainer<H>) -> Self
-    {
+    pub(crate) fn new(items: &'a mut ContainerVec<H>, props: &'a mut PropertyContainer<H>) -> Self {
         ItemsMut {
             items,
             props,
@@ -121,35 +117,38 @@ macro_rules! impl_items {
     ($Items:ident) => {
         // Methods with immutable self for both `Items` and `ItemsMut`.
         impl<'a, H> $Items<'a, H>
-            where H: MeshItemHandle,
+        where
+            H: MeshItemHandle,
         {
-            #[doc="Number of items of the item type."]
-            fn len_us(&self) -> usize { <H as MeshItemHandle>::num_items(&self.items) }
+            #[doc = "Number of items of the item type."]
+            fn len_us(&self) -> usize {
+                <H as MeshItemHandle>::num_items(&self.items)
+            }
 
-            #[doc="Number of items of the item type."]
+            #[doc = "Number of items of the item type."]
             pub fn len(&self) -> Size {
                 debug_assert!(self.len_us() <= Size::max_value() as usize);
                 self.len_us() as Size
             }
 
-            #[doc="Whether the handle is within the range of the underlying container."]
-            #[doc="Even if valid, the handle could pointed to a deleted item."]
-            #[doc="This method is useful mostly for debugging."]
+            #[doc = "Whether the handle is within the range of the underlying container."]
+            #[doc = "Even if valid, the handle could pointed to a deleted item."]
+            #[doc = "This method is useful mostly for debugging."]
             pub fn is_valid(&self, handle: H) -> bool {
                 let idx = handle.index();
 
                 // In case index is ever changed to a signed type, also check against 0.
-                #[allow(unused_comparisons)] // Requires explicit return to turn next line into a statement.
+                #[allow(unused_comparisons)]
+                // Requires explicit return to turn next line into a statement.
                 return 0 <= idx && idx < self.len();
             }
 
-            #[doc="Computes the handle from the given `Item` reference. The `Item`"]
-            #[doc="must be from the mesh from which `self` was generated."]
+            #[doc = "Computes the handle from the given `Item` reference. The `Item`"]
+            #[doc = "must be from the mesh from which `self` was generated."]
             pub fn handle(&self, item: &H::Item) -> H {
                 debug_assert!(0 < self.len());
-                let diff =
-                    (item as *const H::Item as isize) -
-                    (&self.items[0] as *const H::ContainerItem as isize);
+                let diff = (item as *const H::Item as isize)
+                    - (&self.items[0] as *const H::ContainerItem as isize);
                 let size_of_item = ::std::mem::size_of::<H::Item>() as isize;
                 debug_assert!(diff % size_of_item == 0);
                 let index = diff / size_of_item;
@@ -157,34 +156,36 @@ macro_rules! impl_items {
                 H::from_index(index as Size)
             }
 
-            #[doc="Gets the item at the handle."]
+            #[doc = "Gets the item at the handle."]
             pub fn get(&self, handle: H) -> Option<&H::Item> {
                 <H as MeshItemHandle>::get(self.items, handle)
             }
 
-            #[doc="Returns the properties container associated with the mesh item type."]
+            #[doc = "Returns the properties container associated with the mesh item type."]
             pub fn props(&self) -> Props<'_, H> {
                 Props::new(self.props, self.len())
             }
 
-            #[doc="Returns the properties container associated with the mesh item type."]
+            #[doc = "Returns the properties container associated with the mesh item type."]
             pub fn into_props(self) -> Props<'a, H> {
                 Props::new(self.props, self.len())
             }
 
-            #[doc="Returns true when there are no items of the mesh item type."]
-            pub fn empty(&self) -> bool { self.len_us() == 0 }
+            #[doc = "Returns true when there are no items of the mesh item type."]
+            pub fn empty(&self) -> bool {
+                self.len_us() == 0
+            }
         }
-    }
+    };
 }
 
 impl_items!(Items);
 impl_items!(ItemsMut);
 
-
 // Methods for mutable self.
 impl<'a, H> ItemsMut<'a, H>
-    where H: MeshItemHandle,
+where
+    H: MeshItemHandle,
 {
     /// Gets the mutable item at the handle.
     pub fn get_mut(&mut self, handle: H) -> Option<&mut H::Item> {
@@ -204,20 +205,24 @@ impl<'a, H> ItemsMut<'a, H>
     }
 }
 
-
 // Only applies to mesh items used for storage. In particular, it doesn't apply to `Halfedge`.
 impl<'a, H> ItemsMut<'a, H>
-    where H: MeshItemHandle<Item = <H as MeshItemHandle>::ContainerItem>,
+where
+    H: MeshItemHandle<Item = <H as MeshItemHandle>::ContainerItem>,
 {
     /// Adds/appends a new item and returns it.
-    /// 
+    ///
     /// TODO: Reconsider the privacy of this method.
     /// - Should this just be a helper for higher-level append operations?
     /// - Should it be exposed publicly to allow for more advanced mesh constructions?
     pub fn append(&mut self) -> H {
         let old_len = self.items.len();
-        assert!(old_len < Size::max_value() as usize,
-                "Cannot add more than {} items. Already have {}.", Size::max_value(), old_len);
+        assert!(
+            old_len < Size::max_value() as usize,
+            "Cannot add more than {} items. Already have {}.",
+            Size::max_value(),
+            old_len
+        );
         let old_len = old_len as Size;
         self.items.push(Default::default());
         self.props.push_all();

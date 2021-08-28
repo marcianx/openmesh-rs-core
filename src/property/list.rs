@@ -1,25 +1,29 @@
-use std::io::{Read, Write};
 use crate::io::binary::{Binary, Endian};
 use crate::io::result::Result;
-use crate::util::index::{IndexUnchecked, IndexSetUnchecked, IndexSet};
-use crate::property::{INVALID_INDEX, ItemHandle, Size, Value};
+use crate::property::Storage;
 use crate::property::{ConstructableProperty, Property, ResizeableProperty, StorageFor};
-use crate::property::Storage; // For methods.
+use crate::property::{ItemHandle, Size, Value, INVALID_INDEX};
+use crate::util::index::{IndexSet, IndexSetUnchecked, IndexUnchecked};
+use std::io::{Read, Write}; // For methods.
 
 /// Implements getter/setters for the `name` and `persistent` properties.
 /// `$is_streamable` indicates whether the property is streamable, and thus, whether `persistent`
 /// can ever be set to `true`.
 macro_rules! impl_property_accessors {
     ($is_streamable: expr) => {
-        fn name(&self) -> &str { &self.name }
-        fn persistent(&self) -> bool { self.persistent }
+        fn name(&self) -> &str {
+            &self.name
+        }
+        fn persistent(&self) -> bool {
+            self.persistent
+        }
         fn set_persistent(&mut self, persistent: bool) {
             if persistent && $is_streamable {
                 omerr!("Warning! Type of property value is not binary storable!");
             }
             self.persistent = $is_streamable && persistent;
         }
-    }
+    };
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -38,7 +42,7 @@ pub struct PropertyList<T: Value, H> {
     name: String,
     persistent: bool,
     pub(crate) storage: <T as StorageFor>::Storage, // exposed for tests only
-    _m: ::std::marker::PhantomData<H>
+    _m: ::std::marker::PhantomData<H>,
 }
 
 type StorageForValue<T> = <T as StorageFor>::Storage;
@@ -55,7 +59,8 @@ impl<T: Value, H: ItemHandle> ::std::ops::Index<H> for PropertyList<T, H> {
 
 // This one is only for `Vec<T>` since IndexMut cannot be implmented for `BitVec`.
 impl<T: Value, H: ItemHandle> ::std::ops::IndexMut<H> for PropertyList<T, H>
-    where T: StorageFor<Storage=Vec<T>>
+where
+    T: StorageFor<Storage = Vec<T>>,
 {
     fn index_mut(&mut self, index: H) -> &mut Self::Output {
         &mut self.storage[index.index_us()]
@@ -85,7 +90,12 @@ impl<T: Value, H: ItemHandle> IndexSet<H> for PropertyList<T, H> {
 
 impl<T: Value, H> ::std::fmt::Debug for PropertyList<T, H> {
     fn fmt(&self, formatter: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-        writeln!(formatter, "  {}{}", self.name, if self.persistent { ", persistent" } else { "" })
+        writeln!(
+            formatter,
+            "  {}{}",
+            self.name,
+            if self.persistent { ", persistent" } else { "" }
+        )
     }
 }
 
@@ -93,8 +103,9 @@ impl<T: Value, H> ::std::fmt::Debug for PropertyList<T, H> {
 // impl `Property`
 
 impl<T, H> Property for PropertyList<T, H>
-    where T: Value,
-          H: ItemHandle
+where
+    T: Value,
+    H: ItemHandle,
 {
     type Handle = H;
 
@@ -114,9 +125,15 @@ impl<T, H> Property for PropertyList<T, H>
     ////////////////////////////////////////
     // I/O support
 
-    fn len(&self) -> usize { self.storage.len() }
-    fn element_size(&self) -> usize { <T as Binary>::size_of_type() }
-    fn size_of(&self) -> usize { <StorageForValue<T> as Binary>::size_of_value(&self.storage) }
+    fn len(&self) -> usize {
+        self.storage.len()
+    }
+    fn element_size(&self) -> usize {
+        <T as Binary>::size_of_type()
+    }
+    fn size_of(&self) -> usize {
+        <StorageForValue<T> as Binary>::size_of_value(&self.storage)
+    }
     fn store(&self, writer: &mut dyn Write, endian: Endian) -> Result<usize> {
         <StorageForValue<T> as Binary>::store(&self.storage, writer, endian)
     }
@@ -126,8 +143,9 @@ impl<T, H> Property for PropertyList<T, H>
 }
 
 impl<T, H> ResizeableProperty for PropertyList<T, H>
-    where T: Value,
-          H: ItemHandle
+where
+    T: Value,
+    H: ItemHandle,
 {
     fn reserve(&mut self, n: Size) {
         let n = n as usize;
@@ -139,29 +157,41 @@ impl<T, H> ResizeableProperty for PropertyList<T, H>
     #[allow(clippy::absurd_extreme_comparisons)]
     fn resize(&mut self, n: Size) {
         if n >= INVALID_INDEX {
-            panic!("Resize dimensions {} exceeded bounds {}-1", n, INVALID_INDEX);
+            panic!(
+                "Resize dimensions {} exceeded bounds {}-1",
+                n, INVALID_INDEX
+            );
         }
         self.storage.resize(n as usize);
     }
     fn clear(&mut self) {
         ::std::mem::swap(&mut self.storage, &mut <T as StorageFor>::Storage::new());
     }
-    fn push(&mut self) { self.storage.push(); }
-    fn clone_as_trait(&self) -> Box<dyn ResizeableProperty<Handle=H>> { Box::new(self.clone()) }
-    fn as_property(&self) -> &dyn Property<Handle=H> { self }
-    fn as_property_mut(&mut self) -> &mut dyn Property<Handle=H> { self }
+    fn push(&mut self) {
+        self.storage.push();
+    }
+    fn clone_as_trait(&self) -> Box<dyn ResizeableProperty<Handle = H>> {
+        Box::new(self.clone())
+    }
+    fn as_property(&self) -> &dyn Property<Handle = H> {
+        self
+    }
+    fn as_property_mut(&mut self) -> &mut dyn Property<Handle = H> {
+        self
+    }
 }
 
 impl<T, H> ConstructableProperty for PropertyList<T, H>
-    where T: Value,
-          H: ItemHandle
+where
+    T: Value,
+    H: ItemHandle,
 {
     fn new(name: String, size: Size) -> Self {
         let mut prop = PropertyList {
             name,
             persistent: false,
             storage: <T as StorageFor>::Storage::new(),
-            _m: ::std::marker::PhantomData
+            _m: ::std::marker::PhantomData,
         };
         prop.resize(size);
         prop

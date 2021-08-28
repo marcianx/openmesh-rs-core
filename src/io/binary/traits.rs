@@ -1,5 +1,5 @@
-use std::io::{Read, Write};
 use crate::io::result::{Error, Result};
+use std::io::{Read, Write};
 
 // TODO: Reexporting byteorder's traits and types. Consider not leaking this implementation detail
 // by creating a wrapper trait/class around this.
@@ -26,13 +26,19 @@ pub enum Endian {
 /// So such types can be implemented via the 1-liner `impl Binary for MyNonStreamableType {}`.
 pub trait Binary {
     /// Whether values of type T are streamable.
-    fn is_streamable() -> bool { false }
+    fn is_streamable() -> bool {
+        false
+    }
 
     /// Size of all values of type T, if determinable.
-    fn size_of_type() -> usize { UNKNOWN_SIZE }
+    fn size_of_type() -> usize {
+        UNKNOWN_SIZE
+    }
 
     /// Size of a specific value of type T, if determinable.
-    fn size_of_value(&self) -> usize { Self::size_of_type() }
+    fn size_of_value(&self) -> usize {
+        Self::size_of_type()
+    }
 
     /// Stores `self` into `writer` with statically-specified byte order. Returns the number of
     /// bytes written on success.
@@ -52,7 +58,7 @@ pub trait Binary {
     /// written on success.
     fn store(&self, writer: &mut dyn Write, endian: Endian) -> Result<usize> {
         match endian {
-            Endian::Big    => self.store_endian::<BigEndian>(writer),
+            Endian::Big => self.store_endian::<BigEndian>(writer),
             Endian::Little => self.store_endian::<LittleEndian>(writer),
         }
     }
@@ -61,7 +67,7 @@ pub trait Binary {
     /// on success.
     fn restore(&mut self, reader: &mut dyn Read, endian: Endian) -> Result<usize> {
         match endian {
-            Endian::Big    => self.restore_endian::<BigEndian>(reader),
+            Endian::Big => self.restore_endian::<BigEndian>(reader),
             Endian::Little => self.restore_endian::<LittleEndian>(reader),
         }
     }
@@ -70,7 +76,9 @@ pub trait Binary {
 /// Provides a streamable implementation of `Binary` for vector of the provided streamable type
 /// which is required to have a streamable `Binary` implementation for correct implementation.
 impl<T: Binary> Binary for Vec<T> {
-    fn is_streamable() -> bool { T::is_streamable() }
+    fn is_streamable() -> bool {
+        T::is_streamable()
+    }
 
     fn size_of_value(&self) -> usize {
         if !<Self as Binary>::is_streamable() {
@@ -100,13 +108,12 @@ impl<T: Binary> Binary for Vec<T> {
     }
 }
 
-
 #[cfg(test)]
 pub mod test {
+    use crate::io::binary::traits::Endian;
+    use crate::io::binary::{Binary, UNKNOWN_SIZE};
     use std::fmt::Debug;
     use std::io::Cursor;
-    use crate::io::binary::{Binary, UNKNOWN_SIZE};
-    use crate::io::binary::traits::Endian;
 
     pub fn test_store<T: Binary>(endian: Endian, value: &T, expected_bytes: &[u8]) {
         let mut buf = Vec::<u8>::new();
@@ -119,7 +126,9 @@ pub mod test {
     }
 
     pub fn test_restore<F, T>(endian: Endian, bytes: &[u8], new: F, expected_value: &T)
-        where T: Binary + Debug + PartialEq<T>, F: FnOnce() -> T
+    where
+        T: Binary + Debug + PartialEq<T>,
+        F: FnOnce() -> T,
     {
         let mut buf = Cursor::new(Vec::from(bytes));
         let mut value = new();

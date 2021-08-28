@@ -1,9 +1,9 @@
 //! See documentation for the `Quadric` struct.
 
+use crate::geometry::math::BaseFloat;
+use crate::geometry::vector::{Dot, Norm, Vec3, Vec4};
 use num::traits::{One, Zero};
 use std::ops::{Add, Mul};
-use crate::geometry::math::BaseFloat;
-use crate::geometry::vector::{Vec3, Vec4, Dot, Norm};
 
 #[repr(C)]
 #[derive(Eq, PartialEq, Clone, Hash, Debug, Copy)]
@@ -18,8 +18,11 @@ use crate::geometry::vector::{Vec3, Vec4, Dot, Norm};
 /// [    7 8]   [    h i]   [      zz zw]
 /// [      9]   [      j]   [         ww]
 /// ```
-pub struct Quadric<Scalar> where Scalar: Copy {
-  m: [Scalar; 10]
+pub struct Quadric<Scalar>
+where
+    Scalar: Copy,
+{
+    m: [Scalar; 10],
 }
 
 impl<Scalar: BaseFloat> Quadric<Scalar> {
@@ -27,17 +30,20 @@ impl<Scalar: BaseFloat> Quadric<Scalar> {
     pub fn from_matrix(m: [Scalar; 10]) -> Self {
         Quadric { m }
     }
+
     /// Quadric representing distance from plane defined by ax + by + cz + d = 0.
+    #[rustfmt::skip]
     pub fn from_plane_coeffs(a: Scalar, b: Scalar, c: Scalar, d: Scalar) -> Self {
         Quadric {
             m: [
-                /* */ a * a, a * b,  a * c,  a * d,
-                /* */        b * b,  b * c,  b * d,
-                /* */                c * c,  c * d,
-                /* */                        d * d,
-            ]
+                a * a, a * b, a * c, a * d,
+                       b * b, b * c, b * d,
+                              c * c, c * d,
+                                     d * d,
+            ],
         }
     }
+
     /// Quadric representing distance from plane defined by normal n and point pt.
     pub fn from_plane(n: &Vec3<Scalar>, pt: &Vec3<Scalar>) -> Self {
         Self::from_plane_coeffs(n[0], n[1], n[2], -n.dot(&pt))
@@ -47,83 +53,73 @@ impl<Scalar: BaseFloat> Quadric<Scalar> {
     pub fn set(&mut self, m: [Scalar; 10]) {
         self.m = m;
     }
+
     /// Sets quadric to represent the squared distance to a point.
+    #[rustfmt::skip]
     pub fn set_distance_to_point(&mut self, pt: Vec3<Scalar>) {
         self.m = [
-            /* */ One::one(), Zero::zero(), Zero::zero(), -pt[0],
-            /* */               One::one(), Zero::zero(), -pt[1],
-            /* */                             One::one(), -pt[2],
-            /* */                                    pt.sqnorm(),
+            One::one(), Zero::zero(), Zero::zero(), -pt[0],
+                          One::one(), Zero::zero(), -pt[1],
+                                        One::one(), -pt[2],
+                                               pt.sqnorm(),
         ];
     }
+
     /// Sets quadric to represent the squared distance to a plane represented by
     /// ax + by + cz + d = 0.
     pub fn set_distance_to_plane_coeffs(&mut self, a: Scalar, b: Scalar, c: Scalar, d: Scalar) {
         self.m = Self::from_plane_coeffs(a, b, c, d).m;
     }
+
     /// Sets quadric to represent the squared distance to a plane that is normal to vector n and
     /// goes through a point pt.
     pub fn set_distance_to_plane(&mut self, n: &Vec3<Scalar>, pt: &Vec3<Scalar>) {
         self.m = Self::from_plane(n, pt).m;
     }
+
     /// Sets the quadric to all zeros.
     pub fn clear(&mut self) {
         self.m = [Zero::zero(); 10]
     }
+}
 
-    #[allow(missing_docs)]
-    pub fn a(&self)  -> Scalar { self.m[0] }
-    #[allow(missing_docs)]
-    pub fn b(&self)  -> Scalar { self.m[1] }
-    #[allow(missing_docs)]
-    pub fn c(&self)  -> Scalar { self.m[2] }
-    #[allow(missing_docs)]
-    pub fn d(&self)  -> Scalar { self.m[3] }
-    #[allow(missing_docs)]
-    pub fn e(&self)  -> Scalar { self.m[4] }
-    #[allow(missing_docs)]
-    pub fn f(&self)  -> Scalar { self.m[5] }
-    #[allow(missing_docs)]
-    pub fn g(&self)  -> Scalar { self.m[6] }
-    #[allow(missing_docs)]
-    pub fn h(&self)  -> Scalar { self.m[7] }
-    #[allow(missing_docs)]
-    pub fn i(&self)  -> Scalar { self.m[8] }
-    #[allow(missing_docs)]
-    pub fn j(&self)  -> Scalar { self.m[9] }
-
-    #[allow(missing_docs)]
-    pub fn xx(&self) -> Scalar { self.m[0] }
-    #[allow(missing_docs)]
-    pub fn xy(&self) -> Scalar { self.m[1] }
-    #[allow(missing_docs)]
-    pub fn xz(&self) -> Scalar { self.m[2] }
-    #[allow(missing_docs)]
-    pub fn xw(&self) -> Scalar { self.m[3] }
-    #[allow(missing_docs)]
-    pub fn yy(&self) -> Scalar { self.m[4] }
-    #[allow(missing_docs)]
-    pub fn yz(&self) -> Scalar { self.m[5] }
-    #[allow(missing_docs)]
-    pub fn yw(&self) -> Scalar { self.m[6] }
-    #[allow(missing_docs)]
-    pub fn zz(&self) -> Scalar { self.m[7] }
-    #[allow(missing_docs)]
-    pub fn zw(&self) -> Scalar { self.m[8] }
-    #[allow(missing_docs)]
-    pub fn ww(&self) -> Scalar { self.m[9] }
+#[rustfmt::skip]
+impl<Scalar: BaseFloat> Quadric<Scalar> {
+    #[allow(missing_docs)] pub fn a(&self) -> Scalar { self.m[0] }
+    #[allow(missing_docs)] pub fn b(&self) -> Scalar { self.m[1] }
+    #[allow(missing_docs)] pub fn c(&self) -> Scalar { self.m[2] }
+    #[allow(missing_docs)] pub fn d(&self) -> Scalar { self.m[3] }
+    #[allow(missing_docs)] pub fn e(&self) -> Scalar { self.m[4] }
+    #[allow(missing_docs)] pub fn f(&self) -> Scalar { self.m[5] }
+    #[allow(missing_docs)] pub fn g(&self) -> Scalar { self.m[6] }
+    #[allow(missing_docs)] pub fn h(&self) -> Scalar { self.m[7] }
+    #[allow(missing_docs)] pub fn i(&self) -> Scalar { self.m[8] }
+    #[allow(missing_docs)] pub fn j(&self) -> Scalar { self.m[9] }
+    #[allow(missing_docs)] pub fn xx(&self) -> Scalar { self.m[0] }
+    #[allow(missing_docs)] pub fn xy(&self) -> Scalar { self.m[1] }
+    #[allow(missing_docs)] pub fn xz(&self) -> Scalar { self.m[2] }
+    #[allow(missing_docs)] pub fn xw(&self) -> Scalar { self.m[3] }
+    #[allow(missing_docs)] pub fn yy(&self) -> Scalar { self.m[4] }
+    #[allow(missing_docs)] pub fn yz(&self) -> Scalar { self.m[5] }
+    #[allow(missing_docs)] pub fn yw(&self) -> Scalar { self.m[6] }
+    #[allow(missing_docs)] pub fn zz(&self) -> Scalar { self.m[7] }
+    #[allow(missing_docs)] pub fn zw(&self) -> Scalar { self.m[8] }
+    #[allow(missing_docs)] pub fn ww(&self) -> Scalar { self.m[9] }
 }
 
 impl<'a, 'b, Scalar> Quadric<Scalar>
-    where Scalar: Mul<Output=Scalar> + Add<Output=Scalar> + One + Copy + BaseFloat
+where
+    Scalar: Mul<Output = Scalar> + Add<Output = Scalar> + One + Copy + BaseFloat,
 {
     /// Computes `v -> v' M v`.
+    #[rustfmt::skip]
     fn eval_coords(&self, x: Scalar, y: Scalar, z: Scalar, w: Scalar) -> Scalar {
         let two = Scalar::from_f32(2.0f32);
-        /* */ self.m[0] * x*x + self.m[1] * two*x*y + self.m[2] * two*x*z + self.m[3] * two*x*w
-        /* */                 + self.m[4] *     y*y + self.m[5] * two*y*z + self.m[6] * two*y*w
-        /* */                                       + self.m[7] *     z*z + self.m[8] * two*z*w
-        /* */                                                             + self.m[9] *     w*w
+        let ref m = self.m;
+        m[0] * x*x + m[1] * two*x*y + m[2] * two*x*z + m[3] * two*x*w
+                   + m[4]      *y*y + m[5] * two*y*z + m[6] * two*y*w
+                                    + m[7] *     z*z + m[8] * two*z*w
+                                                     + m[9] *     w*w
     }
 
     /// Computes `v -> v' M v` for 4-vectors.
@@ -137,7 +133,7 @@ impl<'a, 'b, Scalar> Quadric<Scalar>
     }
 }
 
-impl<Scalar: BaseFloat + Mul<Output=Scalar>> Quadric<Scalar> {
+impl<Scalar: BaseFloat + Mul<Output = Scalar>> Quadric<Scalar> {
     /// Multiplies a quadric in-place by a scalar.
     pub fn mul_by(&mut self, s: Scalar) {
         for val in self.m.iter_mut() {
@@ -147,7 +143,8 @@ impl<Scalar: BaseFloat + Mul<Output=Scalar>> Quadric<Scalar> {
 }
 
 impl<Scalar: Add + Copy> Add<Quadric<Scalar>> for Quadric<Scalar>
-    where <Scalar as Add>::Output: Copy
+where
+    <Scalar as Add>::Output: Copy,
 {
     type Output = Quadric<<Scalar as Add>::Output>;
 
@@ -164,14 +161,15 @@ impl<Scalar: Add + Copy> Add<Quadric<Scalar>> for Quadric<Scalar>
                 self.m[7] + rhs.m[7],
                 self.m[8] + rhs.m[8],
                 self.m[9] + rhs.m[9],
-            ]
+            ],
         }
     }
 }
 
 // Multiplication by scalar.
 impl<'a, Scalar: Mul + Copy> Mul<Scalar> for &'a Quadric<Scalar>
-    where <Scalar as Mul>::Output: Copy
+where
+    <Scalar as Mul>::Output: Copy,
 {
     type Output = Quadric<<Scalar as Mul>::Output>;
 
@@ -188,14 +186,15 @@ impl<'a, Scalar: Mul + Copy> Mul<Scalar> for &'a Quadric<Scalar>
                 self.m[7] * s,
                 self.m[8] * s,
                 self.m[9] * s,
-            ]
+            ],
         }
     }
 }
 
 // Matrix multiplication by vec4.
 impl<'a, 'b, Scalar> Mul<&'b Vec4<Scalar>> for &'a Quadric<Scalar>
-    where Scalar: Mul<Output=Scalar> + Add<Output=Scalar> + Copy
+where
+    Scalar: Mul<Output = Scalar> + Add<Output = Scalar> + Copy,
 {
     type Output = Vec4<Scalar>;
 
@@ -211,19 +210,25 @@ impl<'a, 'b, Scalar> Mul<&'b Vec4<Scalar>> for &'a Quadric<Scalar>
 
 // Matrix multiplication by vec4.
 impl<'a, Scalar> Mul<Vec4<Scalar>> for &'a Quadric<Scalar>
-    where Scalar: Mul<Output=Scalar> + Add<Output=Scalar> + Copy
+where
+    Scalar: Mul<Output = Scalar> + Add<Output = Scalar> + Copy,
 {
     type Output = Vec4<Scalar>;
 
     #[allow(clippy::op_ref)]
-    fn mul(self, v: Vec4<Scalar>) -> Self::Output { self * &v }
+    fn mul(self, v: Vec4<Scalar>) -> Self::Output {
+        self * &v
+    }
 }
 
 impl<Scalar: Zero + Copy> Zero for Quadric<Scalar> {
     /// Zero quadric.
     fn zero() -> Self {
-        Quadric { m: [Zero::zero(); 10] }
+        Quadric {
+            m: [Zero::zero(); 10],
+        }
     }
+
     /// Whether the quadric is zero.
     fn is_zero(&self) -> bool {
         self.m.iter().all(|v| v.is_zero())
@@ -235,19 +240,24 @@ pub type Quadricf = Quadric<f32>;
 /// Alias for Quadric<f64>.
 pub type Quadricd = Quadric<f64>;
 
-
 #[cfg(test)]
 mod test {
+    use crate::geometry::quadric::{Quadric, Quadricd};
+    use crate::geometry::vector::{Norm, Vec3, Vec4};
     use num::traits::Zero;
-    use crate::geometry::vector::{Vec3, Vec4, Norm};
-    use crate::geometry::quadric::{Quadric,Quadricd};
 
     #[test]
     fn test_init() {
         println!("{:?}", Quadricd::zero());
-        println!("{:?}", Quadric::from_matrix([1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0]));
+        println!(
+            "{:?}",
+            Quadric::from_matrix([1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0])
+        );
         println!("{:?}", Quadric::from_plane_coeffs(1.0, 2.0, 3.0, 4.0));
-        println!("{:?}", Quadric::from_plane(&Vec3::new(1.0, 2.0, 3.0), &Vec3::new(-1.0, 0.0, -1.0)));
+        println!(
+            "{:?}",
+            Quadric::from_plane(&Vec3::new(1.0, 2.0, 3.0), &Vec3::new(-1.0, 0.0, -1.0))
+        );
     }
 
     #[test]

@@ -2,21 +2,24 @@ use crate::io::binary::{Binary, UNKNOWN_SIZE};
 //use crate::geometry::vector::{Vec2, Vec3, Vec4, Vec6};
 use crate::property::Value;
 use crate::util::bitvec::BitVec;
-use crate::util::index::{IndexUnchecked, IndexSetUnchecked, IndexSet};
+use crate::util::index::{IndexSet, IndexSetUnchecked, IndexUnchecked};
 
 /// Abstraction to support multiple underlying storage types for property lists.
 pub trait Storage:
-    Clone + Default +
-    ::std::ops::Index<usize> +
-    IndexUnchecked<usize> +
-    IndexSetUnchecked<usize> +
-    IndexSet<usize>
+    Clone
+    + Default
+    + ::std::ops::Index<usize>
+    + IndexUnchecked<usize>
+    + IndexSetUnchecked<usize>
+    + IndexSet<usize>
 {
     /// Type of the items stored in the storage.
     type Value: Clone + Default;
 
     /// Create object with given storage size.
-    fn new() -> Self { Default::default() }
+    fn new() -> Self {
+        Default::default()
+    }
     /// Element size w.r.t. storing the full storage.
     fn element_size() -> usize;
     /// Number of elements.
@@ -44,22 +47,44 @@ pub trait Storage:
 /// Allows picking the optimal storage container for implemented type.
 pub trait StorageFor: Clone + Default {
     /// Storage container type to be used to store objects of type `Self`.
-    type Storage: Storage<Value=Self> + Binary;
+    type Storage: Storage<Value = Self> + Binary;
 }
 
 impl<T: Value> Storage for Vec<T> {
     type Value = T;
-    fn len(&self) -> usize { Vec::len(self) }
-    fn is_empty(&self) -> bool { Vec::is_empty(self) }
-    fn element_size() -> usize { <T as Binary>::size_of_type() }
-    fn get(&self, i: usize) -> &Self::Value { &self[i] }
-    unsafe fn get_unchecked(&self, i: usize) -> &Self::Value { &self[i] }
-    fn set(&mut self, i: usize, value: T) { self[i] = value; }
-    unsafe fn set_unchecked(&mut self, i: usize, value: T) { *self.get_unchecked_mut(i) = value; }
-    fn swap(&mut self, i: usize, j: usize) { <[T]>::swap(self, i, j) }
-    fn resize(&mut self, n: usize) { Vec::resize(self, n, Default::default()) }
-    fn reserve_more(&mut self, n: usize) { self.reserve(n) }
-    fn push(&mut self) { Vec::push(self, Default::default()) }
+    fn len(&self) -> usize {
+        Vec::len(self)
+    }
+    fn is_empty(&self) -> bool {
+        Vec::is_empty(self)
+    }
+    fn element_size() -> usize {
+        <T as Binary>::size_of_type()
+    }
+    fn get(&self, i: usize) -> &Self::Value {
+        &self[i]
+    }
+    unsafe fn get_unchecked(&self, i: usize) -> &Self::Value {
+        &self[i]
+    }
+    fn set(&mut self, i: usize, value: T) {
+        self[i] = value;
+    }
+    unsafe fn set_unchecked(&mut self, i: usize, value: T) {
+        *self.get_unchecked_mut(i) = value;
+    }
+    fn swap(&mut self, i: usize, j: usize) {
+        <[T]>::swap(self, i, j)
+    }
+    fn resize(&mut self, n: usize) {
+        Vec::resize(self, n, Default::default())
+    }
+    fn reserve_more(&mut self, n: usize) {
+        self.reserve(n)
+    }
+    fn push(&mut self) {
+        Vec::push(self, Default::default())
+    }
 }
 
 /// Implements trait to assert that the optimal storage for the specified
@@ -70,7 +95,7 @@ macro_rules! impl_vec_storage_for {
         impl $crate::property::StorageFor for $Type {
             type Storage = Vec<$Type>;
         }
-    }
+    };
 }
 impl_vec_storage_for!(i8);
 impl_vec_storage_for!(i16);
@@ -110,21 +135,39 @@ impl_vec_storage_for!(String);
 
 impl Storage for BitVec {
     type Value = bool;
-    fn len(&self) -> usize { BitVec::len(self) }
-    fn is_empty(&self) -> bool { BitVec::is_empty(self) }
-    fn element_size() -> usize { UNKNOWN_SIZE }
-    fn get(&self, i: usize) -> &Self::Value { &self[i] }
+    fn len(&self) -> usize {
+        BitVec::len(self)
+    }
+    fn is_empty(&self) -> bool {
+        BitVec::is_empty(self)
+    }
+    fn element_size() -> usize {
+        UNKNOWN_SIZE
+    }
+    fn get(&self, i: usize) -> &Self::Value {
+        &self[i]
+    }
     unsafe fn get_unchecked(&self, i: usize) -> &Self::Value {
         <Self as IndexUnchecked<usize>>::index_unchecked(&self, i)
     }
-    fn set(&mut self, i: usize, value: bool) { BitVec::set(self, i, value); }
+    fn set(&mut self, i: usize, value: bool) {
+        BitVec::set(self, i, value);
+    }
     unsafe fn set_unchecked(&mut self, i: usize, value: bool) {
         BitVec::set_unchecked(self, i, value);
     }
-    fn swap(&mut self, i: usize, j: usize) { BitVec::swap(self, i, j) }
-    fn resize(&mut self, n: usize) { BitVec::resize(self, n, Default::default()) }
-    fn reserve_more(&mut self, n: usize) { self.reserve(n) }
-    fn push(&mut self) { BitVec::push(self, Default::default()) }
+    fn swap(&mut self, i: usize, j: usize) {
+        BitVec::swap(self, i, j)
+    }
+    fn resize(&mut self, n: usize) {
+        BitVec::resize(self, n, Default::default())
+    }
+    fn reserve_more(&mut self, n: usize) {
+        self.reserve(n)
+    }
+    fn push(&mut self) {
+        BitVec::push(self, Default::default())
+    }
 }
 
 impl StorageFor for bool {

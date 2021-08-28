@@ -1,9 +1,9 @@
 //! This is a port of OpenMesh 5.1 Core to Rust.
 //! The original [OpenMesh](http://www.openmesh.org/) is a C++ implementation of "A
 //! generic and efficient polygon mesh data structure".
-//! 
+//!
 //! # Dependencies exposed in the API
-//! 
+//!
 //! * nalgebra-rs is used for geometric primitives like vectors.
 
 #![warn(missing_docs)]

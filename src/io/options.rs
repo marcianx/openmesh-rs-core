@@ -41,32 +41,35 @@ bitflags! {
     }
 }
 
+macro_rules! def_getter {
+    ($method:ident, $value:ident) => {
+        #[allow(missing_docs)]
+        pub fn $method(self) -> bool {
+            self.contains($value)
+        }
+    };
+}
+
 impl Options {
     /// Inserts the specified flags into `self` if `b` is true; otherwise removes them.
     pub fn update(&mut self, other: Options, b: bool) {
-        if b { self.insert(other) } else { self.remove(other) }
+        if b {
+            self.insert(other)
+        } else {
+            self.remove(other)
+        }
     }
 
-    #[allow(missing_docs)] 
-    pub fn is_binary          (self) -> bool { self.contains(BINARY          ) }
-    #[allow(missing_docs)] 
-    pub fn vertex_has_normal  (self) -> bool { self.contains(VERTEX_NORMAL   ) }
-    #[allow(missing_docs)] 
-    pub fn vertex_has_color   (self) -> bool { self.contains(VERTEX_COLOR    ) }
-    #[allow(missing_docs)] 
-    pub fn vertex_has_texcoord(self) -> bool { self.contains(VERTEX_TEX_COORD) }
-    #[allow(missing_docs)] 
-    pub fn edge_has_color     (self) -> bool { self.contains(EDGE_COLOR      ) }
-    #[allow(missing_docs)] 
-    pub fn face_has_normal    (self) -> bool { self.contains(FACE_NORMAL     ) }
-    #[allow(missing_docs)] 
-    pub fn face_has_color     (self) -> bool { self.contains(FACE_COLOR      ) }
-    #[allow(missing_docs)] 
-    pub fn face_has_texcoord  (self) -> bool { self.contains(FACE_TEX_COORD  ) }
-    #[allow(missing_docs)] 
-    pub fn color_has_alpha    (self) -> bool { self.contains(COLOR_ALPHA     ) }
-    #[allow(missing_docs)] 
-    pub fn color_is_float     (self) -> bool { self.contains(COLOR_FLOAT     ) }
+    def_getter! { is_binary          , BINARY }
+    def_getter! { vertex_has_normal  , VERTEX_NORMAL }
+    def_getter! { vertex_has_color   , VERTEX_COLOR }
+    def_getter! { vertex_has_texcoord, VERTEX_TEX_COORD }
+    def_getter! { edge_has_color     , EDGE_COLOR }
+    def_getter! { face_has_normal    , FACE_NORMAL }
+    def_getter! { face_has_color     , FACE_COLOR }
+    def_getter! { face_has_texcoord  , FACE_TEX_COORD }
+    def_getter! { color_has_alpha    , COLOR_ALPHA }
+    def_getter! { color_is_float     , COLOR_FLOAT }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -105,4 +108,3 @@ mod test {
         assert!(flags.color_is_float());
     }
 }
-

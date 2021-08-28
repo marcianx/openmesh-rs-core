@@ -7,13 +7,12 @@ pub use self::traits::*;
 
 // Trait implementations
 mod bitvec;
-mod primitives;
-mod string;
-mod status;
 mod geometry;
+mod primitives;
+mod status;
+mod string;
 pub use self::bitvec::*;
-pub use self::primitives::*;
-pub use self::string::*;
-pub use self::status::*;
 pub use self::geometry::*;
-
+pub use self::primitives::*;
+pub use self::status::*;
+pub use self::string::*;
