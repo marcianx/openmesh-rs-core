@@ -80,11 +80,25 @@ pub trait Handle:
 /// Note: This adds the `::std::any::Any` trait constraint on all the type parameters for
 /// implementing `property::Handle`.
 macro_rules! def_handle {
-    (@def $Handle:ident ( $($Types:ident),* ), $doc:expr) => {
+    // Needs to be handled seperately since an empty tuple can't be
+    // written as `(,)`. See comment below.
+    (@def_struct $Handle:ident ( ), $doc:expr) => {
+        #[doc=$doc]
+        pub struct $Handle($crate::property::Index, ::std::marker::PhantomData<()>);
+    };
+
+    // `PhantomData` uses a trailing comma for `$Types` expansion to
+    // avoid unnecessary parens warning when only a single type is
+    // passed in.
+    (@def_struct $Handle:ident ( $($Types:ident),+ ), $doc:expr) => {
         #[doc=$doc]
         pub struct $Handle<$($Types),*>(
             $crate::property::Index,
-            ::std::marker::PhantomData<($($Types),*)>);
+            ::std::marker::PhantomData<($($Types),* ,)>);
+    };
+
+    (@def $Handle:ident ( $($Types:ident),* ), $doc:expr) => {
+        def_handle!(@def_struct $Handle ( $($Types),* ), $doc);
 
         impl<$($Types),*> ::std::default::Default for $Handle<$($Types),*> {
             fn default() -> Self {
