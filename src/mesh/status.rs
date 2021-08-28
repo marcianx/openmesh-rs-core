@@ -7,23 +7,23 @@ pub type FlagBits = u32;
 
 bitflags::bitflags! {
     #[doc = "Flags for each vertex/halfedge/edge/face field."]
-    flags Status: FlagBits {
+    pub struct Status: FlagBits {
         #[doc = "Whether the item is deleted."]
-        const DELETED           = 1,
+        const DELETED           = 1;
         #[doc = "Whether the item is locked."]
-        const LOCKED            = 2,
+        const LOCKED            = 2;
         #[doc = "Whether the item is selected."]
-        const SELECTED          = 4,
+        const SELECTED          = 4;
         #[doc = "Whether the item is hidden."]
-        const HIDDEN            = 8,
+        const HIDDEN            = 8;
         #[doc = "Whether the item is a feature."]
-        const FEATURE           = 16,
+        const FEATURE           = 16;
         #[doc = "Whether the item is a tagged."]
-        const TAGGED            = 32,
+        const TAGGED            = 32;
         #[doc = "Whether the item is a tagged (alternate flag)."]
-        const TAGGED2           = 64,
+        const TAGGED2           = 64;
         #[doc = "Whether the item was non-2-manifold and was fixed."]
-        const FIXED_NON_MANIFOLD = 128,
+        const FIXED_NON_MANIFOLD = 128;
     }
 }
 
@@ -31,12 +31,12 @@ macro_rules! def_methods {
     ($name:ident, $set_name:ident, $flag:ident) => {
         #[doc = concat!("Whether the ", stringify!($flag), " flag is set.")]
         pub fn $name(self) -> bool {
-            self.contains($flag)
+            self.contains(Status::$flag)
         }
 
         #[doc = concat!("Sets the ", stringify!($flag), " flag.")]
         pub fn $set_name(&mut self, b: bool) {
-            self.update($flag, b);
+            self.update(Status::$flag, b);
         }
     };
 }

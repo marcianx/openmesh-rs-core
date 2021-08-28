@@ -7,37 +7,37 @@ pub type FlagBits = u32;
 
 bitflags! {
     #[doc = "OpenMesh I/O options a represented by bit-flags."]
-    flags Options: FlagBits {
+    pub struct Options: FlagBits {
         #[doc = "No options"]
-        const DEFAULT           = 0x0000,
+        const DEFAULT           = 0x0000;
         #[doc = "Set binary mode for r/w"]
-        const BINARY            = 0x0001,
+        const BINARY            = 0x0001;
         #[doc = "Assume big endian byte ordering"]
-        const MSB               = 0x0002,
+        const MSB               = 0x0002;
         #[doc = "Assume little endian byte ordering"]
-        const LSB               = 0x0004,
+        const LSB               = 0x0004;
         #[doc = "Swap byte order in binary mode"]
-        const SWAP              = 0x0008,
+        const SWAP              = 0x0008;
         #[doc = "Has (r) / store (w) vertex normals"]
-        const VERTEX_NORMAL     = 0x0010,
+        const VERTEX_NORMAL     = 0x0010;
         #[doc = "Has (r) / store (w) vertex colors"]
-        const VERTEX_COLOR      = 0x0020,
+        const VERTEX_COLOR      = 0x0020;
         #[doc = "Has (r) / store (w) texture coordinates"]
-        const VERTEX_TEX_COORD  = 0x0040,
+        const VERTEX_TEX_COORD  = 0x0040;
         #[doc = "Has (r) / store (w) edge colors"]
-        const EDGE_COLOR        = 0x0080,
+        const EDGE_COLOR        = 0x0080;
         #[doc = "Has (r) / store (w) face normals"]
-        const FACE_NORMAL       = 0x0100,
+        const FACE_NORMAL       = 0x0100;
         #[doc = "Has (r) / store (w) face colors"]
-        const FACE_COLOR        = 0x0200,
+        const FACE_COLOR        = 0x0200;
         #[doc = "Has (r) / store (w) face texture coordinates"]
-        const FACE_TEX_COORD    = 0x0400,
+        const FACE_TEX_COORD    = 0x0400;
         #[doc = "Has (r) / store (w) alpha values for colors"]
-        const COLOR_ALPHA       = 0x0800,
+        const COLOR_ALPHA       = 0x0800;
         #[doc = "Has (r) / store (w) float values for colors (currently only implemented for PLY and OFF files)"]
-        const COLOR_FLOAT       = 0x1000,
+        const COLOR_FLOAT       = 0x1000;
         #[doc = "Has (r) custom properties (currently only implemented in PLY Reader ASCII version"]
-        const CUSTOM            = 0x2000,
+        const CUSTOM            = 0x2000;
     }
 }
 
@@ -45,7 +45,7 @@ macro_rules! def_getter {
     ($method:ident, $value:ident) => {
         #[allow(missing_docs)]
         pub fn $method(self) -> bool {
-            self.contains($value)
+            self.contains(Options::$value)
         }
     };
 }

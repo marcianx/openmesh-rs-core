@@ -1,7 +1,7 @@
 //! Iterators to enumerate all items in the mesh, skipping DELETED and HIDDEN items.
 
 use crate::mesh::item_handle::MeshItemHandle;
-use crate::mesh::status::{self, Status};
+use crate::mesh::status::Status;
 use crate::mesh::Mesh;
 use crate::property::PropertyList;
 
@@ -35,7 +35,7 @@ impl<'a, H: MeshItemHandle> Clone for IterBase<'a, H> {
 impl<'a, H: MeshItemHandle> IterBase<'a, H> {
     fn new(mesh: &'a Mesh, handle: H, skip: bool, is_fwd: bool) -> IterBase<'a, H> {
         // This should be a const, but user-defined operators cannot be used to initialize them.
-        let skippable: Status = status::DELETED | status::HIDDEN;
+        let skippable: Status = Status::DELETED | Status::HIDDEN;
 
         let mut iter = IterBase {
             mesh,
@@ -187,7 +187,7 @@ impl<'a, H: MeshItemHandle> Iterator for BwdIter<'a, H> {
 mod test {
     use super::{BwdIter, FwdIter};
     use crate::mesh::item_handle::VertexHandle;
-    use crate::mesh::status::{DELETED, HIDDEN, SELECTED};
+    use crate::mesh::status::Status;
     use crate::mesh::Mesh;
     use crate::property::Handle; // For constructor.
     use crate::property::{Index, Size};
@@ -215,12 +215,12 @@ mod test {
             *status = if skip_index_fn(&(i as Index)) {
                 skip_type += 1;
                 (match skip_type % 3 {
-                    0 => DELETED,
-                    1 => HIDDEN,
-                    _ => DELETED | HIDDEN,
-                } | SELECTED)
+                    0 => Status::DELETED,
+                    1 => Status::HIDDEN,
+                    _ => Status::DELETED | Status::HIDDEN,
+                } | Status::SELECTED)
             } else {
-                SELECTED
+                Status::SELECTED
             }
         }
         mesh
