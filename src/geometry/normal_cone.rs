@@ -1,22 +1,22 @@
 //! See documentation for the `NormalCone` struct.
 
-use crate::geometry::math::{max, min, BaseFloat};
-use crate::geometry::vector::{Dot, Vec3};
+use crate::geometry::math::{max, min, Real};
+use crate::geometry::vector::Vec3;
 use num::traits::{One, Zero};
 
 #[repr(C)]
-#[derive(Eq, PartialEq, Clone, Hash, Debug, Copy)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 /// Normal cone as defined by a direction vector and the angle from the vector to the cone surface.
-pub struct NormalCone<T> {
+pub struct NormalCone<T: Real> {
     center_normal: Vec3<T>,
     angle: T,
 }
 
-impl<T: BaseFloat + One + Zero> NormalCone<T> {
+impl<T: Real> NormalCone<T> {
     /// Plane normal to vector n that contains point pt.
-    pub fn new(center_normal: &Vec3<T>, angle: T) -> Self {
+    pub fn new(center_normal: Vec3<T>, angle: T) -> Self {
         NormalCone {
-            center_normal: *center_normal,
+            center_normal,
             angle,
         }
     }
@@ -109,7 +109,7 @@ pub type NormalConed = NormalCone<f64>;
 mod test {
     use crate::geometry::math::FloatCompare;
     use crate::geometry::normal_cone::{NormalCone, NormalConed};
-    use crate::geometry::vector::{Norm, Vec3};
+    use crate::geometry::vector::Vec3;
     use std::f64;
 
     const PI: f64 = f64::consts::PI;
@@ -118,9 +118,9 @@ mod test {
     #[test]
     fn test_init() {
         println!("{:?}", NormalConed::zero());
-        println!("{:?}", NormalCone::new(&Vec3::new(1.0, 2.0, 3.0), TWO_PI));
+        println!("{:?}", NormalCone::new(Vec3::new(1.0, 2.0, 3.0), TWO_PI));
         assert_eq!(
-            NormalCone::new(&Vec3::new(0.0, 0.0, 0.0), 0.0),
+            NormalCone::new(Vec3::new(0.0, 0.0, 0.0), 0.0),
             NormalCone::zero()
         );
     }
@@ -130,7 +130,7 @@ mod test {
         let angle = PI / 8.0;
         let dir = Vec3::new(1.0, 2.0, 3.0);
         let dir_perp = Vec3::new(-1.0, 2.0, -1.0);
-        let cone = NormalCone::new(&dir, angle);
+        let cone = NormalCone::new(dir, angle);
         assert!(cone.max_angle_to_vec(&dir).is_eq(angle));
         let max_angle = cone.max_angle_to_vec(&dir_perp);
         assert!(
@@ -154,10 +154,10 @@ mod test {
         let angle2 = PI / 4.0;
         let dir = Vec3::new(1.0, 2.0, 3.0);
         let dir_perp = Vec3::new(-1.0, 2.0, -1.0);
-        let cone = NormalCone::new(&dir, angle1);
-        let cone_parallel = NormalCone::new(&dir, angle2);
-        let cone_perp = NormalCone::new(&dir_perp, angle2);
-        let cone_opp = NormalCone::new(&-dir, angle2);
+        let cone = NormalCone::new(dir, angle1);
+        let cone_parallel = NormalCone::new(dir, angle2);
+        let cone_perp = NormalCone::new(dir_perp, angle2);
+        let cone_opp = NormalCone::new(-dir, angle2);
         // NOTE: Really, expected angle1 + angle2 instead of 2*angle2.
         assert!(cone.max_angle_to_cone(&cone_parallel).is_eq(2.0 * angle2));
         assert!(cone
@@ -177,21 +177,21 @@ mod test {
         let dir_unit_perp = dir_perp.normalize();
 
         // Cones in the same direction.
-        let mut cone1 = NormalCone::new(&dir, angle / 16.0);
-        let cone2 = NormalCone::new(&dir, angle);
+        let mut cone1 = NormalCone::new(dir, angle / 16.0);
+        let cone2 = NormalCone::new(dir, angle);
         cone1.merge(&cone2);
         assert_eq!(cone1.angle(), angle);
         assert_eq!(cone1.center_normal(), &dir);
 
         // Cones in opposite directions.
-        cone1 = NormalCone::new(&dir, angle / 16.0);
-        let cone2 = NormalCone::new(&-dir, angle);
+        cone1 = NormalCone::new(dir, angle / 16.0);
+        let cone2 = NormalCone::new(-dir, angle);
         cone1.merge(&cone2);
         assert_eq!(cone1.angle(), TWO_PI);
 
         // Cones of the same size perpendicular to each other.
-        cone1 = NormalCone::new(&dir_unit, angle);
-        let cone2 = NormalCone::new(&dir_unit_perp, angle);
+        cone1 = NormalCone::new(dir_unit, angle);
+        let cone2 = NormalCone::new(dir_unit_perp, angle);
         cone1.merge(&cone2);
         let expected_angle = PI / 4.0 + angle;
         let expected_normal = ((dir_unit + dir_unit_perp) / 2.0).normalize();
@@ -204,8 +204,8 @@ mod test {
         assert!((*cone1.center_normal() - expected_normal).norm().is_zero());
 
         // Cones of different sizes perpendicular to each other.
-        cone1 = NormalCone::new(&dir, angle / 16.0);
-        let cone2 = NormalCone::new(&dir_perp, angle);
+        cone1 = NormalCone::new(dir, angle / 16.0);
+        let cone2 = NormalCone::new(dir_perp, angle);
         cone1.merge(&cone2);
         let expected_angle = PI / 4.0 + angle * (17.0 / 32.0);
         assert!(

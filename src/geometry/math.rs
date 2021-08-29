@@ -1,16 +1,14 @@
 //! Floating point utility functions.
 
-use num::traits::Float;
-
 /// Methods for floating point representations, building on `nalgebra`'s eponymous trait.
-pub trait BaseFloat: nalgebra::BaseFloat {
+pub trait Real: nalgebra::RealField + Copy {
     /// Returns the default epsilon value for floating point equality tests.
     fn eps() -> Self;
-    /// From float.
+    /// From Real.
     fn from_f32(val: f32) -> Self;
 }
 
-impl BaseFloat for f32 {
+impl Real for f32 {
     fn eps() -> Self {
         1e-05f32
     }
@@ -19,7 +17,7 @@ impl BaseFloat for f32 {
     }
 }
 
-impl BaseFloat for f64 {
+impl Real for f64 {
     fn eps() -> Self {
         1e-09f64
     }
@@ -28,8 +26,8 @@ impl BaseFloat for f64 {
     }
 }
 
-/// Comparison methods for all `BaseFloat` types.
-pub trait FloatCompare: BaseFloat {
+/// Comparison methods for all `Real` types.
+pub trait FloatCompare: Real {
     /// Returns whether self is within the provided epsilon from 0.
     #[inline(always)]
     fn is_zero_eps(self, eps: Self) -> bool {
@@ -97,21 +95,21 @@ pub trait FloatCompare: BaseFloat {
     }
 }
 
-impl<T: BaseFloat> FloatCompare for T {}
+impl<T: Real> FloatCompare for T {}
 
 /// Max for floating point types as per the standard library.
-pub fn max<T: Float>(v1: T, v2: T) -> T {
+pub fn max<T: Real>(v1: T, v2: T) -> T {
     v1.max(v2)
 }
 
 /// Min for floating point types as per the standard library.
-pub fn min<T: Float>(v1: T, v2: T) -> T {
+pub fn min<T: Real>(v1: T, v2: T) -> T {
     v1.min(v2)
 }
 
 /// Adds 2pi to the angle if it is negative.
 #[inline(always)]
-pub fn positive_angle<T: BaseFloat>(ang: T) -> T {
+pub fn positive_angle<T: Real>(ang: T) -> T {
     if ang >= T::zero() {
         ang
     } else {
@@ -122,12 +120,12 @@ pub fn positive_angle<T: BaseFloat>(ang: T) -> T {
 /// Computes the angle in (-pi, pi] based on the provided y (`self`) and `x`-coordinates of the
 /// vector from the origin.
 #[inline(always)]
-pub fn angle2<T: BaseFloat>(y: T, x: T) -> T {
+pub fn angle2<T: Real>(y: T, x: T) -> T {
     T::atan2(y, x)
 }
 
 /// Computes the angle in [0, 2pi) based on the provided y (`self`) and `x`-coordinates of the
 /// vector from the origin.
-pub fn positive_angle2<T: BaseFloat>(y: T, x: T) -> T {
+pub fn positive_angle2<T: Real>(y: T, x: T) -> T {
     positive_angle(angle2(y, x))
 }

@@ -1,37 +1,48 @@
 //! See documentation for the `Plane3` struct.
 
-use crate::geometry::math::BaseFloat;
-use crate::geometry::vector::{Dot, Norm, Vec3};
-use num::traits::Zero;
+use crate::geometry::math::Real;
+use crate::geometry::vector::Vec3;
+use num::traits::{One, Zero};
 
 #[repr(C)]
-#[derive(Eq, PartialEq, Clone, Hash, Debug, Copy)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 /// Defines a plane in the form:
 ///   n . <x, y, z> + d = 0
-pub struct Plane3<T> {
-    #[allow(missing_docs)]
-    pub n: Vec3<T>,
-    #[allow(missing_docs)]
-    pub d: T,
+pub struct Plane3<T: Real> {
+    n: Vec3<T>,
+    d: T,
 }
 
-impl<T: BaseFloat> Plane3<T> {
-    /// Plane normal to vector n that contains point pt.
-    pub fn new(n: &Vec3<T>, pt: &Vec3<T>) -> Self {
-        let mut n = *n;
-        n.normalize_mut();
-        Plane3 { n, d: -n.dot(&pt) }
+impl<T: Real> Plane3<T> {
+    /// Plane normal to vector `n` that contains point `pt`. `n` must be non-zero.
+    pub fn new(mut n: Vec3<T>, pt: &Vec3<T>) -> Self {
+        let mag = n.norm();
+        assert!(mag > Zero::zero());
+        n.unscale_mut(mag);
+        Plane3 { n, d: -n.dot(pt) }
     }
-    /// Zero plane.
-    pub fn zero() -> Self {
+
+    /// Plane normal - always normalized.
+    pub fn normal(&self) -> Vec3<T> {
+        self.n
+    }
+
+    /// x-y plane.
+    pub fn xy() -> Self {
         Plane3 {
-            n: Zero::zero(),
+            n: Vec3::new(Zero::zero(), Zero::zero(), One::one()),
             d: Zero::zero(),
         }
     }
+
     /// Signed distance of a point from the plane.
     pub fn signed_dist(&self, pt: &Vec3<T>) -> T {
         self.n.dot(&pt) + self.d
+    }
+
+    /// Signed distance to the origin. Same as `self.signed_dist(origin)`.
+    pub fn signed_dist_to_origin(&self) -> T {
+        self.d
     }
 }
 
@@ -47,16 +58,16 @@ mod test {
 
     #[test]
     fn test_init() {
-        println!("{:?}", Plane3d::zero());
+        println!("{:?}", Plane3d::xy());
         println!(
             "{:?}",
-            Plane3d::new(&Vec3::new(1.0, 2.0, 3.0), &Vec3::new(-1.0, 0.0, -1.0))
+            Plane3d::new(Vec3::new(1.0, 2.0, 3.0), &Vec3::new(-1.0, 0.0, -1.0))
         );
     }
 
     #[test]
     fn test_signed_dist() {
-        let q = Plane3d::new(&Vec3::new(1.0, 2.0, 3.0), &Vec3::new(-1.0, 0.0, -1.0));
+        let q = Plane3d::new(Vec3::new(1.0, 2.0, 3.0), &Vec3::new(-1.0, 0.0, -1.0));
         assert!(q.signed_dist(&Vec3::new(-1.0, 0.0, -1.0)) == 0.0);
         assert!(q.signed_dist(&Vec3::new(0.0, 2.0, 2.0)) > 0.0);
         assert!(q.signed_dist(&Vec3::new(-2.0, -2.0, -4.0)) < 0.0);
