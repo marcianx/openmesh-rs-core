@@ -3,7 +3,7 @@
 use bitflags;
 
 #[doc(hidden)]
-pub type FlagBits = u32;
+pub(crate) type FlagBits = u32;
 
 bitflags! {
     #[doc = "OpenMesh I/O options a represented by bit-flags."]
@@ -51,15 +51,6 @@ macro_rules! def_getter {
 }
 
 impl Options {
-    /// Inserts the specified flags into `self` if `b` is true; otherwise removes them.
-    pub fn update(&mut self, other: Options, b: bool) {
-        if b {
-            self.insert(other)
-        } else {
-            self.remove(other)
-        }
-    }
-
     def_getter! { is_binary          , BINARY }
     def_getter! { vertex_has_normal  , VERTEX_NORMAL }
     def_getter! { vertex_has_color   , VERTEX_COLOR }
