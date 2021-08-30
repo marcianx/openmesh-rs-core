@@ -107,7 +107,7 @@ pub type NormalConed = NormalCone<f64>;
 
 #[cfg(test)]
 mod test {
-    use crate::geometry::math::FloatCompare;
+    use crate::geometry::math::RealCompare;
     use crate::geometry::normal_cone::{NormalCone, NormalConed};
     use crate::geometry::vector::Vec3;
     use std::f64;

@@ -27,7 +27,7 @@ impl Real for f64 {
 }
 
 /// Comparison methods for all `Real` types.
-pub trait FloatCompare: Real {
+pub trait RealCompare: Real {
     /// Returns whether self is within the provided epsilon from 0.
     #[inline(always)]
     fn is_zero_eps(self, eps: Self) -> bool {
@@ -95,7 +95,7 @@ pub trait FloatCompare: Real {
     }
 }
 
-impl<T: Real> FloatCompare for T {}
+impl<T: Real> RealCompare for T {}
 
 /// Max for floating point types as per the standard library.
 pub fn max<T: Real>(v1: T, v2: T) -> T {

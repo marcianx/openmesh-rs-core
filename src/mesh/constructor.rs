@@ -1,6 +1,6 @@
 //! Mesh constructors
 
-use crate::geometry::vector::Vec3d;
+use crate::geometry::vector::Vec3;
 use crate::mesh::item_handle::{FaceHandle, HalfedgeHandle, VertexHandle};
 use crate::mesh::items::{Edge, Face, Halfedge, Vertex};
 use crate::mesh::Mesh;
@@ -24,7 +24,7 @@ impl Mesh {
     }
 
     /// Returns a mesh representing this triangle.
-    pub fn triangle(_p1: Vec3d, _p2: Vec3d, _p3: Vec3d) -> Mesh {
+    pub fn triangle(_p1: Vec3<f64>, _p2: Vec3<f64>, _p3: Vec3<f64>) -> Mesh {
         let vh = VertexHandle::from_index;
         let hh = HalfedgeHandle::from_index;
         let fh = FaceHandle::from_index;
@@ -106,7 +106,7 @@ impl Mesh {
 
 #[cfg(test)]
 mod test {
-    use crate::geometry::vector::Vec3d;
+    use crate::geometry::vector::Vec3;
     use crate::mesh::Mesh;
 
     #[test]
@@ -120,7 +120,7 @@ mod test {
 
     #[test]
     fn triangle() {
-        let zero = Vec3d::new(0.0, 0.0, 0.0);
+        let zero = Vec3::new(0.0, 0.0, 0.0);
         let mesh = Mesh::triangle(zero, zero, zero);
         assert_eq!(mesh.vertices().len(), 3);
         assert_eq!(mesh.halfedges().len(), 6);

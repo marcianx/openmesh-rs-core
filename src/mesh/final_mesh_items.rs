@@ -1,6 +1,5 @@
 // TODO: This file is not currently being used.
 use property::ItemHandle;
-use geometry::vector::Vec3d;
 use mesh::attributes::Attributes;
 use mesh::handles::{VertexHandle, HalfedgeHandle, EdgeHandle, FaceHandle};
 
